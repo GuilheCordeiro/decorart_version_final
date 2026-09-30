@@ -15,7 +15,7 @@
 <!-- QRCode.js para geração nativa offline -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- jsQR para leitura automática de QR Code via câmara -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsQR@1.4.0/dist/jsQR.js"></script>
 
 <!-- FIREBASE SDK (Compat Version para scripts inline) -->
 <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
@@ -89,7 +89,6 @@
       box-shadow: 0 0 25px rgba(217, 119, 6, 0.15);
     }
 
-    /* CSS DE IMPRESSÃO ROBUSTO E SEPARADO */
     @media print {
       body.printing-report aside,
       body.printing-report header,
@@ -924,7 +923,7 @@ Zerar Estoque (Master)
 </div>
 </div>
 
-<!-- SCRIPTS DE LÓGICA E DADOS (TEMA CLARO/ESCURO E FIREBASE CONFIGURADO) -->
+<!-- SCRIPTS DE LÓGICA E DADOS (TEMA CLARO/ESCURO E FIREBASE CONFIGURADO COM TEMPO REAL) -->
 <script>
     // =========================================================
     // CONFIGURAÇÃO DO FIREBASE
@@ -944,23 +943,17 @@ Zerar Estoque (Master)
       firebaseApp = firebase.initializeApp(firebaseConfig);
       dbStore = firebase.firestore();
       authService = firebase.auth();
-      console.log("🔥 Firebase inicializado. Conectando a:", firebaseConfig.projectId);
+      console.log("🔥 Firebase inicializado com sucesso.");
     } catch (error) {
       console.error("Erro ao inicializar Firebase.", error);
     }
 
     // =========================================================
-    // BANCO DE DADOS OFFLINE (FALLBACK)
+    // BANCO DE DADOS LOCAL E TEMPO REAL
     // =========================================================
     let DB = {
-      estoque: [
-        { "ID": "CHP-039", "Tipo": "Retalho", "Cor": "ITAPUÃ", "Espessura": 15, "Comprimento": 1340, "Largura": 1850, "Quantidade": 1, "CustoUnitario": 357, "Observacao": "Posto Chicão - Balcão", "NF": "1" },
-        { "ID": "RET-002", "Tipo": "Retalho", "Cor": "BRANCO TX", "Espessura": 18, "Comprimento": 980, "Largura": 1420, "Quantidade": 1, "CustoUnitario": 120, "Observacao": "Armário Embutido Monica", "NF": "-" },
-        { "ID": "CHP-038", "Tipo": "Chapa Inteira", "Cor": "BRANCO", "Espessura": 18, "Comprimento": 2750, "Largura": 1850, "Quantidade": 20, "CustoUnitario": 240, "NF": "632025" }
-      ],
-      saidas: [
-        { "IDItem": "CHP-014", "Tipo": "CARVALHO HANOVER", "Qtd": 5, "Destino": "USADO 5 CHAPAS PARA A AREA DO CAFÉ (POSTO CHICÃO)", "Responsavel": "DANILO GALVÃO", "Data": "2026-09-28", "Status": "Consumido" }
-      ],
+      estoque: [],
+      saidas: [],
       auditoria: [
         { "Data": "2026-09-28 10:00", "Utilizador": "Guilherme Cordeiro", "Acao": "SISTEMA INICIALIZADO", "Detalhes": "Carregamento inicial da base de dados oficial." }
       ],
@@ -985,6 +978,33 @@ Zerar Estoque (Master)
       } else {
         document.documentElement.classList.add('dark');
         document.getElementById('themeIcon').setAttribute('data-lucide', 'sun-medium');
+      }
+
+      // Sincronização em tempo real com o Firestore (Real-Time Updates)
+      if (dbStore) {
+        dbStore.collection("estoque").onSnapshot((snapshot) => {
+          DB.estoque = [];
+          snapshot.forEach((doc) => {
+            let data = doc.data();
+            data.firestoreId = doc.id;
+            DB.estoque.push(data);
+          });
+          refreshAllViews();
+        }, (error) => {
+          console.error("Erro no listener de estoque:", error);
+        });
+
+        dbStore.collection("saidas").onSnapshot((snapshot) => {
+          DB.saidas = [];
+          snapshot.forEach((doc) => {
+            let data = doc.data();
+            data.firestoreId = doc.id;
+            DB.saidas.push(data);
+          });
+          refreshAllViews();
+        }, (error) => {
+          console.error("Erro no listener de saídas:", error);
+        });
       }
 
       try {
@@ -1015,7 +1035,7 @@ Zerar Estoque (Master)
       const dataStr = agora.toISOString().slice(0,10) + ' ' + agora.toTimeString().slice(0,5);
       const log = { Data: dataStr, Utilizador: currentUser ? currentUser.nome : 'Sistema', Acao: acao, Detalhes: detalhes };
       
-      if(dbStore && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
+      if(dbStore) {
           dbStore.collection("auditoria").add(log).catch(console.error);
       }
       DB.auditoria.unshift(log);
@@ -1043,7 +1063,7 @@ Zerar Estoque (Master)
       const btn = document.getElementById('btnEntrarText');
       btn.textContent = "Autenticando...";
 
-      if(authService && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI" && userVal.includes('@')) {
+      if(authService && userVal.includes('@')) {
           try {
               const cred = await authService.signInWithEmailAndPassword(userVal, passVal);
               const userDoc = await dbStore.collection("usuarios").doc(cred.user.uid).get();
@@ -1115,19 +1135,45 @@ Zerar Estoque (Master)
       lucide.createIcons();
     }
 
-    function zerarEstoqueComSenhaMaster() {
-      const senhaInformada = prompt("⚠️ AÇÃO RESTRITA:\nPara zerar o estoque, digite a senha do utilizador MASTER:");
+    // =========================================================
+    // FUNÇÃO CORRIGIDA: VIRADA DE CHAVE (ZERAR ESTOQUE)
+    // =========================================================
+    async function zerarEstoqueComSenhaMaster() {
+      const senhaInformada = prompt("⚠️ AÇÃO RESTRITA:\nPara zerar o estoque na nuvem, digite a senha do utilizador MASTER:");
       if (!senhaInformada) return;
 
       const masterUser = DB.usuarios.find(u => u.master && u.senha === senhaInformada.trim());
       if (masterUser) {
-        if (confirm("Confirma que deseja apagar todo o inventário atual e histórico?")) {
-          DB.estoque = [];
-          DB.saidas = [];
-          registrarAuditoria("Zerar Estoque", "Inventário reiniciado do zero via Senha Master.");
-          refreshAllViews();
-          alert("Estoque zerado com sucesso!");
-          navigate('dashboard');
+        if (confirm("Confirma que deseja apagar todo o inventário atual e o histórico na nuvem permanentemente?")) {
+          try {
+            if (dbStore) {
+              const batch = dbStore.batch();
+              
+              // Apagar todos os documentos de estoque no Firestore
+              const estoqueSnapshot = await dbStore.collection("estoque").get();
+              estoqueSnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+              });
+
+              // Apagar todos os documentos de saídas no Firestore
+              const saidasSnapshot = await dbStore.collection("saidas").get();
+              saidasSnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+              });
+
+              await batch.commit();
+            }
+
+            DB.estoque = [];
+            DB.saidas = [];
+            registrarAuditoria("Zerar Estoque", "Inventário reiniciado do zero via Senha Master.");
+            refreshAllViews();
+            alert("Estoque e histórico zerados com sucesso em tempo real!");
+            navigate('dashboard');
+          } catch (error) {
+            console.error("Erro ao zerar estoque no Firebase:", error);
+            alert("Erro ao comunicar com a nuvem. Verifique a ligação.");
+          }
         }
       } else {
         alert("Senha Master incorreta ou sem permissão!");
@@ -1168,7 +1214,7 @@ Zerar Estoque (Master)
       const search = (document.getElementById('searchChapas')?.value || '').toLowerCase();
       const chapas = DB.estoque.filter(i => i.Tipo === "Chapa Inteira" && (i.Cor.toLowerCase().includes(search) || i.ID.toLowerCase().includes(search)));
       
-      document.getElementById('tableChapasBody').innerHTML = chapas.map((c, indexReal) => {
+      document.getElementById('tableChapasBody').innerHTML = chapas.map((c) => {
         const met = calcularMetricasItem(c.Comprimento, c.Largura, c.Espessura, c.Quantidade);
         const globalIndex = DB.estoque.indexOf(c);
         return `
@@ -1209,7 +1255,7 @@ Zerar Estoque (Master)
       openModal('modalNovaChapa');
     }
 
-    function salvarNovaChapa(e) {
+    async function salvarNovaChapa(e) {
       e.preventDefault();
       const editIdx = parseInt(document.getElementById('editChapaIndex').value, 10);
       const cor = document.getElementById('chapaCor').value.trim().toUpperCase();
@@ -1235,15 +1281,20 @@ Zerar Estoque (Master)
         itemAntigo.CustoUnitario = custo;
         itemAntigo.NF = nf;
         registrarAuditoria("Editar Chapa", `Chapa ${itemAntigo.ID} (${cor}) atualizada.`);
+        
+        if (dbStore && itemAntigo.firestoreId) {
+          await dbStore.collection("estoque").doc(itemAntigo.firestoreId).update({
+            Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg, Quantidade: qtd, CustoUnitario: custo, NF: nf
+          }).catch(console.error);
+        }
       } else {
         const numChapas = DB.estoque.filter(i => i.Tipo === "Chapa Inteira").length + 1;
         const nextId = "CHP-" + String(numChapas).padStart(3, '0');
         const novo = { ID: nextId, Tipo: "Chapa Inteira", Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg, Quantidade: qtd, CustoUnitario: custo, NF: nf };
-        DB.estoque.unshift(novo);
-        registrarAuditoria("Cadastrar Chapa", `Nova chapa ${nextId} (${cor}) cadastrada.`);
         
-        if(dbStore && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
-            dbStore.collection("estoque").add(novo).catch(console.error);
+        registrarAuditoria("Cadastrar Chapa", `Nova chapa ${nextId} (${cor}) cadastrada.`);
+        if (dbStore) {
+          await dbStore.collection("estoque").add(novo).catch(console.error);
         }
       }
 
@@ -1258,7 +1309,7 @@ Zerar Estoque (Master)
       const retalhos = DB.estoque.filter(i => i.Tipo === "Retalho");
       document.getElementById('badgeTotalRetalhosCount').textContent = `${retalhos.length} peças`;
 
-      document.getElementById('tableRetalhosBody').innerHTML = retalhos.map((r, idx) => {
+      document.getElementById('tableRetalhosBody').innerHTML = retalhos.map((r) => {
         const met = calcularMetricasItem(r.Comprimento, r.Largura, r.Espessura, r.Quantidade);
         const globalIndex = DB.estoque.indexOf(r);
         const isChecked = selectedRetalhosIds.has(r.ID);
@@ -1331,7 +1382,7 @@ Zerar Estoque (Master)
       }
     }
 
-    function salvarRetalho(e) {
+    async function salvarRetalho(e) {
       e.preventDefault();
       const editIdx = parseInt(document.getElementById('editRetalhoIndex').value, 10);
       const cor = document.getElementById('retCor').value.trim().toUpperCase();
@@ -1365,6 +1416,12 @@ Zerar Estoque (Master)
         itemAntigo.Observacao = obs;
         itemAntigo.CustoUnitario = parseFloat(custoCalc.toFixed(2));
         registrarAuditoria("Editar Retalho", `Retalho ${itemAntigo.ID} (${cor}) atualizado.`);
+        
+        if (dbStore && itemAntigo.firestoreId) {
+          await dbStore.collection("estoque").doc(itemAntigo.firestoreId).update({
+            Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg, Quantidade: qtd, Observacao: obs, CustoUnitario: parseFloat(custoCalc.toFixed(2))
+          }).catch(console.error);
+        }
       } else {
         const numRet = DB.estoque.filter(i => i.Tipo === "Retalho").length + 1;
         const nextId = "RET-" + String(numRet).padStart(3, '0');
@@ -1380,12 +1437,12 @@ Zerar Estoque (Master)
           Observacao: obs,
           NF: "-"
         };
-        DB.estoque.unshift(novoItem);
+        
         registrarAuditoria("Cadastrar Retalho", `Novo retalho ${nextId} (${cor}) cadastrado.`);
         gerarEtiquetaItem('retalho', novoItem.ID, novoItem.Cor, novoItem.Espessura, novoItem.Comprimento, novoItem.Largura, novoItem.Observacao, novoItem.Quantidade);
         
-        if(dbStore && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
-            dbStore.collection("estoque").add(novoItem).catch(console.error);
+        if (dbStore) {
+          await dbStore.collection("estoque").add(novoItem).catch(console.error);
         }
       }
 
@@ -1396,11 +1453,14 @@ Zerar Estoque (Master)
       refreshAllViews();
     }
 
-    function excluirItemEstoque(globalIndex) {
+    async function excluirItemEstoque(globalIndex) {
       const item = DB.estoque[globalIndex];
       if (!item) return;
       if (confirm(`Deseja realmente remover permanentemente o item ${item.ID} (${item.Cor}) do sistema?`)) {
         selectedRetalhosIds.delete(item.ID);
+        if (dbStore && item.firestoreId) {
+          await dbStore.collection("estoque").doc(item.firestoreId).delete().catch(console.error);
+        }
         DB.estoque.splice(globalIndex, 1);
         registrarAuditoria("Excluir Item", `Item ${item.ID} (${item.Tipo} - ${item.Cor}) removido do estoque.`);
         refreshAllViews();
@@ -1442,11 +1502,10 @@ Zerar Estoque (Master)
       }
     }
 
-    function salvarEntradaLoteTabela() {
+    async function salvarEntradaLoteTabela() {
       const linhas = document.querySelectorAll('#tabelaEntradaLoteCorpo tr');
       if (linhas.length === 0) { alert("Adicione pelo menos uma linha na tabela."); return; }
 
-      let novos = [];
       for (let tr of linhas) {
         const tipo = tr.querySelector('.lote-tipo').value;
         const cor = tr.querySelector('.lote-cor').value.trim().toUpperCase();
@@ -1483,19 +1542,17 @@ Zerar Estoque (Master)
           NF: tipo === 'Chapa Inteira' ? nfProj : '-',
           Observacao: tipo === 'Retalho' ? nfProj : 'Entrada em Lote'
         };
-        novos.push(novoLoteItem);
-        
-        if(dbStore && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
-            dbStore.collection("estoque").add(novoLoteItem).catch(console.error);
+
+        if (dbStore) {
+          await dbStore.collection("estoque").add(novoLoteItem).catch(console.error);
         }
       }
 
-      DB.estoque.unshift(...novos);
-      registrarAuditoria("Entrada em Lote", `${novos.length} itens adicionados via entrada em lote.`);
+      registrarAuditoria("Entrada em Lote", `Itens adicionados via entrada em lote.`);
       closeModal('modalEntradaLote');
       document.getElementById('tabelaEntradaLoteCorpo').innerHTML = '';
       refreshAllViews();
-      alert("Lote de entrada registado com sucesso!");
+      alert("Lote de entrada registado e sincronizado com sucesso!");
     }
 
     function abrirLeitorQRCamBaixa() {
@@ -1548,7 +1605,6 @@ Zerar Estoque (Master)
     }
 
     function processarLeituraQR(rawText) {
-      // O QR Code agora contém apenas o ID (ex: "CHP-038" ou "RET-001"), garantindo leitura perfeita na impressora térmica
       let itemId = rawText.trim();
       try {
         const parsed = JSON.parse(rawText);
@@ -1577,7 +1633,7 @@ Zerar Estoque (Master)
       }
     }
 
-    function gerarEtiquetaItem(tipo, id, cor, esp, comp, larg, origemOuNf, qtd) {
+    function gerarEtiquetaItem(tipo, id, cor, esp, comp, larg, origemOuNf) {
       const areaM2 = ((comp * larg) / 1000000).toFixed(2);
       document.getElementById('lblEtqBadge').textContent = tipo === 'retalho' ? 'RETALHO' : 'CHAPA';
       document.getElementById('lblEtqCodigo').textContent = id;
@@ -1594,8 +1650,6 @@ Zerar Estoque (Master)
         document.getElementById('lblEtqOrigemNome').textContent = origemOuNf || 'Interna';
       }
 
-      // QR CODE OTIMIZADO: Contém apenas o ID (ex: "CHP-039"). 
-      // Isso reduz drasticamente a quantidade de pixels e garante 100% de leitura na impressora térmica.
       const qrContainer = document.getElementById('qrcodeBox');
       qrContainer.innerHTML = '';
       if (window.QRCode) {
@@ -1683,7 +1737,6 @@ Zerar Estoque (Master)
         `);
       });
 
-      // Renderização com QR Code limpo contendo apenas o ID do item
       setTimeout(() => {
         currentBatchItems.forEach((item, index) => {
           const qrId = `qr-batch-${index}`;
@@ -1772,7 +1825,7 @@ Zerar Estoque (Master)
       `).join('');
     }
 
-    function salvarBaixa(e) {
+    async function salvarBaixa(e) {
       e.preventDefault();
       const editIndex = parseInt(document.getElementById('editBaixaIndex').value, 10);
       const itemData = document.getElementById('baixaItemSelect').value.split('|');
@@ -1790,16 +1843,20 @@ Zerar Estoque (Master)
         DB.saidas[editIndex] = novaBaixa;
         registrarAuditoria("Editar Baixa", `Baixa de ${tipo} (${qtd} un) atualizada.`);
       } else {
-        DB.saidas.unshift(novaBaixa);
         registrarAuditoria("Registrar Baixa", `Saída de ${qtd} un de ${tipo} para ${destino}.`);
         
-        if(dbStore && firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
-            dbStore.collection("saidas").add(novaBaixa).catch(console.error);
+        if(dbStore) {
+            await dbStore.collection("saidas").add(novaBaixa).catch(console.error);
         }
         
         const itemEstoque = DB.estoque.find(i => i.ID === idItem);
         if (itemEstoque && itemEstoque.Quantidade >= qtd) {
           itemEstoque.Quantidade -= qtd;
+          if (dbStore && itemEstoque.firestoreId) {
+            await dbStore.collection("estoque").doc(itemEstoque.firestoreId).update({
+              Quantidade: itemEstoque.Quantidade
+            }).catch(console.error);
+          }
         }
       }
       closeModal('modalNovaBaixa');
@@ -1819,9 +1876,12 @@ Zerar Estoque (Master)
       openModal('modalNovaBaixa');
     }
 
-    function excluirBaixa(idx) {
+    async function excluirBaixa(idx) {
       if (confirm("Deseja realmente excluir este registo?")) {
         const itemRemovido = DB.saidas[idx];
+        if (dbStore && itemRemovido.firestoreId) {
+          await dbStore.collection("saidas").doc(itemRemovido.firestoreId).delete().catch(console.error);
+        }
         DB.saidas.splice(idx, 1);
         registrarAuditoria("Excluir Baixa", `Registo de baixa para ${itemRemovido.Tipo} excluído.`);
         refreshAllViews();
