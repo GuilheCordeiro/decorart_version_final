@@ -219,14 +219,14 @@
 </div>
 <div class="hidden mb-4 p-3 bg-red-950/60 border border-red-500/50 rounded-lg text-red-200 text-xs flex items-center gap-2" id="loginError">
 <i class="w-4 h-4 text-red-400 shrink-0" data-lucide="alert-circle"></i>
-<span>Usuário ou senha incorretos. Verifique suas credenciais.</span>
+<span>Utilizador ou senha incorretos. Verifique suas credenciais.</span>
 </div>
 <form class="space-y-4" id="loginForm" onsubmit="handleAuth(event)">
 <div>
-<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5" for="usernameInput">E-mail ou Usuário de Acesso</label>
+<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5" for="usernameInput">E-mail ou Utilizador de Acesso</label>
 <div class="relative">
 <i class="w-4 h-4 text-slate-400 absolute left-3 top-3.5" data-lucide="user"></i>
-<input autocomplete="username" class="w-full bg-[#131b2e] border border-[#1f293d] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors" id="usernameInput" placeholder="Digite seu e-mail ou usuário..." required="" type="text"/>
+<input autocomplete="username" class="w-full bg-[#131b2e] border border-[#1f293d] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors" id="usernameInput" placeholder="Digite seu e-mail ou utilizador..." required="" type="text"/>
 </div>
 </div>
 <div>
@@ -477,7 +477,7 @@ Ver Retalhos
 <button class="px-3.5 py-2.5 bg-[var(--bg-card)] hover:opacity-100 text-amber-500 border border-amber-600/40 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors" onclick="abrirModalLoteRetalhos()">
 <i class="w-4 h-4" data-lucide="printer"></i><span>Imprimir Todas (Lote)</span>
 </button>
-<button class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors shadow-sm ml-auto sm:ml-0" onclick="openModal('modalNovoRetalho')">
+<button class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-colors shadow-sm ml-auto sm:ml-0" onclick="abrirNovoRetalhoModal()">
 <i class="w-4 h-4" data-lucide="plus"></i> Cadastrar Retalho
 </button>
 </div>
@@ -840,20 +840,20 @@ Zerar Estoque (Master)
 <input id="editRetalhoIndex" type="hidden" value="-1"/>
 <div>
 <label class="block mb-1">Cor / Padrão</label>
-<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2 uppercase" id="retCor" placeholder="Ex: ITAPUÃ, BRANCO TX" required="" type="text"/>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2 uppercase" id="retCor" oninput="atualizarReferenciaChapaRetalho()" placeholder="Ex: ITAPUÃ, BRANCO TX" required="" type="text"/>
 </div>
 <div class="grid grid-cols-3 gap-2">
 <div>
 <label class="block mb-1">Espessura (mm)</label>
-<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retEspessura" placeholder="15" required="" type="number"/>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retEspessura" oninput="atualizarReferenciaChapaRetalho()" placeholder="15" required="" type="number"/>
 </div>
 <div>
 <label class="block mb-1">Compr. (mm)</label>
-<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retComprimento" placeholder="1340" required="" type="number"/>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retComprimento" oninput="atualizarReferenciaChapaRetalho()" placeholder="1340" required="" type="number"/>
 </div>
 <div>
 <label class="block mb-1">Largura (mm)</label>
-<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retLargura" placeholder="1850" required="" type="number"/>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retLargura" oninput="atualizarReferenciaChapaRetalho()" placeholder="1850" required="" type="number"/>
 </div>
 </div>
 <div>
@@ -865,6 +865,13 @@ Zerar Estoque (Master)
 <label class="block mb-1">Quantidade</label>
 <input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retQtd" min="1" required="" type="number" value="1"/>
 </div>
+<div>
+<label class="block mb-1">Custo Unit. (R$)</label>
+<input class="w-full bg-[var(--bg-card)] border border-amber-600/40 rounded-lg p-2 font-bold text-amber-500" id="retCusto" placeholder="0.00" required="" type="number" step="0.01"/>
+</div>
+</div>
+<div class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-[11px] text-amber-300" id="retRefInfo">
+Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 </div>
 <div class="flex justify-end gap-2 pt-3">
 <button class="px-4 py-2 bg-[var(--bg-card)] rounded-lg" onclick="closeModal('modalNovoRetalho')" type="button">Cancelar</button>
@@ -923,7 +930,7 @@ Zerar Estoque (Master)
 </div>
 </div>
 
-<!-- SCRIPTS DE LÓGICA E DADOS (TEMA CLARO/ESCURO E FIREBASE CONFIGURADO COM TEMPO REAL) -->
+<!-- SCRIPTS DE LÓGICA E DADOS (ROBUSTO COM FIREBASE E TEMPO REAL) -->
 <script>
     // =========================================================
     // CONFIGURAÇÃO DO FIREBASE
@@ -1070,7 +1077,7 @@ Zerar Estoque (Master)
               if(userDoc.exists) {
                   iniciarSessao(userDoc.data());
               } else {
-                  iniciarSessao({ login: cred.user.email, nome: "Usuário Logado", master: false });
+                  iniciarSessao({ login: cred.user.email, nome: "Utilizador Logado", master: false });
               }
               return;
           } catch (error) {
@@ -1136,7 +1143,7 @@ Zerar Estoque (Master)
     }
 
     // =========================================================
-    // FUNÇÃO CORRIGIDA: VIRADA DE CHAVE (ZERAR ESTOQUE)
+    // VIRADA DE CHAVE (ZERAR ESTOQUE)
     // =========================================================
     async function zerarEstoqueComSenhaMaster() {
       const senhaInformada = prompt("⚠️ AÇÃO RESTRITA:\nPara zerar o estoque na nuvem, digite a senha do utilizador MASTER:");
@@ -1149,13 +1156,11 @@ Zerar Estoque (Master)
             if (dbStore) {
               const batch = dbStore.batch();
               
-              // Apagar todos os documentos de estoque no Firestore
               const estoqueSnapshot = await dbStore.collection("estoque").get();
               estoqueSnapshot.forEach((doc) => {
                 batch.delete(doc.ref);
               });
 
-              // Apagar todos os documentos de saídas no Firestore
               const saidasSnapshot = await dbStore.collection("saidas").get();
               saidasSnapshot.forEach((doc) => {
                 batch.delete(doc.ref);
@@ -1341,6 +1346,16 @@ Zerar Estoque (Master)
       lucide.createIcons();
     }
 
+    function abrirNovoRetalhoModal() {
+      document.getElementById('modalRetalhoTitle').textContent = "Cadastrar Retalho / Sobra";
+      document.getElementById('editRetalhoIndex').value = "-1";
+      document.getElementById('formRetalho').reset();
+      document.getElementById('retEspessura').value = "15";
+      document.getElementById('retCusto').value = "";
+      document.getElementById('retRefInfo').innerHTML = "Aguardando dados de cor e espessura para buscar chapa inteira de referência...";
+      openModal('modalNovoRetalho');
+    }
+
     function abrirEditarRetalho(globalIndex) {
       const item = DB.estoque[globalIndex];
       if (!item) return;
@@ -1352,6 +1367,8 @@ Zerar Estoque (Master)
       document.getElementById('retLargura').value = item.Largura;
       document.getElementById('retObservacao').value = item.Observacao || '';
       document.getElementById('retQtd').value = item.Quantidade;
+      document.getElementById('retCusto').value = item.CustoUnitario?.toFixed(2) || '0.00';
+      atualizarReferenciaChapaRetalho();
       openModal('modalNovoRetalho');
     }
 
@@ -1382,6 +1399,41 @@ Zerar Estoque (Master)
       }
     }
 
+    // Função em tempo real para verificar a chapa de referência e calcular o custo proporcional
+    function atualizarReferenciaChapaRetalho() {
+      const cor = (document.getElementById('retCor').value || '').trim().toUpperCase();
+      const esp = parseInt(document.getElementById('retEspessura').value, 10) || 0;
+      const comp = parseInt(document.getElementById('retComprimento').value, 10) || 0;
+      const larg = parseInt(document.getElementById('retLargura').value, 10) || 0;
+      const inputCusto = document.getElementById('retCusto');
+      const infoRef = document.getElementById('retRefInfo');
+
+      if (!cor || !esp) {
+        if (infoRef) infoRef.innerHTML = "Preencha a <strong>Cor</strong> e a <strong>Espessura</strong> para buscar a chapa inteira de referência.";
+        return;
+      }
+
+      // Procurar chapa inteira correspondente (insensível a maiúsculas, cor exata e espessura)
+      const chapaBase = DB.estoque.find(i => i.Tipo === "Chapa Inteira" && i.Cor.trim().toUpperCase() === cor && Number(i.Espessura) === esp);
+
+      if (chapaBase) {
+        const areaChapa = (Number(chapaBase.Comprimento) * Number(chapaBase.Largura)) / 1000000;
+        if (areaChapa > 0 && Number(chapaBase.CustoUnitario) > 0) {
+          const custoM2 = Number(chapaBase.CustoUnitario) / areaChapa;
+          const areaRet = (comp * larg) / 1000000;
+          const custoProp = custoM2 * areaRet;
+          if (inputCusto && document.activeElement !== inputCusto) {
+            inputCusto.value = custoProp.toFixed(2);
+          }
+          if (infoRef) infoRef.innerHTML = `✅ <strong>Referência Encontrada:</strong> [${chapaBase.ID}] ${chapaBase.Cor} (${chapaBase.Comprimento}×${chapaBase.Largura}mm) — Custo Chapa: R$ ${chapaBase.CustoUnitario.toFixed(2)} (Proporcional sugerido: R$ ${custoProp.toFixed(2)})`;
+        } else {
+          if (infoRef) infoRef.innerHTML = `⚠️ Chapa <strong>[${chapaBase.ID}]</strong> encontrada, mas o custo da chapa inteira está zerado. Informe o custo manualmente.`;
+        }
+      } else {
+        if (infoRef) infoRef.innerHTML = `❌ Nenhuma Chapa Inteira encontrada com a cor <strong>"${cor}"</strong> e espessura <strong>${esp}mm</strong>. Cadastre a chapa inteira primeiro ou informe o custo manualmente.`;
+      }
+    }
+
     async function salvarRetalho(e) {
       e.preventDefault();
       const editIdx = parseInt(document.getElementById('editRetalhoIndex').value, 10);
@@ -1391,19 +1443,11 @@ Zerar Estoque (Master)
       const larg = parseInt(document.getElementById('retLargura').value, 10);
       const obs = document.getElementById('retObservacao').value.trim();
       const qtd = parseInt(document.getElementById('retQtd').value, 10);
+      const custoInformado = parseFloat(document.getElementById('retCusto').value) || 0;
 
       if (!obs) {
         alert("A Sobra do Projeto / Cliente é obrigatória para o cadastro de retalhos.");
         return;
-      }
-
-      let custoCalc = 0;
-      const chapaBase = DB.estoque.find(i => i.Tipo === "Chapa Inteira" && i.Cor === cor && i.Espessura === esp);
-      if (chapaBase && chapaBase.CustoUnitario > 0) {
-        const areaChapa = (chapaBase.Comprimento * chapaBase.Largura) / 1000000;
-        const custoM2 = chapaBase.CustoUnitario / areaChapa;
-        const areaRet = (comp * larg) / 1000000;
-        custoCalc = custoM2 * areaRet;
       }
 
       if (editIdx >= 0) {
@@ -1414,12 +1458,12 @@ Zerar Estoque (Master)
         itemAntigo.Largura = larg;
         itemAntigo.Quantidade = qtd;
         itemAntigo.Observacao = obs;
-        itemAntigo.CustoUnitario = parseFloat(custoCalc.toFixed(2));
+        itemAntigo.CustoUnitario = custoInformado;
         registrarAuditoria("Editar Retalho", `Retalho ${itemAntigo.ID} (${cor}) atualizado.`);
         
         if (dbStore && itemAntigo.firestoreId) {
           await dbStore.collection("estoque").doc(itemAntigo.firestoreId).update({
-            Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg, Quantidade: qtd, Observacao: obs, CustoUnitario: parseFloat(custoCalc.toFixed(2))
+            Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg, Quantidade: qtd, Observacao: obs, CustoUnitario: custoInformado
           }).catch(console.error);
         }
       } else {
@@ -1433,7 +1477,7 @@ Zerar Estoque (Master)
           Comprimento: comp,
           Largura: larg,
           Quantidade: qtd,
-          CustoUnitario: parseFloat(custoCalc.toFixed(2)),
+          CustoUnitario: custoInformado,
           Observacao: obs,
           NF: "-"
         };
@@ -1519,12 +1563,14 @@ Zerar Estoque (Master)
         if (!cor || !nfProj) { alert("Preencha todos os campos obrigatórios na tabela."); return; }
         if (tipo === 'Chapa Inteira' && (!nfProj || nfProj === '-')) { alert("Nota Fiscal é obrigatória para Chapas Inteiras."); return; }
 
-        if (tipo === 'Retalho') {
-          const chapaBase = DB.estoque.find(i => i.Tipo === "Chapa Inteira" && i.Cor === cor && i.Espessura === esp);
-          if (chapaBase && chapaBase.CustoUnitario > 0) {
-            const areaChapa = (chapaBase.Comprimento * chapaBase.Largura) / 1000000;
-            const custoM2 = chapaBase.CustoUnitario / areaChapa;
-            custo = custoM2 * ((comp * larg) / 1000000);
+        if (tipo === 'Retalho' && custo === 0) {
+          const chapaBase = DB.estoque.find(i => i.Tipo === "Chapa Inteira" && i.Cor.trim().toUpperCase() === cor && Number(i.Espessura) === esp);
+          if (chapaBase && Number(chapaBase.CustoUnitario) > 0) {
+            const areaChapa = (Number(chapaBase.Comprimento) * Number(chapaBase.Largura)) / 1000000;
+            if (areaChapa > 0) {
+              const custoM2 = Number(chapaBase.CustoUnitario) / areaChapa;
+              custo = custoM2 * ((comp * larg) / 1000000);
+            }
           }
         }
 
@@ -1838,31 +1884,46 @@ Zerar Estoque (Master)
 
       if (!destino) { alert("Informe o Destino / Cliente / Obra."); return; }
 
+      const itemEstoque = DB.estoque.find(i => i.ID === idItem);
+      if (!itemEstoque) {
+        alert("Erro: Item selecionado não foi encontrado no estoque ativo.");
+        return;
+      }
+
+      if (editIndex < 0 && itemEstoque.Quantidade < qtd) {
+        alert(`❌ Estoque insuficiente para baixa!\nItem: [${itemEstoque.ID}] ${itemEstoque.Cor}\nSaldo Atual: ${itemEstoque.Quantidade} un\nQuantidade Solicitada: ${qtd} un`);
+        return;
+      }
+
       const novaBaixa = { IDItem: idItem, Tipo: tipo, Qtd: qtd, Data: data, Destino: destino, Responsavel: resp, Status: "Consumido" };
+      
       if (editIndex >= 0) {
         DB.saidas[editIndex] = novaBaixa;
         registrarAuditoria("Editar Baixa", `Baixa de ${tipo} (${qtd} un) atualizada.`);
+        if (dbStore && DB.saidas[editIndex].firestoreId) {
+          await dbStore.collection("saidas").doc(DB.saidas[editIndex].firestoreId).update(novaBaixa).catch(console.error);
+        }
       } else {
         registrarAuditoria("Registrar Baixa", `Saída de ${qtd} un de ${tipo} para ${destino}.`);
         
-        if(dbStore) {
-            await dbStore.collection("saidas").add(novaBaixa).catch(console.error);
-        }
-        
-        const itemEstoque = DB.estoque.find(i => i.ID === idItem);
-        if (itemEstoque && itemEstoque.Quantidade >= qtd) {
-          itemEstoque.Quantidade -= qtd;
-          if (dbStore && itemEstoque.firestoreId) {
+        itemEstoque.Quantidade -= qtd;
+
+        if (dbStore) {
+          await dbStore.collection("saidas").add(novaBaixa).catch(console.error);
+          
+          if (itemEstoque.firestoreId) {
             await dbStore.collection("estoque").doc(itemEstoque.firestoreId).update({
               Quantidade: itemEstoque.Quantidade
             }).catch(console.error);
           }
         }
       }
+
       closeModal('modalNovaBaixa');
       document.getElementById('formBaixa').reset();
       document.getElementById('editBaixaIndex').value = "-1";
       refreshAllViews();
+      alert("Baixa registada e estoque atualizado com sucesso!");
     }
 
     function editarBaixa(idx) {
@@ -1888,6 +1949,86 @@ Zerar Estoque (Master)
       }
     }
 
+    function atualizarRelatorioMovimentacoes() {
+      renderTabelaMovimentacoesFiltrada();
+    }
+
+    function limparFiltroMovimentacoes() {
+      const di = document.getElementById('filtroDataInicio');
+      const df = document.getElementById('filtroDataFim');
+      if(di) di.value = '';
+      if(df) df.value = '';
+      renderTabelaMovimentacoesFiltrada();
+    }
+
+    function renderTabelaMovimentacoesFiltrada() {
+      const container = document.getElementById('tabelaMovimentacoesConteudo');
+      if(!container) return;
+
+      const di = document.getElementById('filtroDataInicio')?.value;
+      const df = document.getElementById('filtroDataFim')?.value;
+
+      let saidasFiltradas = DB.saidas;
+      if (di) {
+        saidasFiltradas = saidasFiltradas.filter(s => s.Data >= di);
+      }
+      if (df) {
+        saidasFiltradas = saidasFiltradas.filter(s => s.Data <= df);
+      }
+
+      let somaQtdTotal = 0;
+      let somaValorTotal = 0;
+
+      let html = `<table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]">
+        <thead>
+          <tr class="bg-[var(--bg-card)]">
+            <th class="p-2 border border-[var(--border-color)]">Data</th>
+            <th class="p-2 border border-[var(--border-color)]">ID Item</th>
+            <th class="p-2 border border-[var(--border-color)]">Material / Tipo</th>
+            <th class="p-2 border border-[var(--border-color)] text-center">Qtd</th>
+            <th class="p-2 border border-[var(--border-color)]">Custo Unit.</th>
+            <th class="p-2 border border-[var(--border-color)]">Custo Total</th>
+            <th class="p-2 border border-[var(--border-color)]">Destino / Obra</th>
+            <th class="p-2 border border-[var(--border-color)]">Responsável</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      if (saidasFiltradas.length === 0) {
+        html += `<tr><td colspan="8" class="p-6 text-center opacity-60">Nenhum registo de baixa encontrado no período selecionado.</td></tr>`;
+      } else {
+        saidasFiltradas.forEach(s => {
+          const itemEstoque = DB.estoque.find(i => i.ID === s.IDItem);
+          const custoUnit = itemEstoque ? (itemEstoque.CustoUnitario || 0) : 0;
+          const custoTotal = custoUnit * s.Qtd;
+          somaQtdTotal += s.Qtd;
+          somaValorTotal += custoTotal;
+
+          html += `
+            <tr>
+              <td class="p-2 border border-[var(--border-color)]">${s.Data}</td>
+              <td class="p-2 border border-[var(--border-color)] font-mono">${s.IDItem || '-'}</td>
+              <td class="p-2 border border-[var(--border-color)] font-bold">${s.Tipo}</td>
+              <td class="p-2 border border-[var(--border-color)] text-center font-bold text-amber-500">${s.Qtd}</td>
+              <td class="p-2 border border-[var(--border-color)]">R$ ${custoUnit.toFixed(2)}</td>
+              <td class="p-2 border border-[var(--border-color)] font-bold text-emerald-500">R$ ${custoTotal.toFixed(2)}</td>
+              <td class="p-2 border border-[var(--border-color)]">${s.Destino}</td>
+              <td class="p-2 border border-[var(--border-color)] opacity-80">${s.Responsavel}</td>
+            </tr>
+          `;
+        });
+      }
+
+      html += `</tbody></table>
+        <div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex flex-wrap justify-between items-center text-xs gap-2">
+          <span>Registros no Período: <strong class="font-bold">${saidasFiltradas.length}</strong></span>
+          <span>Total de Peças Baixadas: <strong class="text-amber-500 font-bold">${somaQtdTotal} un</strong></span>
+          <span>Valor Total Consumido: <strong class="text-emerald-500 font-bold text-sm">R$ ${somaValorTotal.toFixed(2)}</strong></span>
+        </div>`;
+
+      container.innerHTML = html;
+    }
+
     function gerarRelatorio(tipo) {
       const subHeader = document.getElementById('relatorioSubHeader');
       const corpo = document.getElementById('relatorioCorpoConteudo');
@@ -1910,19 +2051,25 @@ Zerar Estoque (Master)
           </div>`;
         corpo.innerHTML = html;
       } else if (tipo === 'movimentacoes') {
-        subHeader.textContent = `Histórico Completo de Saídas e Baixas - Gerado em ${hoje}`;
-        let totalBaixasQtd = DB.saidas.reduce((acc, s) => acc + s.Qtd, 0);
-        let html = `<table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]">
-          <thead><tr class="bg-[var(--bg-card)]"><th class="p-2 border border-[var(--border-color)]">Data</th><th class="p-2 border border-[var(--border-color)]">ID</th><th class="p-2 border border-[var(--border-color)]">Material</th><th class="p-2 border border-[var(--border-color)] text-center">Qtd</th><th class="p-2 border border-[var(--border-color)]">Destino / Obra</th><th class="p-2 border border-[var(--border-color)]">Responsável</th></tr></thead><tbody>`;
-        DB.saidas.forEach(s => {
-          html += `<tr><td class="p-2 border border-[var(--border-color)]">${s.Data}</td><td class="p-2 border border-[var(--border-color)] font-mono">${s.IDItem || '-'}</td><td class="p-2 border border-[var(--border-color)] font-bold">${s.Tipo}</td><td class="p-2 border border-[var(--border-color)] text-center font-bold">${s.Qtd}</td><td class="p-2 border border-[var(--border-color)]">${s.Destino}</td><td class="p-2 border border-[var(--border-color)]">${s.Responsavel}</td></tr>`;
-        });
-        html += `</tbody></table>
-          <div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex justify-between items-center text-xs">
-            <span>Total de Registros de Baixa: <strong class="font-bold">${DB.saidas.length}</strong></span>
-            <span>Total de Peças Baixadas: <strong class="text-amber-500 font-bold">${totalBaixasQtd} un</strong></span>
-          </div>`;
-        corpo.innerHTML = html;
+        subHeader.textContent = `Histórico de Baixas e Valores Financeiros - Gerado em ${hoje}`;
+        let htmlFiltros = `
+          <div class="flex flex-wrap items-center gap-3 mb-4 p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] text-xs no-print">
+            <div>
+              <label class="block font-semibold mb-1">Data Início:</label>
+              <input type="date" id="filtroDataInicio" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5" onchange="atualizarRelatorioMovimentacoes()" />
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Data Fim:</label>
+              <input type="date" id="filtroDataFim" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5" onchange="atualizarRelatorioMovimentacoes()" />
+            </div>
+            <div class="flex items-end">
+              <button onclick="limparFiltroMovimentacoes()" class="px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded hover:opacity-100">Limpar Filtro</button>
+            </div>
+          </div>
+          <div id="tabelaMovimentacoesConteudo"></div>
+        `;
+        corpo.innerHTML = htmlFiltros;
+        renderTabelaMovimentacoesFiltrada();
       } else if (tipo === 'auditoria') {
         subHeader.textContent = `Log de Auditoria de Ações do Sistema - Gerado em ${hoje}`;
         if (DB.auditoria.length === 0) {
