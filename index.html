@@ -1143,6 +1143,22 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     }
 
     // =========================================================
+    // FUNÇÃO ROBUSTA DE GERAÇÃO DE ID ÚNICO (CORREÇÃO DE DUPLICAÇÃO)
+    // =========================================================
+    function gerarProximoId(tipo) {
+      const prefix = tipo === 'Chapa Inteira' ? 'CHP' : 'RET';
+      let maxNum = 0;
+      DB.estoque.forEach(i => {
+        if (i.Tipo === tipo && i.ID && i.ID.startsWith(prefix + '-')) {
+          const parts = i.ID.split('-');
+          const n = parseInt(parts[1], 10);
+          if (!isNaN(n) && n > maxNum) maxNum = n;
+        }
+      });
+      return `${prefix}-${String(maxNum + 1).padStart(3, '0')}`;
+    }
+
+    // =========================================================
     // VIRADA DE CHAVE (ZERAR ESTOQUE)
     // =========================================================
     async function zerarEstoqueComSenhaMaster() {
@@ -1293,8 +1309,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
           }).catch(console.error);
         }
       } else {
-        const numChapas = DB.estoque.filter(i => i.Tipo === "Chapa Inteira").length + 1;
-        const nextId = "CHP-" + String(numChapas).padStart(3, '0');
+        const nextId = gerarProximoId("Chapa Inteira");
         const novo = { ID: nextId, Tipo: "Chapa Inteira", Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg, Quantidade: qtd, CustoUnitario: custo, NF: nf };
         
         registrarAuditoria("Cadastrar Chapa", `Nova chapa ${nextId} (${cor}) cadastrada.`);
@@ -1467,8 +1482,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
           }).catch(console.error);
         }
       } else {
-        const numRet = DB.estoque.filter(i => i.Tipo === "Retalho").length + 1;
-        const nextId = "RET-" + String(numRet).padStart(3, '0');
+        const nextId = gerarProximoId("Retalho");
         const novoItem = {
           ID: nextId,
           Tipo: "Retalho",
@@ -1574,10 +1588,9 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
           }
         }
 
-        const prefix = tipo === 'Chapa Inteira' ? 'CHP' : 'RET';
-        const num = DB.estoque.filter(i => i.Tipo === tipo).length + 1;
+        const nextId = gerarProximoId(tipo);
         const novoLoteItem = {
-          ID: `${prefix}-${String(num + Math.floor(Math.random()*100)).padStart(3, '0')}`,
+          ID: nextId,
           Tipo: tipo,
           Cor: cor,
           Espessura: esp,
@@ -1588,6 +1601,9 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
           NF: tipo === 'Chapa Inteira' ? nfProj : '-',
           Observacao: tipo === 'Retalho' ? nfProj : 'Entrada em Lote'
         };
+
+        // Adiciona temporariamente ao array local para que a próxima linha do lote calcule o ID correto
+        DB.estoque.push(novoLoteItem);
 
         if (dbStore) {
           await dbStore.collection("estoque").add(novoLoteItem).catch(console.error);
@@ -1605,7 +1621,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       openModal('modalLeitorQRCam');
       const video = document.getElementById('qrCameraVideo');
       const canvasElement = document.createElement('canvas');
-      const canvas = canvasElement.getContext('2d');
+      const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
 
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
         .then(stream => {
@@ -1623,7 +1639,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 
       function scanTick() {
         if (!qrScanningActive) return;
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
           canvasElement.height = video.videoHeight;
           canvasElement.width = video.videoWidth;
           canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
@@ -1669,11 +1685,16 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       }
     }
 
+    // =========================================================
+    // SIMULAÇÃO ALEATÓRIA DE QR CODE (CORREÇÃO DO BOTÃO DE TESTE)
+    // =========================================================
     function simularLeituraQRTeste() {
       pararLeitorQRCam();
-      const itemDisponivel = DB.estoque.find(i => i.Quantidade > 0);
-      if (itemDisponivel) {
-        processarLeituraQR(itemDisponivel.ID);
+      const disponiveis = DB.estoque.filter(i => i.Quantidade > 0);
+      if (disponiveis.length > 0) {
+        const randomIndex = Math.floor(Math.random() * disponiveis.length);
+        const itemEscolhido = disponiveis[randomIndex];
+        processarLeituraQR(itemEscolhido.ID);
       } else {
         alert("Não existem itens com saldo disponível no momento.");
       }
