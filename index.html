@@ -99,7 +99,10 @@
       body.printing-report #view-chapas,
       body.printing-report #view-retalhos,
       body.printing-report #view-saidas,
-      body.printing-report #view-usuarios {
+      body.printing-report #view-usuarios,
+      body.printing-report #view-projetos,
+      body.printing-report #view-materiais,
+      body.printing-report #view-localizacoes {
         display: none !important;
       }
 
@@ -219,11 +222,11 @@
 </div>
 <div class="hidden mb-4 p-3 bg-red-950/60 border border-red-500/50 rounded-lg text-red-200 text-xs flex items-center gap-2" id="loginError">
 <i class="w-4 h-4 text-red-400 shrink-0" data-lucide="alert-circle"></i>
-<span>Utilizador ou senha incorretos. Verifique suas credenciais.</span>
+<span>Usuário ou senha incorretos. Verifique suas credenciais.</span>
 </div>
 <form class="space-y-4" id="loginForm" onsubmit="handleAuth(event)">
 <div>
-<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5" for="usernameInput">E-mail ou Utilizador de Acesso</label>
+<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5" for="usernameInput">E-mail ou Usuário de Acesso</label>
 <div class="relative">
 <i class="w-4 h-4 text-slate-400 absolute left-3 top-3.5" data-lucide="user"></i>
 <input autocomplete="username" class="w-full bg-[#131b2e] border border-[#1f293d] rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors" id="usernameInput" placeholder="Digite seu e-mail ou utilizador..." required="" type="text"/>
@@ -266,28 +269,34 @@
 </div>
 <nav class="space-y-1">
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all nav-item-active" id="nav-dashboard" onclick="navigate('dashboard')">
-<i class="w-4 h-4" data-lucide="layout-dashboard"></i>
-<span>Painel Geral</span>
+<i class="w-4 h-4" data-lucide="layout-dashboard"></i><span>Painel Geral</span>
 </button>
+<div class="px-3 pt-4 pb-1 text-[9px] font-black uppercase tracking-widest text-amber-500/80">Estoque</div>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-chapas" onclick="navigate('chapas')">
-<i class="w-4 h-4" data-lucide="layers"></i>
-<span>Chapas Inteiras (CHP)</span>
+<i class="w-4 h-4" data-lucide="layers"></i><span>Chapas Inteiras</span>
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-retalhos" onclick="navigate('retalhos')">
-<i class="w-4 h-4" data-lucide="scissors"></i>
-<span>Retalhos &amp; Sobras (RET)</span>
+<i class="w-4 h-4" data-lucide="scissors"></i><span>Retalhos &amp; Sobras</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-materiais" onclick="navigate('materiais')">
+<i class="w-4 h-4" data-lucide="package-search"></i><span>Materiais &amp; Ferragens</span>
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-saidas" onclick="navigate('saidas')">
-<i class="w-4 h-4" data-lucide="arrow-up-right-from-circle"></i>
-<span>Baixas &amp; Saídas</span>
+<i class="w-4 h-4" data-lucide="arrow-up-right-from-circle"></i><span>Baixas &amp; Saídas</span>
+</button>
+<div class="px-3 pt-4 pb-1 text-[9px] font-black uppercase tracking-widest text-amber-500/80">Gestão</div>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-projetos" onclick="navigate('projetos')">
+<i class="w-4 h-4" data-lucide="folder-kanban"></i><span>Projetos &amp; Obras</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-localizacoes" onclick="navigate('localizacoes')">
+<i class="w-4 h-4" data-lucide="map-pin"></i><span>Localizações</span>
 </button>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-relatorios" onclick="navigate('relatorios')">
-<i class="w-4 h-4" data-lucide="bar-chart-3"></i>
-<span>Relatórios &amp; Custos</span>
+<i class="w-4 h-4" data-lucide="bar-chart-3"></i><span>Relatórios &amp; Custos</span>
 </button>
+<div class="px-3 pt-4 pb-1 text-[9px] font-black uppercase tracking-widest text-amber-500/80">Administração</div>
 <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-80 hover:opacity-100 hover:bg-[var(--bg-card)] transition-all" id="nav-usuarios" onclick="navigate('usuarios')">
-<i class="w-4 h-4" data-lucide="shield-check"></i>
-<span>Utilizadores &amp; Acessos</span>
+<i class="w-4 h-4" data-lucide="shield-check"></i><span>Usuários &amp; Acessos</span>
 </button>
 </nav>
 </div>
@@ -563,7 +572,7 @@ Ver Retalhos
 <section class="hidden space-y-4" id="view-usuarios">
 <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-sm p-5 space-y-6 transition-colors">
 <div>
-<h3 class="text-sm font-bold mb-3">Utilizadores do Sistema</h3>
+<div class="flex items-center justify-between mb-3"><div><h3 class="text-sm font-bold">Usuários do Sistema</h3><p class="text-[11px] opacity-60">Somente o perfil MASTER pode cadastrar, editar ou excluir usuários.</p></div><button onclick="abrirNovoUsuario()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-xl">+ Novo usuário</button></div>
 <div class="overflow-x-auto">
 <table class="w-full text-left text-xs">
 <thead class="opacity-70 border-b border-[var(--border-color)]">
@@ -587,6 +596,48 @@ Zerar Estoque (Master)
 </div>
 </div>
 </div>
+</section>
+
+<!-- PROJETOS & OBRAS -->
+<section class="hidden space-y-4" id="view-projetos">
+<div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+<div>
+<h2 class="text-base font-bold">Projetos &amp; Obras</h2>
+<p class="text-xs opacity-70">Vincule materiais, reservas e consumos a cada obra.</p>
+</div>
+<button onclick="abrirNovoProjeto()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2"><i class="w-4 h-4" data-lucide="plus"></i>Novo Projeto</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-4"><span class="text-[10px] opacity-70">Em andamento</span><p class="text-2xl font-bold" id="kpiProjetosAndamento">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-4"><span class="text-[10px] opacity-70">Aguardando material</span><p class="text-2xl font-bold text-red-500" id="kpiProjetosMaterial">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-4"><span class="text-[10px] opacity-70">Prontos</span><p class="text-2xl font-bold text-emerald-500" id="kpiProjetosProntos">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-4"><span class="text-[10px] opacity-70">Total</span><p class="text-2xl font-bold" id="kpiProjetosTotal">0</p></div>
+</div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl overflow-hidden">
+<div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-[var(--bg-card)] border-b border-[var(--border-color)]"><tr><th class="py-3 px-4">Código</th><th class="py-3 px-4">Projeto</th><th class="py-3 px-4">Cliente</th><th class="py-3 px-4">Prazo</th><th class="py-3 px-4">Status</th><th class="py-3 px-4">Materiais</th><th class="py-3 px-4 text-center">Ações</th></tr></thead><tbody id="tableProjetosBody" class="divide-y divide-[var(--border-color)]"></tbody></table></div>
+</div>
+</section>
+
+<!-- MATERIAIS / ESTOQUE MULTICATEGORIA -->
+<section class="hidden space-y-4" id="view-materiais">
+<div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+<div><h2 class="text-base font-bold">Materiais, Fitas, Ferragens e Móveis</h2><p class="text-xs opacity-70">Estoque por unidade de medida, mínimo e localização.</p></div>
+<div class="flex gap-2"><button onclick="abrirScannerUniversal()" class="bg-[var(--bg-card)] text-amber-500 border border-amber-600/40 text-xs font-bold px-3 py-2.5 rounded-xl flex items-center gap-2"><i class="w-4 h-4" data-lucide="scan-line"></i>Bipar QR</button><button onclick="abrirNovoMaterial()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl"><i class="w-4 h-4 inline" data-lucide="plus"></i> Novo Item</button></div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Fitas</span><p class="text-xl font-bold" id="kpiFitas">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Ferragens</span><p class="text-xl font-bold" id="kpiFerragens">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Acessórios</span><p class="text-xl font-bold" id="kpiAcessorios">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Móveis prontos</span><p class="text-xl font-bold" id="kpiMoveisProntos">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Abaixo do mínimo</span><p class="text-xl font-bold text-red-500" id="kpiMateriaisCriticos">0</p></div>
+</div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-[var(--bg-card)] border-b border-[var(--border-color)]"><tr><th class="py-3 px-4">ID</th><th class="py-3 px-4">Categoria</th><th class="py-3 px-4">Descrição</th><th class="py-3 px-4">Saldo</th><th class="py-3 px-4">Mínimo</th><th class="py-3 px-4">Un.</th><th class="py-3 px-4">Local</th><th class="py-3 px-4">QR</th><th class="py-3 px-4 text-center">Ações</th></tr></thead><tbody id="tableMateriaisBody" class="divide-y divide-[var(--border-color)]"></tbody></table></div></div>
+</section>
+
+<!-- LOCALIZAÇÕES -->
+<section class="hidden space-y-4" id="view-localizacoes">
+<div class="flex items-center justify-between"><div><h2 class="text-base font-bold">Localizações físicas</h2><p class="text-xs opacity-70">Enderece chapas, retalhos, ferragens e produtos acabados.</p></div><button onclick="abrirNovaLocalizacao()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl">Nova localização</button></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-[var(--bg-card)]"><tr><th class="py-3 px-4">Código</th><th class="py-3 px-4">Descrição</th><th class="py-3 px-4">Tipo</th><th class="py-3 px-4">Itens</th></tr></thead><tbody id="tableLocalizacoesBody" class="divide-y divide-[var(--border-color)]"></tbody></table></div></div>
 </section>
 </div>
 </main>
@@ -814,12 +865,16 @@ Zerar Estoque (Master)
 </div>
 </div>
 <div>
-<label class="block mb-1">Destino / Cliente / Obra <span class="text-amber-500">*</span></label>
-<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="baixaDestino" placeholder="Ex: MONICA PAFF / POSTO CHICÃO" required="" type="text"/>
+<label class="block mb-1">Projeto / Obra <span class="text-amber-500">*</span></label>
+<select class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5" id="baixaProjetoSelect" onchange="atualizarDestinoBaixaProjeto()" required></select>
+</div>
+<div>
+<label class="block mb-1">Destino / Cliente / Obra</label>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="baixaDestino" readonly type="text"/>
 </div>
 <div>
 <label class="block mb-1">Responsável</label>
-<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="baixaResponsavel" required="" type="text"/>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2 bg-slate-500/10" id="baixaResponsavel" readonly required type="text"/>
 </div>
 <div class="flex justify-end gap-2 pt-3">
 <button class="px-4 py-2 bg-[var(--bg-card)] rounded-lg" onclick="closeModal('modalNovaBaixa')" type="button">Cancelar</button>
@@ -882,6 +937,30 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 </div>
 
 <!-- MODAL: CADASTRAR OU EDITAR CHAPA INTEIRA -->
+<!-- MODAL: NOVO PROJETO -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 no-print" id="modalNovoProjeto">
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-lg p-6 shadow-2xl">
+<h3 class="text-base font-bold mb-4">Novo Projeto / Obra</h3>
+<form id="formNovoProjeto" onsubmit="salvarProjeto(event)" class="space-y-3 text-xs">
+<input id="projId" type="hidden"><div><label class="block mb-1">Nome do projeto</label><input id="projNome" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div>
+<div class="grid grid-cols-2 gap-3"><div><label class="block mb-1">Cliente</label><input id="projCliente" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Prazo</label><input id="projPrazo" type="date" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div></div>
+<div><label class="block mb-1">Status</label><select id="projStatus" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>Planejamento</option><option>Em produção</option><option>Aguardando material</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
+<div><label class="block mb-1">Observações</label><textarea id="projObs" rows="3" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></textarea></div>
+<div class="flex justify-end gap-2 pt-3"><button type="button" onclick="closeModal('modalNovoProjeto')" class="px-4 py-2 bg-[var(--bg-card)] rounded-lg">Cancelar</button><button class="px-5 py-2 bg-amber-600 text-white font-bold rounded-lg">Salvar projeto</button></div>
+</form></div></div>
+
+<!-- MODAL: NOVO MATERIAL -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 no-print" id="modalNovoMaterial">
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-2xl p-6 shadow-2xl"><h3 class="text-base font-bold mb-4">Cadastrar material / produto</h3>
+<form id="formNovoMaterial" onsubmit="salvarMaterial(event)" class="space-y-3 text-xs"><div class="grid grid-cols-2 gap-3"><div><label class="block mb-1">Categoria</label><select id="matCategoria" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>Fita de borda</option><option>Ferragem</option><option>Acessório</option><option>Móvel pronto</option><option>Outro</option></select></div><div><label class="block mb-1">Unidade</label><select id="matUnidade" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>un</option><option>m</option><option>kg</option><option>cx</option><option>jogo</option></select></div></div>
+<div><label class="block mb-1">Descrição</label><input id="matDescricao" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3"><div><label class="block mb-1">Quantidade</label><input id="matQuantidade" type="number" step="0.001" min="0" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Estoque mínimo</label><input id="matMinimo" type="number" step="0.001" min="0" value="0" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Custo unitário</label><input id="matCusto" type="number" step="0.01" min="0" value="0" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Local</label><input id="matLocal" placeholder="F-03" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div></div>
+<div><label class="block mb-1">Observações / código do fornecedor</label><input id="matObs" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div>
+<div class="flex justify-end gap-2 pt-3"><button type="button" onclick="closeModal('modalNovoMaterial')" class="px-4 py-2 bg-[var(--bg-card)] rounded-lg">Cancelar</button><button class="px-5 py-2 bg-amber-600 text-white font-bold rounded-lg">Cadastrar e gerar QR</button></div></form></div></div>
+
+<!-- MODAL: NOVA LOCALIZAÇÃO -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 no-print" id="modalNovaLocalizacao"><div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-md p-6 shadow-2xl"><h3 class="text-base font-bold mb-4">Nova localização</h3><form onsubmit="salvarLocalizacao(event)" class="space-y-3 text-xs"><div><label class="block mb-1">Código</label><input id="locCodigo" required placeholder="R-03" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Descrição</label><input id="locDescricao" required placeholder="Prateleira de retalhos 03" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Tipo</label><select id="locTipo" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>Retalhos</option><option>Chapas</option><option>Ferragens</option><option>Expedição</option><option>Produção</option><option>Geral</option></select></div><div class="flex justify-end gap-2 pt-3"><button type="button" onclick="closeModal('modalNovaLocalizacao')" class="px-4 py-2 bg-[var(--bg-card)] rounded-lg">Cancelar</button><button class="px-5 py-2 bg-amber-600 text-white font-bold rounded-lg">Salvar</button></div></form></div></div>
+
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 no-print" id="modalNovaChapa">
 <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-md p-6 transition-colors">
 <div class="flex justify-between items-center mb-4">
@@ -962,7 +1041,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       estoque: [],
       saidas: [],
       auditoria: [
-        { "Data": "2026-09-28 10:00", "Utilizador": "Guilherme Cordeiro", "Acao": "SISTEMA INICIALIZADO", "Detalhes": "Carregamento inicial da base de dados oficial." }
+        { "Data": "2026-09-28 10:00", "Usuário": "Guilherme Cordeiro", "Acao": "SISTEMA INICIALIZADO", "Detalhes": "Carregamento inicial da base de dados oficial." }
       ],
       usuarios: [
         { "login": "guilherme", "nome": "Guilherme Cordeiro", "senha": "+170412Mg", "master": true },
@@ -976,6 +1055,41 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     let selectedRetalhosIds = new Set();
     let videoStreamGlobal = null;
     let qrScanningActive = false;
+
+    // =========================================================
+    // COMPATIBILIDADE GLOBAL — mantém o estado real do ERP
+    // disponível para módulos evoluídos e eventos inline.
+    // O código original usa let/const em escopo de script, então
+    // essas variáveis não aparecem automaticamente em window.*.
+    // =========================================================
+    try {
+      Object.defineProperty(window, 'DB', {
+        configurable: true,
+        get: () => DB,
+        set: (value) => { DB = value; }
+      });
+      Object.defineProperty(window, 'currentUser', {
+        configurable: true,
+        get: () => currentUser,
+        set: (value) => { currentUser = value; }
+      });
+      Object.defineProperty(window, 'dbStore', {
+        configurable: true,
+        get: () => dbStore,
+        set: (value) => { dbStore = value; }
+      });
+      Object.defineProperty(window, 'authService', {
+        configurable: true,
+        get: () => authService,
+        set: (value) => { authService = value; }
+      });
+    } catch (e) {
+      console.warn('Compatibilidade global já inicializada:', e);
+    }
+
+    window.usuarioAtual = function() {
+      return currentUser || null;
+    };
 
     window.onload = function() {
       const savedTheme = localStorage.getItem('decorart_theme');
@@ -1040,7 +1154,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     function registrarAuditoria(acao, detalhes) {
       const agora = new Date();
       const dataStr = agora.toISOString().slice(0,10) + ' ' + agora.toTimeString().slice(0,5);
-      const log = { Data: dataStr, Utilizador: currentUser ? currentUser.nome : 'Sistema', Acao: acao, Detalhes: detalhes };
+      const log = { Data: dataStr, Usuário: currentUser ? currentUser.nome : 'Sistema', Acao: acao, Detalhes: detalhes };
       
       if(dbStore) {
           dbStore.collection("auditoria").add(log).catch(console.error);
@@ -1060,6 +1174,9 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       refreshAllViews();
     }
 
+    window.registrarAuditoria = registrarAuditoria;
+    window.refreshAllViews = refreshAllViews;
+
     async function handleAuth(e) {
       if (e) e.preventDefault();
       
@@ -1077,7 +1194,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
               if(userDoc.exists) {
                   iniciarSessao(userDoc.data());
               } else {
-                  iniciarSessao({ login: cred.user.email, nome: "Utilizador Logado", master: false });
+                  iniciarSessao({ login: cred.user.email, nome: "Usuário Logado", master: false });
               }
               return;
           } catch (error) {
@@ -1720,7 +1837,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       const qrContainer = document.getElementById('qrcodeBox');
       qrContainer.innerHTML = '';
       if (window.QRCode) {
-        new QRCode(qrContainer, { text: id, width: 90, height: 90, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+        new QRCode(qrContainer, { text: criarPayloadQR(id), width: 90, height: 90, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
       }
       openModal('modalEtiqueta');
       lucide.createIcons();
@@ -1864,7 +1981,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     function renderSaidasTable() {
       const tbody = document.getElementById('tableSaidasBody');
       if (DB.saidas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center opacity-60">Nenhum registo de baixa.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center opacity-60">Nenhum registro de baixa.</td></tr>`;
         return;
       }
       tbody.innerHTML = DB.saidas.map((s, idx) => `
@@ -1959,13 +2076,13 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     }
 
     async function excluirBaixa(idx) {
-      if (confirm("Deseja realmente excluir este registo?")) {
+      if (confirm("Deseja realmente excluir este registro?")) {
         const itemRemovido = DB.saidas[idx];
         if (dbStore && itemRemovido.firestoreId) {
           await dbStore.collection("saidas").doc(itemRemovido.firestoreId).delete().catch(console.error);
         }
         DB.saidas.splice(idx, 1);
-        registrarAuditoria("Excluir Baixa", `Registo de baixa para ${itemRemovido.Tipo} excluído.`);
+        registrarAuditoria("Excluir Baixa", `Registro de baixa para ${itemRemovido.Tipo} excluído.`);
         refreshAllViews();
       }
     }
@@ -2016,7 +2133,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
         <tbody>`;
 
       if (saidasFiltradas.length === 0) {
-        html += `<tr><td colspan="8" class="p-6 text-center opacity-60">Nenhum registo de baixa encontrado no período selecionado.</td></tr>`;
+        html += `<tr><td colspan="8" class="p-6 text-center opacity-60">Nenhum registro de baixa encontrado no período selecionado.</td></tr>`;
       } else {
         saidasFiltradas.forEach(s => {
           const itemEstoque = DB.estoque.find(i => i.ID === s.IDItem);
@@ -2094,13 +2211,13 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       } else if (tipo === 'auditoria') {
         subHeader.textContent = `Log de Auditoria de Ações do Sistema - Gerado em ${hoje}`;
         if (DB.auditoria.length === 0) {
-          corpo.innerHTML = `<p class="text-center opacity-60 py-12">Nenhum registo de auditoria encontrado.</p>`;
+          corpo.innerHTML = `<p class="text-center opacity-60 py-12">Nenhum registro de auditoria encontrado.</p>`;
           return;
         }
         let html = `<table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]">
-          <thead><tr class="bg-[var(--bg-card)]"><th class="p-2 border border-[var(--border-color)]">Data / Hora</th><th class="p-2 border border-[var(--border-color)]">Utilizador</th><th class="p-2 border border-[var(--border-color)]">Ação Executada</th><th class="p-2 border border-[var(--border-color)]">Detalhes da Alteração</th></tr></thead><tbody>`;
+          <thead><tr class="bg-[var(--bg-card)]"><th class="p-2 border border-[var(--border-color)]">Data / Hora</th><th class="p-2 border border-[var(--border-color)]">Usuário</th><th class="p-2 border border-[var(--border-color)]">Ação Executada</th><th class="p-2 border border-[var(--border-color)]">Detalhes da Alteração</th></tr></thead><tbody>`;
         DB.auditoria.forEach(a => {
-          html += `<tr><td class="p-2 border border-[var(--border-color)] font-mono">${a.Data}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500">${a.Utilizador}</td><td class="p-2 border border-[var(--border-color)]">${a.Acao}</td><td class="p-2 border border-[var(--border-color)] opacity-80">${a.Detalhes}</td></tr>`;
+          html += `<tr><td class="p-2 border border-[var(--border-color)] font-mono">${a.Data}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500">${a.Usuário || a.Utilizador || 'Sistema'}</td><td class="p-2 border border-[var(--border-color)]">${a.Acao}</td><td class="p-2 border border-[var(--border-color)] opacity-80">${a.Detalhes}</td></tr>`;
         });
         html += `</tbody></table>
           <div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex justify-between items-center text-xs">
@@ -2166,25 +2283,15 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     }
 
     function renderUsuariosTable() {
-      document.getElementById('tableUsuariosBody').innerHTML = DB.usuarios.map((u, idx) => `
-        <tr class="hover:bg-amber-500/5">
-          <td class="py-2.5 font-medium">${u.nome}</td>
-          <td class="py-2.5 opacity-70">${u.login}</td>
-          <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${u.master ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-500/20 text-slate-400'}">${u.master ? 'Master Admin' : 'Operacional'}</span></td>
-          <td class="py-2.5 text-center"><button onclick="alterarSenhaUsuario(${idx})" class="text-xs text-amber-500 hover:underline">Alterar Senha</button></td>
-        </tr>
-      `).join('');
+      const body=document.getElementById('tableUsuariosBody'); if(!body) return;
+      body.innerHTML=DB.usuarios.map((u,idx)=>`<tr class="hover:bg-amber-500/5"><td class="py-2.5 font-medium">${esc(u.nome)}</td><td class="py-2.5 opacity-70">${esc(u.login)}</td><td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${u.master?'bg-amber-500/20 text-amber-500':'bg-slate-500/20 text-slate-400'}">${u.master?'Master Admin':'Operacional'}</span></td><td class="py-2.5 text-center"><div class="flex justify-center gap-3"><button onclick="editarUsuarioMaster(${idx})" class="text-sky-400 hover:underline">Editar</button><button onclick="alterarSenhaUsuario(${idx})" class="text-amber-500 hover:underline">Senha</button>${u.login!==currentUser?.login?`<button onclick="excluirUsuarioMaster(${idx})" class="text-red-500 hover:underline">Excluir</button>`:''}</div></td></tr>`).join('')||`<tr><td colspan="4" class="py-8 text-center opacity-60">Nenhum usuário cadastrado.</td></tr>`;
     }
-
-    function alterarSenhaUsuario(idx) {
-      const u = DB.usuarios[idx];
-      const nova = prompt(`Nova senha para ${u.nome}:`);
-      if (nova && nova.trim() !== '') {
-        u.senha = nova.trim();
-        registrarAuditoria("Alterar Senha", `Senha alterada para o utilizador ${u.nome}.`);
-        alert('Senha atualizada!');
-      }
-    }
+    function exigirMaster(){ if(!currentUser?.master){alert('Acesso restrito ao usuário MASTER.');return false;} return true; }
+    window.abrirNovoUsuario=function(){if(!exigirMaster())return;document.getElementById('formUsuarioMaster').reset();document.getElementById('usuarioEditIndex').value='-1';document.getElementById('usuarioMaster').value='false';document.getElementById('usuarioModalTitulo').textContent='Novo usuário';openModal('modalUsuarioMaster');};
+    window.editarUsuarioMaster=function(idx){if(!exigirMaster())return;const u=DB.usuarios[idx];if(!u)return;document.getElementById('usuarioEditIndex').value=idx;document.getElementById('usuarioNome').value=u.nome||'';document.getElementById('usuarioLogin').value=u.login||'';document.getElementById('usuarioSenha').value=u.senha||'';document.getElementById('usuarioMaster').value=String(!!u.master);document.getElementById('usuarioModalTitulo').textContent='Editar usuário';openModal('modalUsuarioMaster');};
+    window.salvarUsuarioMaster=async function(e){e.preventDefault();if(!exigirMaster())return;const idx=Number(document.getElementById('usuarioEditIndex').value);const nome=document.getElementById('usuarioNome').value.trim(),login=document.getElementById('usuarioLogin').value.trim(),senha=document.getElementById('usuarioSenha').value,master=document.getElementById('usuarioMaster').value==='true';if(!nome||!login||!senha)return;if(DB.usuarios.some((u,i)=>i!==idx&&String(u.login).toLowerCase()===login.toLowerCase())){alert('Este login já existe.');return;}if(idx>=0){const u=DB.usuarios[idx];if(u.login===currentUser?.login&&!master){alert('O usuário MASTER da sessão não pode retirar o próprio acesso MASTER.');return;}Object.assign(u,{nome,login,senha,master});if(dbStore&&u.firestoreId)await dbStore.collection('usuarios').doc(u.firestoreId).set(u,{merge:true});else if(dbStore)await dbStore.collection('usuarios').doc(u.login).set(u,{merge:true});registrarAuditoria('Editar Usuário',`${login} - ${nome}`);}else{const u={login,nome,senha,master,CriadoEm:new Date().toISOString()};DB.usuarios.push(u);if(dbStore)await dbStore.collection('usuarios').doc(login).set(u);registrarAuditoria('Criar Usuário',`${login} - ${nome}`);}closeModal('modalUsuarioMaster');renderUsuariosTable();};
+    window.excluirUsuarioMaster=async function(idx){if(!exigirMaster())return;const u=DB.usuarios[idx];if(!u||u.login===currentUser?.login){alert('Não é possível excluir o usuário da sessão atual.');return;}if(u.master&&DB.usuarios.filter(x=>x.master).length<=1){alert('É necessário manter pelo menos um usuário MASTER.');return;}if(!confirm(`Excluir o usuário ${u.nome}?`))return;if(dbStore&&u.firestoreId)await dbStore.collection('usuarios').doc(u.firestoreId).delete();else if(dbStore)await dbStore.collection('usuarios').doc(u.login).delete().catch(()=>{});DB.usuarios.splice(idx,1);registrarAuditoria('Excluir Usuário',`${u.login} - ${u.nome}`);renderUsuariosTable();};
+    function alterarSenhaUsuario(idx) { if(!exigirMaster())return; const u=DB.usuarios[idx]; const nova=prompt(`Nova senha para ${u.nome}:`); if(nova&&nova.trim()!==''){u.senha=nova.trim();if(dbStore&&u.firestoreId)dbStore.collection('usuarios').doc(u.firestoreId).set({senha:u.senha},{merge:true});else if(dbStore)dbStore.collection('usuarios').doc(u.login).set({senha:u.senha},{merge:true});registrarAuditoria('Alterar Senha',`Senha alterada para ${u.nome}.`);renderUsuariosTable();alert('Senha atualizada!');}}
 
     function exportBackupJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(DB, null, 2));
@@ -2194,12 +2301,1780 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      registrarAuditoria("Exportar Backup", "Backup JSON da base de dados descarregado.");
+      registrarAuditoria("Exportar Backup", "Backup JSON da base de dados baixado.");
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function toggleMobileDrawer() { document.querySelector('aside').classList.toggle('hidden'); }
   </script>
-</body>
-</html>
+
+<script>
+/* ============================================================
+   DECORART ERP - CAMADA DE EVOLUÇÃO 2026
+   Compatível com os dados atuais: não exige migração imediata.
+   ============================================================ */
+(function(){
+  const originalOnload = window.onload;
+  const ENHANCED_VERSION = '2.0.0';
+
+  function safeArray(name){ if(!Array.isArray(DB[name])) DB[name]=[]; return DB[name]; }
+  safeArray('projetos'); safeArray('materiais'); safeArray('localizacoes'); safeArray('movimentacoes');
+
+  window.criarPayloadQR = function(id, tipo='estoque') {
+    return JSON.stringify({v:1, app:'DECORART', tipo, id:String(id), ts:Date.now()});
+  };
+
+  function normalizarPayloadQR(rawText){
+    const raw=String(rawText||'').trim();
+    if(!raw) return null;
+    try {
+      const o=JSON.parse(raw);
+      if(o && o.id) return {id:String(o.id), tipo:o.tipo||'estoque', versao:o.v||1};
+    } catch(e){}
+    const m=raw.match(/^DECORART\\|(EST|MAT|MOV|PROJ|LOC)\\|(.+)$/i);
+    if(m) return {id:m[2], tipo:m[1].toLowerCase(), versao:1};
+    return {id:raw, tipo:'estoque', versao:0};
+  }
+
+  function encontrarPorId(id){
+    const x=String(id).toLowerCase();
+    return DB.estoque.find(i=>String(i.ID||'').toLowerCase()===x) ||
+           DB.materiais.find(i=>String(i.ID||'').toLowerCase()===x) ||
+           DB.projetos.find(i=>String(i.ID||'').toLowerCase()===x) ||
+           DB.localizacoes.find(i=>String(i.ID||i.Codigo||'').toLowerCase()===x);
+  }
+
+  // Leitor moderno: BarcodeDetector quando o navegador suporta; jsQR como fallback.
+  let enhancedScanner={active:false,stream:null,raf:null,last:null,lastAt:0};
+  window.pararLeitorQRCam = function(){
+    enhancedScanner.active=false;
+    if(enhancedScanner.raf) cancelAnimationFrame(enhancedScanner.raf);
+    if(enhancedScanner.stream) enhancedScanner.stream.getTracks().forEach(t=>t.stop());
+    enhancedScanner.stream=null; videoStreamGlobal=null;
+    const v=document.getElementById('qrCameraVideo'); if(v) v.srcObject=null;
+    const modal=document.getElementById('modalLeitorQRCam'); if(modal) modal.classList.add('hidden');
+  };
+
+  async function iniciarScannerUniversal(){
+    const video=document.getElementById('qrCameraVideo');
+    if(!video) return;
+    try{
+      enhancedScanner.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      video.srcObject=enhancedScanner.stream; video.setAttribute('playsinline','true'); await video.play();
+      enhancedScanner.active=true; videoStreamGlobal=enhancedScanner.stream;
+      const track=enhancedScanner.stream.getVideoTracks()[0];
+      if(track && track.getCapabilities){ const caps=track.getCapabilities(); if(caps.torch){ window.__qrTorchTrack=track; } }
+      const detector=('BarcodeDetector' in window)?new BarcodeDetector({formats:['qr_code']}):null;
+      const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      const tick=async()=>{
+        if(!enhancedScanner.active) return;
+        try{
+          let raw=null;
+          if(detector){ const codes=await detector.detect(video); if(codes&&codes[0]) raw=codes[0].rawValue; }
+          if(!raw && video.readyState===video.HAVE_ENOUGH_DATA && video.videoWidth){
+            canvas.width=video.videoWidth; canvas.height=video.videoHeight; ctx.drawImage(video,0,0,canvas.width,canvas.height);
+            const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+            const code=window.jsQR?jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'attemptBoth'}):null;
+            if(code) raw=code.data;
+          }
+          if(raw){
+            const now=Date.now();
+            if(raw!==enhancedScanner.last || now-enhancedScanner.lastAt>1800){
+              enhancedScanner.last=raw; enhancedScanner.lastAt=now; pararLeitorQRCam(); processarLeituraQR(raw); return;
+            }
+          }
+        }catch(err){ console.warn('Leitor QR:',err); }
+        enhancedScanner.raf=requestAnimationFrame(tick);
+      };
+      enhancedScanner.raf=requestAnimationFrame(tick);
+    }catch(err){ alert('Não foi possível acessar a câmera. Verifique a permissão do navegador e se o aplicativo está em HTTPS.\\n\\n'+err.message); pararLeitorQRCam(); }
+  }
+
+  window.abrirLeitorQRCamBaixa=function(){ openModal('modalLeitorQRCam'); setTimeout(iniciarScannerUniversal,150); };
+  window.abrirScannerUniversal=function(){ openModal('modalLeitorQRCam'); setTimeout(iniciarScannerUniversal,150); };
+  window.alternarLanternaQR=function(){ const t=window.__qrTorchTrack; if(!t||!t.getCapabilities) return alert('A lanterna não está disponível neste dispositivo.'); const caps=t.getCapabilities(); if(!caps.torch) return alert('A lanterna não é suportada pela câmera.'); const enabled=!(window.__qrTorchOn); t.applyConstraints({advanced:[{torch:!enabled}]}).then(()=>window.__qrTorchOn=!enabled).catch(()=>{}); };
+
+  window.processarLeituraQR=async function(rawText){
+    const payload=normalizarPayloadQR(rawText); if(!payload) return;
+    const encontrado=encontrarPorId(payload.id);
+    if(!encontrado){ alert('QR Code reconhecido, mas o item não foi encontrado na base ativa:\n'+payload.id); return; }
+    if(DB.materiais.includes(encontrado)){
+      abrirConsumoMaterial(encontrado.ID); return;
+    }
+    if(DB.projetos.includes(encontrado)){
+      navigate('projetos'); alert('Projeto '+encontrado.ID+' aberto.'); return;
+    }
+    if(DB.localizacoes.includes(encontrado)){
+      navigate('localizacoes'); alert('Localização '+(encontrado.Codigo||encontrado.ID)+' reconhecida.'); return;
+    }
+    // Chapa/retalho: abre baixa e seleciona automaticamente.
+    const sel=document.getElementById('baixaItemSelect');
+    if(sel){ openModal('modalNovaBaixa'); preencherSelectBaixaSeguro(); sel.value=`${encontrado.ID}|${encontrado.Cor||encontrado.Tipo||''}|${encontrado.Espessura||''}`; const q=document.getElementById('baixaQtd'); if(q) q.value=1; const d=document.getElementById('baixaDestino'); if(d && !d.value) d.focus(); alert(`QR lido: [${encontrado.ID}] ${encontrado.Cor||encontrado.Tipo||''}. Confirme o consumo.`); }
+  };
+
+  function preencherSelectBaixaSeguro(){
+    const select=document.getElementById('baixaItemSelect'); if(!select) return;
+    select.innerHTML=DB.estoque.filter(i=>Number(i.Quantidade||0)>0).map(c=>`<option value="${esc(c.ID)}|${esc(c.Cor||c.Tipo)}|${esc(c.Espessura||'')}">[${esc(c.ID)}] ${esc(c.Tipo)} - ${esc(c.Cor||'')} (${esc(c.Espessura||'')}mm) - Saldo: ${Number(c.Quantidade||0)}</option>`).join('');
+  }
+  function esc(v){return String(v??'').replace(/[&<>'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));}
+
+  // Navegação com os novos módulos.
+  window.navigate=function(viewName){
+    const views=['dashboard','chapas','retalhos','saidas','relatorios','usuarios','projetos','materiais','localizacoes'];
+    views.forEach(v=>{ const el=document.getElementById('view-'+v); const nav=document.getElementById('nav-'+v); const bn=document.getElementById('bnav-'+v); if(el) el.classList.add('hidden'); if(nav) nav.classList.remove('nav-item-active'); if(bn){bn.classList.remove('text-amber-500');bn.classList.add('opacity-70');} });
+    const target=document.getElementById('view-'+viewName); if(target) target.classList.remove('hidden');
+    const nav=document.getElementById('nav-'+viewName); if(nav) nav.classList.add('nav-item-active');
+    if(viewName==='projetos') renderProjetos(); if(viewName==='materiais') renderMateriais(); if(viewName==='localizacoes') renderLocalizacoes();
+    const titles={dashboard:'Painel Operacional',chapas:'Chapas Inteiras',retalhos:'Retalhos & Sobras',saidas:'Baixas & Saídas',relatorios:'Relatórios & Custos',usuarios:'Usuários & Acessos',projetos:'Projetos & Obras',materiais:'Materiais & Ferragens',localizacoes:'Localizações'};
+    const pt=document.getElementById('pageTitle'); if(pt) pt.textContent=titles[viewName]||'ERP Operacional';
+    lucide.createIcons();
+  };
+
+  function proximoCodigo(prefix, arr){ if(window.__decorart25IdQueue&&window.__decorart25IdQueue.length)return window.__decorart25IdQueue.shift(); let max=0; arr.forEach(x=>{const m=String(x.ID||'').match(new RegExp('^'+prefix+'-(\\d+)$','i')); if(m) max=Math.max(max,Number(m[1]));}); return `${prefix}-${String(max+1).padStart(5,'0')}`; }
+
+  window.abrirNovoProjeto=function(){ document.getElementById('formNovoProjeto').reset(); document.getElementById('projId').value=''; openModal('modalNovoProjeto'); };
+  window.salvarProjeto=async function(e){ e.preventDefault(); const id=proximoCodigo('PRJ',DB.projetos); const p={ID:id,Nome:document.getElementById('projNome').value.trim(),Cliente:document.getElementById('projCliente').value.trim(),Prazo:document.getElementById('projPrazo').value||'',Status:document.getElementById('projStatus').value,Observacao:document.getElementById('projObs').value.trim(),Materiais:[],CriadoEm:new Date().toISOString()}; DB.projetos.push(p); if(dbStore) await dbStore.collection('projetos').doc(id).set(p); registrarAuditoria('Criar Projeto',`${id} - ${p.Nome}`); closeModal('modalNovoProjeto'); renderProjetos(); preencherProjetosBaixa(); };
+
+  window.abrirNovoMaterial=function(){ document.getElementById('formNovoMaterial').reset(); openModal('modalNovoMaterial'); };
+  window.salvarMaterial=async function(e){ e.preventDefault(); const cat=document.getElementById('matCategoria').value; const prefix=cat==='Fita de borda'?'FIT':cat==='Ferragem'?'FER':cat==='Acessório'?'ACE':cat==='Móvel pronto'?'MOV':'MAT'; const id=proximoCodigo(prefix,DB.materiais); const m={ID:id,Categoria:cat,Descricao:document.getElementById('matDescricao').value.trim(),Quantidade:Number(document.getElementById('matQuantidade').value)||0,Minimo:Number(document.getElementById('matMinimo').value)||0,CustoUnitario:Number(document.getElementById('matCusto').value)||0,Unidade:document.getElementById('matUnidade').value,Localizacao:document.getElementById('matLocal').value.trim().toUpperCase(),Observacao:document.getElementById('matObs').value.trim(),Status:'Ativo',CriadoEm:new Date().toISOString()}; DB.materiais.push(m); if(dbStore) await dbStore.collection('materiais').doc(id).set(m); registrarAuditoria('Cadastrar Material',`${id} - ${m.Descricao}`); closeModal('modalNovoMaterial'); renderMateriais(); };
+
+  window.abrirNovaLocalizacao=function(){ document.getElementById('locCodigo').value='';document.getElementById('locDescricao').value='';openModal('modalNovaLocalizacao'); };
+  window.salvarLocalizacao=async function(e){ e.preventDefault(); const codigo=document.getElementById('locCodigo').value.trim().toUpperCase(); const l={ID:codigo,Codigo:codigo,Descricao:document.getElementById('locDescricao').value.trim(),Tipo:document.getElementById('locTipo').value,CriadoEm:new Date().toISOString()}; DB.localizacoes.push(l); if(dbStore) await dbStore.collection('localizacoes').doc(codigo).set(l); registrarAuditoria('Criar Localização',`${codigo} - ${l.Descricao}`); closeModal('modalNovaLocalizacao'); renderLocalizacoes(); };
+
+  function renderProjetos(){
+    const body=document.getElementById('tableProjetosBody'); if(!body) return; const total=DB.projetos.length, andamento=DB.projetos.filter(p=>['Em produção','Planejamento'].includes(p.Status)).length, mat=DB.projetos.filter(p=>p.Status==='Aguardando material').length, pr=DB.projetos.filter(p=>p.Status==='Pronto').length;
+    ['kpiProjetosTotal','kpiProjetosAndamento','kpiProjetosMaterial','kpiProjetosProntos'].forEach((id,i)=>{const el=document.getElementById(id); if(el) el.textContent=[total,andamento,mat,pr][i];});
+    body.innerHTML=DB.projetos.slice().sort((a,b)=>String(b.CriadoEm).localeCompare(String(a.CriadoEm))).map((p,i)=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${esc(p.ID)}</td><td class="py-3 px-4 font-semibold">${esc(p.Nome)}</td><td class="py-3 px-4">${esc(p.Cliente)}</td><td class="py-3 px-4">${esc(p.Prazo||'-')}</td><td class="py-3 px-4"><span class="px-2 py-1 rounded bg-amber-500/10 text-amber-500">${esc(p.Status)}</span></td><td class="py-3 px-4">${Array.isArray(p.Materiais)?p.Materiais.length:0}</td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="abrirMateriaisProjeto('${esc(p.ID)}')" class="text-amber-500 hover:underline">Materiais</button><button onclick="editarProjeto('${esc(p.ID)}')" class="text-sky-400 hover:underline">Editar</button></div></td></tr>`).join('') || `<tr><td colspan="7" class="py-8 text-center opacity-60">Nenhum projeto cadastrado.</td></tr>`;
+  }
+  window.verProjeto=function(id){ const p=DB.projetos.find(x=>x.ID===id); if(!p) return; alert(`${p.ID} - ${p.Nome}\nCliente: ${p.Cliente}\nStatus: ${p.Status}\nPrazo: ${p.Prazo||'-'}\nMateriais vinculados: ${Array.isArray(p.Materiais)?p.Materiais.length:0}`); };
+
+  function renderMateriais(){
+    const body=document.getElementById('tableMateriaisBody'); if(!body) return; const ms=DB.materiais; const cats=['Fita de borda','Ferragem','Acessório','Móvel pronto','Outro']; cats.forEach(c=>{const el=document.getElementById('kpi'+({"Fita de borda":'Fitas',Ferragem:'Ferragens',Acessório:'Acessorios','Móvel pronto':'MoveisProntos'}[c]||''));if(el)el.textContent=ms.filter(m=>m.Categoria===c).length;}); const crit=ms.filter(m=>Number(m.Quantidade)<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0); const ec=document.getElementById('kpiMateriaisCriticos');if(ec)ec.textContent=crit.length;
+    body.innerHTML=ms.map(m=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${esc(m.ID)}</td><td class="py-3 px-4">${esc(m.Categoria)}</td><td class="py-3 px-4 font-semibold">${esc(m.Descricao)}</td><td class="py-3 px-4 font-bold ${Number(m.Quantidade)<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0?'text-red-500':''}">${Number(m.Quantidade).toFixed(m.Unidade==='m'?3:0)}</td><td class="py-3 px-4">${Number(m.Minimo||0)}</td><td class="py-3 px-4">${esc(m.Unidade)}</td><td class="py-3 px-4">${esc(m.Localizacao||'-')}</td><td class="py-3 px-4"><button onclick="mostrarQRMaterial('${esc(m.ID)}')" class="text-amber-500">QR</button></td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="editarMaterial('${esc(m.ID)}')" class="text-sky-400 hover:underline">Editar</button><button onclick="abrirConsumoMaterial('${esc(m.ID)}')" class="text-red-500 hover:underline">Consumir</button></div></td></tr>`).join('') || `<tr><td colspan="9" class="py-8 text-center opacity-60">Nenhum material cadastrado.</td></tr>`;
+  }
+  function renderLocalizacoes(){ const b=document.getElementById('tableLocalizacoesBody'); if(!b)return; b.innerHTML=DB.localizacoes.map(l=>{const n=DB.estoque.filter(i=>String(i.Localizacao||'').toUpperCase()===String(l.Codigo).toUpperCase()).length+DB.materiais.filter(i=>String(i.Localizacao||'').toUpperCase()===String(l.Codigo).toUpperCase()).length;return `<tr><td class="py-3 px-4 font-mono font-bold">${esc(l.Codigo)}</td><td class="py-3 px-4">${esc(l.Descricao)}</td><td class="py-3 px-4">${esc(l.Tipo)}</td><td class="py-3 px-4">${n}</td></tr>`}).join('')||`<tr><td colspan="4" class="py-8 text-center opacity-60">Nenhuma localização cadastrada.</td></tr>`; }
+  // Exporta renderizadores para os módulos e eventos inline da camada 2.3+.
+  window.renderProjetos = renderProjetos;
+  window.renderMateriais = renderMateriais;
+  window.renderLocalizacoes = renderLocalizacoes;
+
+  window.preencherProjetosBaixa=function(){ const s=document.getElementById('baixaProjetoSelect'); if(!s)return; s.innerHTML='<option value="">Consumo geral / sem projeto</option>'+DB.projetos.filter(p=>!['Entregue','Cancelado'].includes(p.Status)).map(p=>`<option value="${esc(p.ID)}">${esc(p.ID)} - ${esc(p.Nome)} / ${esc(p.Cliente)}</option>`).join(''); };
+  window.abrirConsumoMaterial=function(id){ const m=DB.materiais.find(x=>x.ID===id); if(!m)return; const q=prompt(`Consumo de ${m.Descricao}\nSaldo: ${m.Quantidade} ${m.Unidade}\nInforme a quantidade:`,'1'); if(q===null)return; const qtd=Number(q); if(!Number.isFinite(qtd)||qtd<=0||qtd>Number(m.Quantidade)){alert('Quantidade inválida ou superior ao saldo.');return;} consumirMaterialTransacional(m,qtd); };
+  async function consumirMaterialTransacional(m,qtd){
+    const novo=Number(m.Quantidade)-qtd; const projetoId=(document.getElementById('baixaProjetoSelect')?.value)||'';
+    try{
+      if(dbStore){ await dbStore.runTransaction(async tx=>{ const ref=dbStore.collection('materiais').doc(m.firestoreId||m.ID); const snap=await tx.get(ref); if(snap.exists){ const atual=Number(snap.data().Quantidade||0); if(atual<qtd) throw new Error('Estoque insuficiente.'); tx.update(ref,{Quantidade:atual-qtd}); } else tx.set(ref,{...m,Quantidade:novo}); const movRef=dbStore.collection('movimentacoes').doc(); tx.set(movRef,{Tipo:'CONSUMO',ItemID:m.ID,Qtd:qtd,Unidade:m.Unidade,ProjetoID:projetoId,Responsavel:currentUser?.nome||'Sistema',Data:new Date().toISOString()}); }); }
+      m.Quantidade=novo; renderMateriais(); registrarAuditoria('Consumir Material',`${m.ID} - ${qtd} ${m.Unidade}${projetoId?' no projeto '+projetoId:''}`); alert('Consumo registrado com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível registrar o consumo: '+err.message);}
+  }
+  window.mostrarQRMaterial=function(id){ if(typeof gerarEtiquetaItem==='function'){ const m=DB.materiais.find(x=>x.ID===id); if(m){ alert('QR do item: '+criarPayloadQR(id,'material')+'\\n\\nUse a impressão de etiqueta do módulo de materiais na próxima etapa.'); } } };
+
+  // Reforça a baixa de chapas/retalhos com transação Firestore.
+  window.salvarBaixa=async function(e){
+    e.preventDefault(); const editIndex=Number(document.getElementById('editBaixaIndex')?.value||-1); const parts=String(document.getElementById('baixaItemSelect').value||'').split('|'); const idItem=parts[0]; const qtd=Number(document.getElementById('baixaQtd').value); const data=document.getElementById('baixaData').value||new Date().toISOString().slice(0,10); const destino=(document.getElementById('baixaDestino').value||'').trim().toUpperCase(); const resp=(document.getElementById('baixaResponsavel').value||'').trim().toUpperCase(); const projetoId=document.getElementById('baixaProjetoSelect')?.value||'';
+    if(!idItem||!Number.isFinite(qtd)||qtd<=0||!destino){alert('Informe item, quantidade e destino/cliente/obra.');return;} const item=DB.estoque.find(i=>i.ID===idItem); if(!item){alert('Item não encontrado.');return;}
+    if(editIndex>=0){ alert('Para preservar o saldo e o histórico, edições de baixas devem ser tratadas como estorno + nova baixa. Esta versão não altera o histórico silenciosamente.'); return; }
+    try{
+      if(dbStore && item.firestoreId){ await dbStore.runTransaction(async tx=>{ const ref=dbStore.collection('estoque').doc(item.firestoreId); const snap=await tx.get(ref); if(!snap.exists) throw new Error('Item não existe no Firebase.'); const atual=Number(snap.data().Quantidade||0); if(atual<qtd) throw new Error(`Saldo insuficiente: ${atual}`); tx.update(ref,{Quantidade:atual-qtd}); const saidaRef=dbStore.collection('saidas').doc(); tx.set(saidaRef,{IDItem:idItem,Tipo:item.Tipo,Qtd:qtd,Data:data,Destino:destino,Responsavel:resp,ProjetoID:projetoId,Status:'Consumido',CriadoEm:new Date().toISOString()}); const movRef=dbStore.collection('movimentacoes').doc(); tx.set(movRef,{Tipo:'SAIDA',ItemID:idItem,Qtd:qtd,ProjetoID:projetoId,Destino:destino,Responsavel:resp,Data:new Date().toISOString()}); }); item.Quantidade=Number(item.Quantidade)-qtd;
+      } else { if(Number(item.Quantidade)<qtd) throw new Error('Saldo insuficiente.'); item.Quantidade-=qtd; const nova={IDItem:idItem,Tipo:item.Tipo,Qtd:qtd,Data:data,Destino:destino,Responsavel:resp,ProjetoID:projetoId,Status:'Consumido',CriadoEm:new Date().toISOString()}; DB.saidas.push(nova); if(dbStore) await dbStore.collection('saidas').add(nova); }
+      const saidaLocal={IDItem:idItem,Tipo:item.Tipo,Qtd:qtd,Data:data,Destino:destino,Responsavel:resp,ProjetoID:projetoId,Status:'Consumido',CriadoEm:new Date().toISOString()}; if(!DB.saidas.some(s=>s.IDItem===saidaLocal.IDItem&&s.CriadoEm===saidaLocal.CriadoEm)) DB.saidas.unshift(saidaLocal);
+      registrarAuditoria('Registrar Baixa',`${qtd} ${item.Tipo} ${idItem}${projetoId?' → '+projetoId:''}`); closeModal('modalNovaBaixa'); document.getElementById('formBaixa')?.reset(); document.getElementById('editBaixaIndex').value='-1'; refreshAllViews(); alert('Baixa confirmada e sincronizada.');
+    }catch(err){console.error(err);alert('Baixa não realizada: '+err.message);}
+  };
+
+  function syncEnhanced(){
+    if(!dbStore)return;
+    ['projetos','materiais','localizacoes'].forEach(col=>dbStore.collection(col).onSnapshot(s=>{DB[col]=[];s.forEach(d=>DB[col].push({...d.data(),firestoreId:d.id}));renderProjetos();renderMateriais();renderLocalizacoes();preencherProjetosBaixa();},err=>console.warn('Sync '+col,err)));
+  }
+  function initEnhanced(){
+    safeArray('projetos');safeArray('materiais');safeArray('localizacoes');safeArray('movimentacoes');
+    syncEnhanced(); preencherProjetosBaixa(); renderProjetos();renderMateriais();renderLocalizacoes();
+    // Injeta botão de lanterna no leitor existente.
+    const box=document.querySelector('#modalLeitorQRCam .flex.justify-between'); if(box && !document.getElementById('btnLanternaQR')){const b=document.createElement('button');b.id='btnLanternaQR';b.onclick=alternarLanternaQR;b.className='px-3 py-2 bg-amber-600/20 text-amber-400 rounded-lg text-xs';b.textContent='Lanterna';box.insertBefore(b,box.firstChild);}
+  }
+  if(originalOnload){ window.onload=function(){ originalOnload(); setTimeout(initEnhanced,250); }; } else { window.addEventListener('load',initEnhanced); }
+  window.addEventListener('load',()=>setTimeout(initEnhanced,500));
+})();
+</script>
+
+
+<!-- MODAL: VINCULAR MATERIAL AO PROJETO -->
+<div class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print" id="modalVincularMaterialProjeto">
+ <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-2xl p-6 shadow-2xl">
+  <div class="flex justify-between items-center mb-4"><div><h3 class="text-base font-bold">Materiais do projeto</h3><p id="vinculoProjetoTitulo" class="text-xs opacity-60"></p></div><button onclick="closeModal('modalVincularMaterialProjeto')"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+   <div class="md:col-span-2"><label class="block mb-1 text-xs">Material / ferragem / acessório</label><select id="vinculoMaterialSelect" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5 text-xs"></select></div>
+   <div><label class="block mb-1 text-xs">Quantidade necessária</label><input id="vinculoQtd" type="number" min="0.001" step="0.001" value="1" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5 text-xs"></div>
+  </div>
+  <div class="flex justify-end mb-4"><button onclick="adicionarMaterialProjeto()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-lg">Vincular material</button></div>
+  <div class="border border-[var(--border-color)] rounded-xl overflow-hidden"><table class="w-full text-xs"><thead class="bg-[var(--bg-card)]"><tr><th class="p-2 text-left">Material</th><th class="p-2">Necessário</th><th class="p-2">Estoque</th><th class="p-2">Situação</th><th class="p-2">Ação</th></tr></thead><tbody id="vinculosProjetoBody"></tbody></table></div>
+ </div>
+</div>
+
+<!-- MODAL: EDITAR MATERIAL -->
+<div class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 no-print" id="modalEditarMaterial">
+ <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-2xl p-6 shadow-2xl"><h3 class="text-base font-bold mb-4">Editar material / produto</h3>
+  <form id="formEditarMaterial" onsubmit="salvarEdicaoMaterial(event)" class="space-y-3 text-xs"><input id="editMatId" type="hidden">
+   <div class="grid grid-cols-2 gap-3"><div><label class="block mb-1">Categoria</label><select id="editMatCategoria" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>Fita de borda</option><option>Ferragem</option><option>Acessório</option><option>Móvel pronto</option><option>Outro</option></select></div><div><label class="block mb-1">Unidade</label><select id="editMatUnidade" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>un</option><option>m</option><option>kg</option><option>cx</option><option>jogo</option></select></div></div>
+   <div><label class="block mb-1">Descrição</label><input id="editMatDescricao" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div>
+   <div class="grid grid-cols-2 md:grid-cols-4 gap-3"><div><label class="block mb-1">Saldo</label><input id="editMatQuantidade" type="number" step="0.001" min="0" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Estoque mínimo</label><input id="editMatMinimo" type="number" step="0.001" min="0" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Custo unitário</label><input id="editMatCusto" type="number" step="0.01" min="0" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Local</label><input id="editMatLocal" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div></div>
+   <div><label class="block mb-1">Observações / código fornecedor</label><input id="editMatObs" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div>
+   <div class="flex justify-between gap-2 pt-3"><button type="button" onclick="excluirMaterialAtual()" class="px-4 py-2 bg-red-600/20 text-red-400 rounded-lg">Excluir item</button><div class="flex gap-2"><button type="button" onclick="closeModal('modalEditarMaterial')" class="px-4 py-2 bg-[var(--bg-card)] rounded-lg">Cancelar</button><button class="px-5 py-2 bg-amber-600 text-white font-bold rounded-lg">Salvar alterações</button></div></div>
+  </form>
+ </div>
+</div>
+
+<!-- MODAL: QR DE MATERIAL -->
+<div class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 no-print" id="modalQRMaterial">
+ <div class="bg-white text-zinc-900 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center"><div id="qrMaterialBox" class="flex justify-center mb-4"></div><h3 id="qrMaterialDesc" class="font-bold text-lg"></h3><p id="qrMaterialCodigo" class="font-mono text-sm"></p><p id="qrMaterialInfo" class="text-xs mt-2"></p><div class="flex gap-2 justify-center mt-5"><button onclick="imprimirQRMaterial()" class="px-4 py-2 bg-zinc-900 text-white rounded-lg text-xs font-bold">Imprimir etiqueta</button><button onclick="closeModal('modalQRMaterial')" class="px-4 py-2 bg-zinc-200 rounded-lg text-xs">Fechar</button></div></div>
+</div>
+
+<!-- MODAL: USUÁRIO MASTER -->
+<div class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 no-print" id="modalUsuarioMaster">
+ <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-lg p-6 shadow-2xl"><h3 id="usuarioModalTitulo" class="text-base font-bold mb-4">Novo usuário</h3>
+  <form id="formUsuarioMaster" onsubmit="salvarUsuarioMaster(event)" class="space-y-3 text-xs"><input id="usuarioEditIndex" type="hidden" value="-1">
+   <div class="grid grid-cols-2 gap-3"><div><label class="block mb-1">Nome</label><input id="usuarioNome" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Login</label><input id="usuarioLogin" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div></div>
+   <div class="grid grid-cols-2 gap-3"><div><label class="block mb-1">Senha</label><input id="usuarioSenha" type="password" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Perfil</label><select id="usuarioMaster" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option value="false">Operacional</option><option value="true">Master Admin</option></select></div></div>
+   <div class="flex justify-end gap-2 pt-3"><button type="button" onclick="closeModal('modalUsuarioMaster')" class="px-4 py-2 bg-[var(--bg-card)] rounded-lg">Cancelar</button><button class="px-5 py-2 bg-amber-600 text-white font-bold rounded-lg">Salvar usuário</button></div>
+  </form>
+ </div>
+</div>
+
+
+<script>
+/* DECORART ERP 2.4 - correções consolidadas */
+(function(){
+  'use strict';
+  const esc = v => String(v ?? '').replace(/[&<>\'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+  const isoNow = () => new Date().toISOString();
+  const usuarioAtual = () => currentUser?.nome || 'Sistema';
+  const auditoria = (acao, detalhes) => {
+    try { if(typeof registrarAuditoriaSeguro === 'function') return registrarAuditoriaSeguro(acao, detalhes); }
+    catch(e) {}
+    try { if(typeof registrarAuditoria === 'function') return registrarAuditoria(acao, detalhes); }
+    catch(e) {}
+  };
+
+  // Localizações: ocultas por enquanto, sem apagar os dados existentes.
+  function ocultarLocalizacoes(){
+    ['nav-localizacoes','view-localizacoes'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  }
+
+  // ---------------- Datas PT-BR ----------------
+  function dataBR(v){
+    if(!v)return '-';
+    const d=v instanceof Date?v:new Date(v);
+    if(isNaN(d.getTime())){
+      const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m?`${m[3]}/${m[2]}/${m[1]}`:String(v);
+    }
+    return d.toLocaleDateString('pt-BR');
+  }
+  function dataHoraBR(v){
+    if(!v)return '-';
+    const d=v instanceof Date?v:new Date(v);
+    if(isNaN(d.getTime()))return String(v);
+    return d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+  window.formatarDataBR=dataHoraBR;
+
+  // ---------------- Usuários: restaura/sincroniza ----------------
+  function renderUsuarios(){
+    const body=document.getElementById('tableUsuariosBody');if(!body)return;
+    const lista=Array.isArray(DB.usuarios)?DB.usuarios:[];
+    body.innerHTML=lista.map((u,i)=>{
+      const perfil=u.master?'Master Admin':'Operacional';
+      const cls=u.master?'bg-amber-500/20 text-amber-500':'bg-slate-500/20 text-slate-400';
+      const del=u.login!==currentUser?.login?'<button onclick="excluirUsuarioMaster('+i+')" class="text-red-500 hover:underline">Excluir</button>':'';
+      return '<tr class="hover:bg-amber-500/5"><td class="py-2.5 font-medium">'+esc(u.nome||'-')+'</td><td class="py-2.5 opacity-70">'+esc(u.login||'-')+'</td><td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] '+cls+'">'+perfil+'</span></td><td class="py-2.5 text-center"><div class="flex justify-center gap-3"><button onclick="editarUsuarioMaster('+i+')" class="text-sky-400 hover:underline">Editar</button><button onclick="alterarSenhaUsuario('+i+')" class="text-amber-500 hover:underline">Senha</button>'+del+'</div></td></tr>';
+    }).join('') || '<tr><td colspan="4" class="py-8 text-center opacity-60">Nenhum usuário cadastrado.</td></tr>';
+  }
+  window.renderUsuariosTable=renderUsuarios;
+
+  function sincronizarUsuarios(){
+    if(!dbStore || window.__decorartUsuariosListener)return;
+    window.__decorartUsuariosListener=true;
+    dbStore.collection('usuarios').onSnapshot(async snap=>{
+      if(!snap.empty){
+        DB.usuarios=[];
+        snap.forEach(doc=>DB.usuarios.push({...doc.data(),firestoreId:doc.id}));
+        DB.usuarios.sort((a,b)=>String(a.nome||a.login||'').localeCompare(String(b.nome||b.login||''),'pt-BR'));
+        if(currentUser?.login){
+          const novo=DB.usuarios.find(u=>String(u.login).toLowerCase()===String(currentUser.login).toLowerCase());
+          if(novo){currentUser=novo;document.getElementById('userNameDisplay').textContent=novo.nome||novo.login;document.getElementById('userRoleDisplay').textContent=novo.master?'Master Admin':'Operacional';}
+        }
+      }else if(currentUser?.master && !window.__decorartUsuariosSeeded){
+        window.__decorartUsuariosSeeded=true;
+        const atuais=[...(DB.usuarios||[])];
+        for(const u of atuais){try{await dbStore.collection('usuarios').doc(u.login).set({...u},{merge:true});}catch(e){console.warn('Usuário inicial não persistido',e);}}
+      }
+      renderUsuarios();
+    },err=>console.warn('Sincronização de usuários:',err));
+  }
+  sincronizarUsuarios();
+
+  // ---------------- Catálogo de itens do projeto ----------------
+  function projeto(id){return (DB.projetos||[]).find(p=>String(p.ID)===String(id));}
+  function itemVinculado(v){
+    const origem=v.Origem || ((DB.materiais||[]).some(m=>m.ID===v.MaterialID)?'material':'estoque');
+    const item=origem==='material'?(DB.materiais||[]).find(m=>m.ID===v.MaterialID):(DB.estoque||[]).find(m=>m.ID===v.MaterialID);
+    return {origem,item};
+  }
+  function nomeItem(v){const r=itemVinculado(v);return r.item?.Descricao||r.item?.Cor||r.item?.Tipo||v.Descricao||v.MaterialID||'-';}
+  function unItem(v){const r=itemVinculado(v);return r.item?.Unidade||v.Unidade||'un';}
+  function saldoItem(v){return Number(itemVinculado(v).item?.Quantidade||0);}
+  function custoItem(v){const r=itemVinculado(v);return Number(r.item?.CustoUnitario||r.item?.PrecoUnitario||r.item?.Custo||0);}
+
+  window.abrirMateriaisProjeto=function(id){
+    const p=projeto(id);if(!p){alert('Projeto não encontrado.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const t=document.getElementById('vinculoProjetoTitulo');if(t)t.textContent=`${p.ID} • ${p.Nome} • ${p.Cliente||'-'}`;
+    const sel=document.getElementById('vinculoMaterialSelect');
+    if(sel){
+      const op=[];
+      (DB.estoque||[]).forEach(i=>op.push({id:i.ID,origem:'estoque',tipo:i.Tipo||'Chapa/Retalho',desc:(i.Cor||i.Tipo||'Item')+(i.Espessura?` (${i.Espessura} mm)`:''),saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      (DB.materiais||[]).filter(i=>i.Status!=='Inativo').forEach(i=>op.push({id:i.ID,origem:'material',tipo:i.Categoria||'Material',desc:i.Descricao||i.ID,saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      sel.innerHTML=op.length?op.map(o=>`<option value="${esc(o.origem+'|'+o.id)}">[${esc(o.id)}] ${esc(o.tipo)} — ${esc(o.desc)} | Saldo: ${o.saldo.toLocaleString('pt-BR')} ${esc(o.un)}</option>`).join(''):'<option value="">Nenhum item cadastrado</option>';
+    }
+    const head=document.querySelector('#modalVincularMaterialProjeto table thead');
+    if(head)head.innerHTML='<tr><th class="p-2 text-left">Item</th><th class="p-2">Necessário</th><th class="p-2">Consumido</th><th class="p-2">Estoque</th><th class="p-2">Situação</th><th class="p-2">Ação</th></tr>';
+    renderMateriaisProjeto(p);
+    openModal('modalVincularMaterialProjeto');
+    try{lucide.createIcons();}catch(e){}
+  };
+
+  function renderMateriaisProjeto(p){
+    const b=document.getElementById('vinculosProjetoBody');if(!b)return;
+    const arr=p.Materiais||[];
+    b.innerHTML=arr.map((v,i)=>{
+      const nec=Number(v.QuantidadeNecessaria||0),cons=Number(v.QuantidadeConsumida||0),saldo=saldoItem(v),faltante=Math.max(nec-cons,0),ok=saldo>=faltante;
+      const r=itemVinculado(v),tipo=r.origem==='material'?(r.item?.Categoria||'Material'):(r.item?.Tipo||'Chapa/Retalho');
+      return `<tr class="border-t border-[var(--border-color)]"><td class="p-2 font-semibold">${esc(nomeItem(v))}<div class="text-[10px] opacity-50">${esc(v.MaterialID)} • ${esc(tipo)}</div></td><td class="p-2 text-center">${nec.toLocaleString('pt-BR')} ${esc(unItem(v))}</td><td class="p-2 text-center">${cons.toLocaleString('pt-BR')} ${esc(unItem(v))}</td><td class="p-2 text-center">${saldo.toLocaleString('pt-BR')} ${esc(unItem(v))}</td><td class="p-2 text-center"><span class="px-2 py-1 rounded ${ok?'bg-emerald-500/15 text-emerald-500':'bg-red-500/15 text-red-500'}">${ok?'Disponível':'Falta material'}</span></td><td class="p-2 text-center whitespace-nowrap"><button onclick="baixarItemDoProjeto('${esc(p.ID)}',${i})" class="text-amber-500 hover:underline mr-2">Baixar</button><button onclick="removerMaterialProjeto(${i})" class="text-red-500 hover:underline">Remover</button></td></tr>`;
+    }).join('')||'<tr><td colspan="6" class="p-5 text-center opacity-60">Nenhum material vinculado.</td></tr>';
+  }
+  window.renderVinculosProjeto=renderMateriaisProjeto;
+
+  window.adicionarMaterialProjeto=async function(){
+    const idp=(document.getElementById('vinculoProjetoTitulo')?.textContent||'').split(' • ')[0],p=projeto(idp);if(!p)return;
+    const raw=document.getElementById('vinculoMaterialSelect')?.value||'',parts=raw.split('|'),origem=parts[0],id=parts.slice(1).join('|');
+    const q=Number(String(document.getElementById('vinculoQtd')?.value||'').replace(',','.'));
+    const item=origem==='material'?(DB.materiais||[]).find(x=>x.ID===id):(DB.estoque||[]).find(x=>x.ID===id);
+    if(!item||!Number.isFinite(q)||q<=0){alert('Selecione um item e informe uma quantidade válida.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const ex=p.Materiais.find(v=>v.MaterialID===id&&(v.Origem||'material')===origem);
+    if(ex)ex.QuantidadeNecessaria=Number(ex.QuantidadeNecessaria||0)+q;
+    else p.Materiais.push({MaterialID:id,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||id,QuantidadeNecessaria:q,QuantidadeConsumida:0,Unidade:item.Unidade||'un',VinculadoEm:isoNow()});
+    try{if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).set({Materiais:p.Materiais,AtualizadoEm:isoNow()},{merge:true});auditoria('Vincular item ao projeto',`${id} (${origem}) → ${p.ID} — ${q} ${item.Unidade||'un'}`);renderMateriaisProjeto(p);if(window.renderProjetos)window.renderProjetos();}catch(err){alert('Não foi possível vincular o item: '+err.message);}
+  };
+
+  window.removerMaterialProjeto=async function(i){
+    const idp=(document.getElementById('vinculoProjetoTitulo')?.textContent||'').split(' • ')[0],p=projeto(idp);if(!p)return;
+    const v=(p.Materiais||[])[i];if(!v)return;
+    if(!confirm(`Remover ${nomeItem(v)} do projeto?`))return;
+    p.Materiais.splice(i,1);
+    try{if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).set({Materiais:p.Materiais,AtualizadoEm:isoNow()},{merge:true});auditoria('Remover item do projeto',`${v.MaterialID} → ${p.ID}`);renderMateriaisProjeto(p);if(window.renderProjetos)window.renderProjetos();}catch(err){alert('Não foi possível remover: '+err.message);}
+  };
+
+  window.baixarItemDoProjeto=async function(idp,index){
+    const p=projeto(idp);if(!p)return;const v=(p.Materiais||[])[index];if(!v)return;
+    const r=itemVinculado(v),item=r.item;if(!item){alert('O item vinculado não existe mais no estoque.');return;}
+    const necessario=Math.max(Number(v.QuantidadeNecessaria||0)-Number(v.QuantidadeConsumida||0),0),saldo=Number(item.Quantidade||0);
+    if(necessario<=0){alert('Este item já foi totalmente baixado para o projeto.');return;}
+    if(saldo<=0){alert('O item está sem saldo no estoque.');return;}
+    const qraw=prompt(`Baixa direta para ${p.ID} — ${p.Nome}\n\n${nomeItem(v)}\nNecessário: ${necessario} ${unItem(v)}\nSaldo: ${saldo} ${unItem(v)}\n\nQuantidade a baixar:`,String(Math.min(necessario,saldo)));
+    if(qraw===null)return;const qtd=Number(String(qraw).replace(',','.'));
+    if(!Number.isFinite(qtd)||qtd<=0||qtd>saldo||qtd>necessario){alert(`Quantidade inválida. Máximo permitido: ${Math.min(saldo,necessario)} ${unItem(v)}.`);return;}
+    const col=r.origem==='material'?'materiais':'estoque',destino=`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`,resp=usuarioAtual();
+    try{
+      if(dbStore){
+        const ref=dbStore.collection(col).doc(item.firestoreId||item.ID),saidaRef=dbStore.collection('saidas').doc(),movRef=dbStore.collection('movimentacoes').doc(),projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID);
+        await dbStore.runTransaction(async tx=>{
+          const snap=await tx.get(ref);if(!snap.exists)throw new Error('Item não existe no Firebase.');
+          const atual=Number(snap.data().Quantidade||0);if(atual<qtd)throw new Error(`Saldo insuficiente. Disponível: ${atual}`);
+          const mats=[...(p.Materiais||[])];mats[index]={...mats[index],QuantidadeConsumida:Number(mats[index].QuantidadeConsumida||0)+qtd};
+          tx.update(ref,{Quantidade:atual-qtd,AtualizadoEm:isoNow()});
+          tx.set(projRef,{Materiais:mats,AtualizadoEm:isoNow()},{merge:true});
+          tx.set(saidaRef,{IDItem:item.ID,Tipo:item.Tipo||item.Categoria||r.origem,Qtd:qtd,Unidade:item.Unidade||'un',Data:new Date().toISOString().slice(0,10),Destino:destino,Responsavel:resp,ProjetoID:p.ID,Status:'Consumido',TipoOrigem:r.origem,CriadoEm:isoNow()});
+          tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:resp,TipoOrigem:r.origem,Data:isoNow()});
+        });
+      }
+      item.Quantidade=saldo-qtd;v.QuantidadeConsumida=Number(v.QuantidadeConsumida||0)+qtd;
+      auditoria('Baixa direta no projeto',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID} — ${resp}`);
+      renderMateriaisProjeto(p);if(window.renderMateriais)window.renderMateriais();if(window.renderProjetos)window.renderProjetos();montarBaixaAtual();
+      alert('Baixa registrada e vinculada ao projeto com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível registrar a baixa: '+err.message);}
+  };
+
+  // ---------------- Baixa geral ----------------
+  function montarBaixaAtual(){
+    const s=document.getElementById('baixaItemSelect');if(!s)return;
+    const op=[];
+    (DB.estoque||[]).filter(i=>Number(i.Quantidade||0)>0).forEach(i=>op.push(`<option value="estoque|${esc(i.ID)}">[${esc(i.ID)}] ${esc(i.Tipo||'Item')} — ${esc(i.Cor||'')} ${i.Espessura?`(${esc(i.Espessura)} mm)`:''} — Saldo: ${Number(i.Quantidade||0)}</option>`));
+    (DB.materiais||[]).filter(i=>i.Status!=='Inativo'&&Number(i.Quantidade||0)>0).forEach(i=>op.push(`<option value="material|${esc(i.ID)}">[${esc(i.ID)}] ${esc(i.Categoria||'Material')} — ${esc(i.Descricao||'')} — Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`));
+    s.innerHTML=op.join('')||'<option value="">Nenhum item com saldo disponível</option>';
+  }
+  window.montarOpcoesBaixa=montarBaixaAtual;
+  window.preencherSelectBaixaSeguro=montarBaixaAtual;
+  window.preencherProjetosBaixa=function(){
+    const s=document.getElementById('baixaProjetoSelect');if(!s)return;
+    const ordem={'Em produção':0,'Aguardando material':1,'Planejamento':2,'Pronto':3,'Entregue':9,'Cancelado':10};
+    const ps=(DB.projetos||[]).filter(p=>!['Entregue','Cancelado'].includes(p.Status)).sort((a,b)=>(ordem[a.Status]??5)-(ordem[b.Status]??5)||String(a.Nome||'').localeCompare(String(b.Nome||''),'pt-BR'));
+    s.innerHTML='<option value="">Selecione o projeto / obra</option>'+ps.map(p=>`<option value="${esc(p.ID)}">${esc(p.ID)} — ${esc(p.Nome)} / ${esc(p.Cliente||'-')} [${esc(p.Status||'-')}]</option>`).join('');
+    const preferido=ps.find(p=>p.Status==='Em produção')||ps.find(p=>p.Status==='Aguardando material')||ps.find(p=>p.Status==='Planejamento');if(preferido)s.value=preferido.ID;
+    atualizarDestinoProjeto();
+  };
+  function atualizarDestinoProjeto(){
+    const s=document.getElementById('baixaProjetoSelect'),d=document.getElementById('baixaDestino'),r=document.getElementById('baixaResponsavel'),p=(DB.projetos||[]).find(x=>x.ID===s?.value);
+    if(d){d.value=p?`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`:'';d.readOnly=true;}
+    if(r){r.value=usuarioAtual();r.readOnly=true;r.setAttribute('readonly','readonly');}
+  }
+  window.atualizarDestinoBaixaProjeto=atualizarDestinoProjeto;
+  window.abrirNovaBaixaSegura=function(){
+    document.getElementById('formBaixa')?.reset();document.getElementById('editBaixaIndex').value='-1';document.getElementById('modalBaixaTitle').textContent='Registrar Baixa / Saída';
+    montarBaixaAtual();preencherProjetosBaixa();const d=document.getElementById('baixaData');if(d)d.value=new Date().toISOString().slice(0,10);atualizarDestinoProjeto();openModal('modalNovaBaixa');
+  };
+  window.salvarBaixa=async function(e){
+    e.preventDefault();
+    const raw=document.getElementById('baixaItemSelect')?.value||'',parts=raw.split('|'),origem=parts[0],id=parts.slice(1).join('|'),qtd=Number(String(document.getElementById('baixaQtd')?.value||'').replace(',','.')),data=document.getElementById('baixaData')?.value||new Date().toISOString().slice(0,10),pid=document.getElementById('baixaProjetoSelect')?.value||'',p=projeto(pid),item=origem==='material'?(DB.materiais||[]).find(x=>x.ID===id):(DB.estoque||[]).find(x=>x.ID===id),resp=usuarioAtual();
+    if(!item){alert('O estoque atual mudou. A lista será atualizada. Tente novamente.');montarBaixaAtual();return;}
+    if(!p){alert('Selecione um projeto / obra válido.');return;}
+    if(!Number.isFinite(qtd)||qtd<=0){alert('Informe uma quantidade válida.');return;}
+    if(Number(item.Quantidade||0)<qtd){alert(`Estoque insuficiente. Saldo atual: ${item.Quantidade} ${item.Unidade||'un'}.`);montarBaixaAtual();return;}
+    const destino=`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`;
+    try{
+      if(dbStore){
+        const col=origem==='material'?'materiais':'estoque',ref=dbStore.collection(col).doc(item.firestoreId||item.ID),saidaRef=dbStore.collection('saidas').doc(),movRef=dbStore.collection('movimentacoes').doc(),projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID);
+        await dbStore.runTransaction(async tx=>{
+          const snap=await tx.get(ref);
+          if(!snap.exists)throw new Error('Item não existe no Firebase.');
+          const atual=Number(snap.data().Quantidade||0);
+          if(atual<qtd)throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
+
+          // Vincula o consumo ao projeto: se já houver item planejado, incrementa o consumido;
+          // se não houver, cria uma linha de consumo não planejado.
+          const mats=[...(p.Materiais||[])];
+          let vi=mats.findIndex(v=>String(v.MaterialID)===String(id) && String(v.Origem||origem)===String(origem));
+          if(vi<0){
+            mats.push({MaterialID:id,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||id,QuantidadeNecessaria:0,QuantidadeConsumida:qtd,Unidade:item.Unidade||'un',VinculadoEm:isoNow(),OrigemConsumo:'Baixa geral'});
+          }else{
+            mats[vi]={...mats[vi],QuantidadeConsumida:Number(mats[vi].QuantidadeConsumida||0)+qtd};
+          }
+
+          tx.update(ref,{Quantidade:atual-qtd,AtualizadoEm:isoNow()});
+          tx.set(projRef,{Materiais:mats,AtualizadoEm:isoNow()},{merge:true});
+          tx.set(saidaRef,{IDItem:id,Tipo:item.Tipo||item.Categoria||origem,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:resp,ProjetoID:pid,Status:'Consumido',TipoOrigem:origem,CriadoEm:isoNow()});
+          tx.set(movRef,{Tipo:'SAIDA',ItemID:id,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:pid,Destino:destino,Responsavel:resp,TipoOrigem:origem,Data:isoNow()});
+        });
+      }
+
+      item.Quantidade=Number(item.Quantidade)-qtd;
+      p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+      let vi=p.Materiais.findIndex(v=>String(v.MaterialID)===String(id) && String(v.Origem||origem)===String(origem));
+      if(vi<0){
+        p.Materiais.push({MaterialID:id,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||id,QuantidadeNecessaria:0,QuantidadeConsumida:qtd,Unidade:item.Unidade||'un',VinculadoEm:isoNow(),OrigemConsumo:'Baixa geral'});
+      }else{
+        p.Materiais[vi]={...p.Materiais[vi],QuantidadeConsumida:Number(p.Materiais[vi].QuantidadeConsumida||0)+qtd};
+      }
+
+      DB.saidas=Array.isArray(DB.saidas)?DB.saidas:[];
+      DB.saidas.unshift({IDItem:id,Tipo:item.Tipo||item.Categoria||origem,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:resp,ProjetoID:pid,Status:'Consumido',TipoOrigem:origem,CriadoEm:isoNow()});
+      auditoria('Registrar Baixa',`${qtd} ${item.Tipo||item.Categoria||origem} ${id}${pid?' → '+pid:''}`);
+      closeModal('modalNovaBaixa');
+      document.getElementById('formBaixa')?.reset();
+      document.getElementById('editBaixaIndex').value='-1';
+      montarBaixaAtual();
+      preencherProjetosBaixa();
+      if(window.renderProjetos)window.renderProjetos();
+      if(window.renderMateriais)window.renderMateriais();
+      if(window.renderVinculosProjeto && document.getElementById('vinculosProjetoBody')?.offsetParent!==null)window.renderVinculosProjeto(p);
+      refreshAllViews();
+      alert('Baixa confirmada e sincronizada com o projeto.');
+    }catch(err){console.error(err);alert('Não foi possível registrar a baixa: '+err.message);}
+  };
+  // ---------------- Orçamento do projeto ----------------
+  function custoProjetoAtual(p){return (p.Materiais||[]).reduce((sum,v)=>sum+Number(v.QuantidadeNecessaria||0)*custoItem(v),0);}
+  function renderOrcamento(p){
+    const body=document.getElementById('orcamentoProjetoBody');if(!body)return;let custo=0;
+    body.innerHTML=(p.Materiais||[]).map(v=>{const q=Number(v.QuantidadeNecessaria||0),cu=custoItem(v),total=q*cu;custo+=total;return `<tr><td class="p-2 border-b">${esc(v.MaterialID)}</td><td class="p-2 border-b">${esc(nomeItem(v))}</td><td class="p-2 border-b text-right">${q.toLocaleString('pt-BR')} ${esc(unItem(v))}</td><td class="p-2 border-b text-right">R$ ${cu.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td><td class="p-2 border-b text-right font-bold">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;}).join('')||'<tr><td colspan="5" class="p-6 text-center opacity-60">Nenhum material vinculado ao projeto.</td></tr>';
+    const markup=Number(document.getElementById('orcMarkup')?.value||0),venda=custo*(1+markup/100);document.getElementById('orcCustoTotal').textContent=custo.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});document.getElementById('orcVendaTotal').textContent=venda.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});document.getElementById('orcMarkupValor').textContent=markup.toLocaleString('pt-BR',{minimumFractionDigits:1})+'%';
+  }
+  function criarModalOrcamento(){
+    if(document.getElementById('modalOrcamentoProjeto'))return;
+    const div=document.createElement('div');div.id='modalOrcamentoProjeto';div.className='hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 no-print';
+    div.innerHTML='<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-auto p-6 shadow-2xl"><div class="flex justify-between items-center mb-4"><div><h3 class="text-base font-bold">Orçamento do Projeto</h3><p id="orcProjetoTitulo" class="text-sm text-amber-500 font-semibold"></p><p id="orcProjetoCliente" class="text-xs opacity-60"></p></div><button onclick="closeModal(\'modalOrcamentoProjeto\')" class="p-2">✕</button></div><div class="flex flex-wrap items-end gap-3 mb-4"><div><label class="block text-xs mb-1">Margem sobre custo (%)</label><input id="orcMarkup" type="number" step="0.1" min="0" value="0" oninput="atualizarOrcamentoProjeto()" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2 w-36"></div><button onclick="salvarMarkupProjeto()" class="px-3 py-2 bg-[var(--bg-card)] rounded-lg text-xs font-bold">Salvar margem</button><button onclick="imprimirOrcamentoProjeto()" class="px-3 py-2 bg-amber-600 text-white rounded-lg text-xs font-bold">Imprimir orçamento</button></div><div class="border border-[var(--border-color)] rounded-xl overflow-hidden"><table class="w-full text-xs"><thead class="bg-[var(--bg-card)]"><tr><th class="p-2 text-left">Código</th><th class="p-2 text-left">Descrição</th><th class="p-2">Quantidade</th><th class="p-2">Custo unitário</th><th class="p-2">Total</th></tr></thead><tbody id="orcamentoProjetoBody"></tbody></table></div><div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4"><div class="bg-[var(--bg-card)] rounded-xl p-4"><span class="text-xs opacity-60">Custo dos materiais</span><strong id="orcCustoTotal" class="block text-xl"></strong></div><div class="bg-[var(--bg-card)] rounded-xl p-4"><span class="text-xs opacity-60">Margem</span><strong id="orcMarkupValor" class="block text-xl"></strong></div><div class="bg-amber-600 text-white rounded-xl p-4"><span class="text-xs opacity-80">Valor do orçamento</span><strong id="orcVendaTotal" class="block text-xl"></strong></div></div></div>';
+    document.body.appendChild(div);
+  }
+  window.abrirOrcamentoProjeto=function(id){const p=projeto(id);if(!p)return;criarModalOrcamento();document.getElementById('orcProjetoTitulo').textContent=`${p.ID} — ${p.Nome}`;document.getElementById('orcProjetoCliente').textContent=p.Cliente||'-';document.getElementById('orcMarkup').value=Number(p.Markup||0);renderOrcamento(p);openModal('modalOrcamentoProjeto');};
+  window.atualizarOrcamentoProjeto=function(){const id=(document.getElementById('orcProjetoTitulo')?.textContent||'').split(' — ')[0],p=projeto(id);if(p)renderOrcamento(p);};
+  window.salvarMarkupProjeto=async function(){const id=(document.getElementById('orcProjetoTitulo')?.textContent||'').split(' — ')[0],p=projeto(id);if(!p)return;p.Markup=Number(document.getElementById('orcMarkup').value||0);if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).set({Markup:p.Markup},{merge:true});auditoria('Atualizar orçamento',`${p.ID} — margem ${p.Markup}%`);renderOrcamento(p);};
+  window.imprimirOrcamentoProjeto=function(){
+    const id=(document.getElementById('orcProjetoTitulo')?.textContent||'').split(' — ')[0];
+    const p=projeto(id);
+    if(!p) return;
+    const markup=Number(p.Markup||0), custo=custoProjetoAtual(p), venda=custo*(1+markup/100);
+    const linhas=(p.Materiais||[]).map(v=>{
+      const q=Number(v.QuantidadeNecessaria||0), cu=custoItem(v);
+      return '<tr><td>'+esc(v.MaterialID)+'</td><td>'+esc(nomeItem(v))+'</td><td>'+q.toLocaleString('pt-BR')+' '+esc(unItem(v))+'</td><td>R$ '+cu.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</td><td>R$ '+(q*cu).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</td></tr>';
+    }).join('');
+    const w=window.open('','_blank','width=900,height=700');
+    if(!w) return;
+    const html='<!doctype html><html><head><meta charset="utf-8"><title>Orçamento '+esc(p.ID)+'</title><style>body{font-family:Arial;padding:32px;color:#222}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#eee}.totais{margin-top:20px;text-align:right}</style></head><body><h1>Decorart Móveis — Orçamento</h1><p>'+esc(p.ID)+' — '+esc(p.Nome)+' — Cliente: '+esc(p.Cliente||'-')+'</p><p>Gerado em '+dataHoraBR(new Date())+'</p><table><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Custo unitário</th><th>Total</th></tr></thead><tbody>'+linhas+'</tbody></table><div class="totais"><div>Custo dos materiais: <b>R$ '+custo.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</b></div><div>Margem: <b>'+markup.toLocaleString('pt-BR',{minimumFractionDigits:1})+'%</b></div><div style="font-size:18px;margin-top:8px">Valor do orçamento: <b>R$ '+venda.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</b></div></div></body></html>';
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.onload=()=>w.print();
+    auditoria('Imprimir orçamento',`${p.ID} — ${p.Nome}`);
+  };
+
+  // ---------------- Exclusões protegidas ----------------
+  async function confirmarMaster(motivo){
+    if(typeof validarSenhaMaster==='function')return await validarSenhaMaster(motivo);
+    if(!currentUser?.master){alert('Acesso restrito ao MASTER.');return false;}
+    const senha=prompt(motivo+'\n\nDigite a senha MASTER:');
+    const ok=(DB.usuarios||[]).some(u=>u.master&&String(u.senha||'')===String(senha||'').trim());
+    if(!ok){auditoria('Tentativa bloqueada',motivo+' — senha MASTER inválida.');alert('Senha MASTER inválida.');return false;}
+    return true;
+  }
+  window.excluirProjeto=async function(id){const p=projeto(id);if(!p)return;if(!await confirmarMaster(`Excluir o projeto ${p.ID} — ${p.Nome}?`))return;if(!confirm(`Confirma a exclusão permanente do projeto ${p.ID}?`))return;try{if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).delete();DB.projetos=DB.projetos.filter(x=>x.ID!==id);auditoria('Excluir projeto',`${p.ID} — ${p.Nome}`);if(window.renderProjetos)window.renderProjetos();preencherProjetosBaixa();}catch(err){alert('Erro ao excluir projeto: '+err.message);}};
+
+  // ---------------- Filtros por clique no cabeçalho ----------------
+  const filtros=new WeakMap();
+  function anexarFiltros(){
+    document.querySelectorAll('table').forEach(table=>{
+      const ths=[...(table.tHead?.querySelectorAll('th')||[])];if(!ths.length)return;
+      let estado=filtros.get(table);if(!estado){estado={};filtros.set(table,estado);}
+      ths.forEach((th,i)=>{
+        if(th.dataset.filtroColuna==='1')return;th.dataset.filtroColuna='1';th.title='Clique para filtrar esta coluna';th.style.cursor='pointer';th.classList.add('select-none');
+        th.addEventListener('click',()=>{const nome=(th.textContent||`Coluna ${i+1}`).replace(/\s+/g,' ').trim(),v=prompt(`Filtrar "${nome}"\n\nDigite o texto. Deixe vazio para limpar:`,estado[i]||'');if(v===null)return;estado[i]=v.trim().toLowerCase();th.classList.toggle('text-amber-500',!!estado[i]);[...(table.tBodies||[])].forEach(tb=>[...tb.rows].forEach(row=>{const txt=(row.cells[i]?.textContent||'').toLowerCase();row.style.display=!estado[i]||txt.includes(estado[i])?'':'none';}));auditoria(estado[i]?'Filtrar coluna':'Limpar filtro',`${nome}${estado[i]?' = '+estado[i]:''}`);});
+      });
+    });
+  }
+  window.aplicarFiltrosColunas=anexarFiltros;
+
+  // ---------------- Navegação: menu sem Localizações ----------------
+  const navigateOriginal=window.navigate;
+  window.navigate=function(view){if(view==='localizacoes')return;navigateOriginal(view);ocultarLocalizacoes();if(view==='usuarios'&&currentUser?.master)renderUsuarios();};
+
+  // ---------------- Bloqueia acesso ao módulo de usuários para não-MASTER ----------------
+  const abrirUsuarioOriginal=window.abrirNovoUsuario;
+  window.abrirNovoUsuario=function(){if(!currentUser?.master){alert('Somente usuários MASTER podem administrar usuários.');return;}return abrirUsuarioOriginal?abrirUsuarioOriginal():null;};
+
+  // ---------------- Inicialização/reaplicação ----------------
+  function inicializar(){
+    ocultarLocalizacoes();
+    if(!Array.isArray(DB.projetos))DB.projetos=[];
+    if(!Array.isArray(DB.materiais))DB.materiais=[];
+    if(!Array.isArray(DB.movimentacoes))DB.movimentacoes=[];
+    montarBaixaAtual();preencherProjetosBaixa();
+    const r=document.getElementById('baixaResponsavel');if(r){r.readOnly=true;r.value=usuarioAtual();}
+    anexarFiltros();
+    if(currentUser?.master)renderUsuarios();
+    try{lucide.createIcons();}catch(e){}
+  }
+  window.addEventListener('load',()=>setTimeout(inicializar,800));
+  setInterval(()=>{try{ocultarLocalizacoes();montarBaixaAtual();if(document.getElementById('baixaProjetoSelect')){const old=document.getElementById('baixaProjetoSelect').value;preencherProjetosBaixa();if(old){const s=document.getElementById('baixaProjetoSelect');if([...s.options].some(o=>o.value===old)){s.value=old;atualizarDestinoProjeto();}}}anexarFiltros();}catch(e){}},7000);
+})();
+</script>
+
+<script>
+/* DECORART ERP 2.6 - integridade de IDs, estorno seguro e referências por documento */
+(function(){
+  'use strict';
+
+  function now26(){ return new Date().toISOString(); }
+  function user26(){ try{return typeof usuarioAtual==='function'?usuarioAtual():(currentUser?.nome||currentUser?.login||'Sistema');}catch(_){return 'Sistema';} }
+  function audit26(a,d){ try{ if(typeof registrarAuditoria==='function') return registrarAuditoria(a,d); }catch(_){} }
+  function esc26(v){ return String(v ?? '').replace(/[&<>'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s])); }
+  function proj26(id){ return (DB.projetos||[]).find(p=>String(p.ID)===String(id)); }
+  function col26(v){ return (String(v.Origem||'').toLowerCase()==='material') ? 'materiais' : 'estoque'; }
+  function arr26(v){ return col26(v)==='materiais' ? (DB.materiais||[]) : (DB.estoque||[]); }
+  function item26(v){
+    const arr=arr26(v), fs=String(v.ItemFirestoreId||'');
+    if(fs){ const byFs=arr.find(x=>String(x.firestoreId||'')===fs); if(byFs)return byFs; }
+    const matches=arr.filter(x=>String(x.ID||'')===String(v.MaterialID||''));
+    return matches.length===1?matches[0]:null;
+  }
+  function itemMatches26(v){ return arr26(v).filter(x=>String(x.ID||'')===String(v.MaterialID||'')); }
+  function itemName26(v){ const it=item26(v); return it?.Descricao||it?.Cor||it?.Tipo||v.Descricao||v.MaterialID||'-'; }
+  function unit26(v){ const it=item26(v); return it?.Unidade||v.Unidade||'un'; }
+
+  async function bindMaterialRefs26(){
+    // Migra vínculos antigos para a referência exata do documento quando há apenas um item com aquele ID.
+    for(const p of (DB.projetos||[])){
+      if(!Array.isArray(p.Materiais) || !p.Materiais.length) continue;
+      let changed=false;
+      const mats=p.Materiais.map(v=>{
+        const out={...v};
+        if(!out.ItemFirestoreId){
+          const it=item26(out);
+          if(it?.firestoreId){ out.ItemFirestoreId=it.firestoreId; out.ColecaoOrigem=col26(out); changed=true; }
+        }
+        return out;
+      });
+      if(changed){
+        p.Materiais=mats;
+        try{ if(dbStore && p.firestoreId) await dbStore.collection('projetos').doc(p.firestoreId).set({Materiais:mats,AtualizadoEm:now26()},{merge:true}); }catch(e){ console.warn('Migração de vínculo:',e); }
+      }
+    }
+  }
+
+  async function atualizarItemProjeto26(p,index,delta,meta){
+    const v=(p.Materiais||[])[index]; if(!v) throw new Error('Material do projeto não encontrado.');
+    const r=item26(v); if(!r) throw new Error(`O item ${v.MaterialID} não foi localizado de forma inequívoca no estoque.`);
+    const col=col26(v);
+    const newConsumed=Math.max(0,Number(v.QuantidadeConsumida||0)+Number(delta||0));
+    const mats=[...(p.Materiais||[])];
+    mats[index]={...mats[index],QuantidadeConsumida:newConsumed,ItemFirestoreId:r.firestoreId||mats[index].ItemFirestoreId,ColecaoOrigem:col};
+    if(dbStore && r.firestoreId){
+      const itemRef=dbStore.collection(col).doc(r.firestoreId), projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID);
+      const snap=await dbStore.runTransaction(async tx=>{
+        const is=await tx.get(itemRef); if(!is.exists) throw new Error('Item não existe mais no Firebase.');
+        const atual=Number(is.data().Quantidade||0), alvo=atual-Number(delta||0);
+        if(alvo<0) throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}.`);
+        tx.update(itemRef,{Quantidade:alvo,AtualizadoEm:now26()});
+        tx.set(projRef,{Materiais:mats,AtualizadoEm:now26()},{merge:true});
+        return {alvo};
+      });
+      r.Quantidade=snap.alvo;
+    }else{
+      r.Quantidade=Number(r.Quantidade||0)-Number(delta||0);
+      p.Materiais=mats;
+    }
+    p.Materiais=mats;
+    return {item:r,v:mats[index],col};
+  }
+
+  // ---------- Seleção de item na baixa: referência exata ao documento ----------
+  window.montarBaixaAtual=function(){
+    const s=document.getElementById('baixaItemSelect'); if(!s)return;
+    const op=[];
+    (DB.estoque||[]).filter(i=>Number(i.Quantidade||0)>0).forEach(i=>{
+      op.push(`<option value="estoque|${esc26(i.firestoreId||'')}|${esc26(i.ID)}">[${esc26(i.ID)}] ${esc26(i.Tipo||'Item')} — ${esc26(i.Cor||'')} ${i.Espessura?`(${esc26(i.Espessura)} mm)`:''} — Saldo: ${Number(i.Quantidade||0)}</option>`);
+    });
+    (DB.materiais||[]).filter(i=>i.Status!=='Inativo'&&Number(i.Quantidade||0)>0).forEach(i=>{
+      op.push(`<option value="material|${esc26(i.firestoreId||'')}|${esc26(i.ID)}">[${esc26(i.ID)}] ${esc26(i.Categoria||'Material')} — ${esc26(i.Descricao||'')} — Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc26(i.Unidade||'un')}</option>`);
+    });
+    s.innerHTML=op.join('')||'<option value="">Nenhum item com saldo disponível</option>';
+  };
+  window.preencherSelectBaixaSeguro=window.montarBaixaAtual;
+
+  // ---------- Projeto: abrir/vincular materiais com FirestoreId ----------
+  window.abrirMateriaisProjeto=function(id){
+    const p=proj26(id); if(!p){alert('Projeto não encontrado.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const t=document.getElementById('vinculoProjetoTitulo'); if(t)t.textContent=`${p.ID} • ${p.Nome} • ${p.Cliente||'-'}`;
+    const sel=document.getElementById('vinculoMaterialSelect');
+    if(sel){
+      const op=[];
+      (DB.estoque||[]).forEach(i=>op.push({id:i.ID,fs:i.firestoreId||'',origem:'estoque',tipo:i.Tipo||'Chapa/Retalho',desc:(i.Cor||i.Tipo||'Item')+(i.Espessura?` (${i.Espessura} mm)`:''),saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      (DB.materiais||[]).filter(i=>i.Status!=='Inativo').forEach(i=>op.push({id:i.ID,fs:i.firestoreId||'',origem:'material',tipo:i.Categoria||'Material',desc:i.Descricao||i.ID,saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      sel.innerHTML=op.length?op.map(o=>`<option value="${esc26(o.origem+'|'+o.fs+'|'+o.id)}">[${esc26(o.id)}] ${esc26(o.tipo)} — ${esc26(o.desc)} | Saldo: ${o.saldo.toLocaleString('pt-BR')} ${esc26(o.un)}</option>`).join(''):'<option value="">Nenhum item cadastrado</option>';
+    }
+    const head=document.querySelector('#modalVincularMaterialProjeto table thead');
+    if(head)head.innerHTML='<tr><th class="p-2 text-left">Item</th><th class="p-2">Necessário</th><th class="p-2">Consumido</th><th class="p-2">Estoque</th><th class="p-2">Situação</th><th class="p-2">Ação</th></tr>';
+    renderMateriaisProjeto(p); openModal('modalVincularMaterialProjeto'); try{lucide.createIcons();}catch(e){}
+  };
+
+  window.adicionarMaterialProjeto=async function(){
+    const idp=(document.getElementById('vinculoProjetoTitulo')?.textContent||'').split(' • ')[0],p=proj26(idp); if(!p)return;
+    const raw=document.getElementById('vinculoMaterialSelect')?.value||'',parts=raw.split('|');
+    const origem=parts[0]||'',fs=parts[1]||'',id=parts.slice(2).join('|');
+    const q=Number(String(document.getElementById('vinculoQtd')?.value||'').replace(',','.'));
+    const arr=origem==='material'?(DB.materiais||[]):(DB.estoque||[]);
+    const matches=arr.filter(x=>String(x.ID)===String(id));
+    const item=fs?arr.find(x=>String(x.firestoreId||'')===String(fs)):matches.length===1?matches[0]:null;
+    if(!item){alert(matches.length>1?`O ID ${id} possui ${matches.length} registros. A correção de IDs deve ser feita antes do vínculo.`:'Selecione um item válido.');return;}
+    if(!Number.isFinite(q)||q<=0){alert('Informe uma quantidade válida.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const ex=p.Materiais.find(v=>String(v.MaterialID)===String(id)&&String(v.Origem||'')===String(origem)&&String(v.ItemFirestoreId||'')===String(item.firestoreId||fs));
+    if(ex) ex.QuantidadeNecessaria=Number(ex.QuantidadeNecessaria||0)+q;
+    else p.Materiais.push({MaterialID:id,ItemFirestoreId:item.firestoreId||fs,ColecaoOrigem:origem,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||id,QuantidadeNecessaria:q,QuantidadeConsumida:0,Unidade:item.Unidade||'un',VinculadoEm:now26()});
+    try{
+      if(dbStore) await dbStore.collection('projetos').doc(p.firestoreId||p.ID).set({Materiais:p.Materiais,AtualizadoEm:now26()},{merge:true});
+      audit26('Vincular item ao projeto',`${id} (${origem}) → ${p.ID} — ${q} ${item.Unidade||'un'}`);
+      renderMateriaisProjeto(p); if(window.renderProjetos)window.renderProjetos();
+      const qel=document.getElementById('vinculoQtd');if(qel)qel.value='1';
+    }catch(err){alert('Não foi possível vincular o item: '+err.message);}
+  };
+
+  window.baixarItemDoProjeto=async function(idp,index){
+    const p=proj26(idp);if(!p)return;const v=(p.Materiais||[])[index];if(!v)return;
+    const item=item26(v);if(!item){alert(`O item ${v.MaterialID} não foi encontrado de forma segura. Corrija a integridade dos IDs antes de continuar.`);return;}
+    const necessario=Math.max(Number(v.QuantidadeNecessaria||0)-Number(v.QuantidadeConsumida||0),0),saldo=Number(item.Quantidade||0);
+    if(necessario<=0){alert('Este item já foi totalmente baixado para o projeto.');return;}
+    if(saldo<=0){alert('O item está sem saldo no estoque.');return;}
+    const qraw=prompt(`Baixa direta para ${p.ID} — ${p.Nome}\n\n${itemName26(v)}\nNecessário: ${necessario} ${unit26(v)}\nSaldo: ${saldo} ${unit26(v)}\n\nQuantidade a baixar:`,String(Math.min(necessario,saldo)));
+    if(qraw===null)return;const qtd=Number(String(qraw).replace(',','.'));
+    if(!Number.isFinite(qtd)||qtd<=0||qtd>saldo||qtd>necessario){alert(`Quantidade inválida. Máximo permitido: ${Math.min(saldo,necessario)} ${unit26(v)}.`);return;}
+    const col=col26(v),destino=`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`,resp=user26();
+    try{
+      if(dbStore && item.firestoreId){
+        const ref=dbStore.collection(col).doc(item.firestoreId),saidaRef=dbStore.collection('saidas').doc(),movRef=dbStore.collection('movimentacoes').doc(),projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID);
+        await dbStore.runTransaction(async tx=>{
+          const snap=await tx.get(ref);if(!snap.exists)throw new Error('Item não existe no Firebase.');
+          const atual=Number(snap.data().Quantidade||0);if(atual<qtd)throw new Error(`Saldo insuficiente. Disponível: ${atual}`);
+          const mats=[...(p.Materiais||[])];
+          mats[index]={...mats[index],ItemFirestoreId:item.firestoreId,ColecaoOrigem:col,QuantidadeConsumida:Number(mats[index].QuantidadeConsumida||0)+qtd};
+          tx.update(ref,{Quantidade:atual-qtd,AtualizadoEm:now26()});
+          tx.set(projRef,{Materiais:mats,AtualizadoEm:now26()},{merge:true});
+          tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:new Date().toISOString().slice(0,10),Destino:destino,Responsavel:resp,ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now26()});
+          tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:resp,TipoOrigem:col,Data:now26()});
+        });
+        item.Quantidade=saldo-qtd;
+      }else{
+        item.Quantidade=saldo-qtd;
+        v.QuantidadeConsumida=Number(v.QuantidadeConsumida||0)+qtd;
+      }
+      v.QuantidadeConsumida=Number(v.QuantidadeConsumida||0)+ (dbStore&&item.firestoreId ? qtd : 0);
+      audit26('Baixa direta no projeto',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID} — ${resp}`);
+      renderMateriaisProjeto(p);if(window.renderMateriais)window.renderMateriais();if(window.renderProjetos)window.renderProjetos();window.montarBaixaAtual();
+      alert('Baixa registrada e vinculada ao projeto com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível registrar a baixa: '+err.message);}
+  };
+
+  // ---------- Remoção/estorno: usa FirestoreId, nunca só o ID visual ----------
+  window.removerMaterialProjeto=async function(index){
+    const idp=(document.getElementById('vinculoProjetoTitulo')?.textContent||'').split(' • ')[0],p=proj26(idp);if(!p)return;
+    const v=(p.Materiais||[])[index];if(!v)return;
+    const itMatches=itemMatches26(v); const item=item26(v);
+    if(!item){
+      alert(itMatches.length>1?`O item ${v.MaterialID} ainda possui IDs duplicados. A integridade deve ser corrigida antes da remoção para evitar estorno no item errado.`:'O item empregado não foi encontrado no estoque. O sistema não removerá o vínculo para não perder o controle do estorno.');
+      return;
+    }
+    if(!currentUser?.master){alert('A remoção de material empregado exige autorização MASTER.');return;}
+    const consumido=Number(v.QuantidadeConsumida||0),nome=itemName26(v),un=unit26(v);
+    const senha=prompt(`Remover ${nome} do projeto ${p.ID}.\n${consumido>0?`\n${consumido} ${un} foram consumidos e voltarão ao estoque.\n`:''}\nDigite a senha MASTER:`);
+    const ok=(DB.usuarios||[]).some(u=>u.master&&String(u.senha||'')===String(senha||'').trim());
+    if(!ok){audit26('Tentativa bloqueada',`Remoção de ${v.MaterialID} do projeto ${p.ID} — senha MASTER inválida.`);alert('Senha MASTER inválida.');return;}
+    if(!confirm(`Confirma remover ${nome} do projeto ${p.ID}?${consumido>0?` O estoque será estornado em ${consumido} ${un}.`:''}`))return;
+    const col=col26(v);
+    try{
+      const mats=[...(p.Materiais||[])];mats.splice(index,1);
+      const saidaDocs=[];
+      if(dbStore&&consumido>0){
+        if(item.firestoreId){
+          const snap=await dbStore.collection('saidas').where('ProjetoID','==',p.ID).where('ItemFirestoreId','==',item.firestoreId).get();
+          snap.forEach(doc=>{const x=doc.data();if(x.Status!=='Estornado')saidaDocs.push({ref:doc.ref,data:x});});
+          // Compatibilidade com baixas antigas que ainda não têm ItemFirestoreId.
+          if(!saidaDocs.length){
+            const old=await dbStore.collection('saidas').where('ProjetoID','==',p.ID).where('IDItem','==',v.MaterialID).get();
+            old.forEach(doc=>{const x=doc.data();if(!x.ItemFirestoreId&&x.Status!=='Estornado')saidaDocs.push({ref:doc.ref,data:x});});
+          }
+        }
+      }
+      if(dbStore&&item.firestoreId){
+        const itemRef=dbStore.collection(col).doc(item.firestoreId),projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID),movRef=dbStore.collection('movimentacoes').doc();
+        await dbStore.runTransaction(async tx=>{
+          const is=await tx.get(itemRef);if(!is.exists)throw new Error('Item não existe mais no Firebase.');
+          const atual=Number(is.data().Quantidade||0),novo=atual+consumido;
+          tx.update(itemRef,{Quantidade:novo,AtualizadoEm:now26()});
+          tx.set(projRef,{Materiais:mats,AtualizadoEm:now26()},{merge:true});
+          tx.set(movRef,{Tipo:'ESTORNO_CONSUMO_PROJETO',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:consumido,Unidade:un,ProjetoID:p.ID,Responsavel:user26(),Data:now26(),Motivo:'Remoção de material empregado do projeto'});
+          let restante=consumido;
+          for(const sd of saidaDocs){
+            if(restante<=0)break;
+            const q=Number(sd.data.Qtd||0),est=Number(sd.data.QtdEstornada||0),disponivel=Math.max(q-est,0);if(disponivel<=0)continue;
+            const aplicar=Math.min(restante,disponivel),novoEst=est+aplicar;
+            tx.update(sd.ref,{QtdEstornada:novoEst,Status:novoEst>=q?'Estornado':'Parcialmente Estornado',EstornadoEm:now26(),EstornadoPor:user26(),ItemFirestoreId:item.firestoreId});
+            restante-=aplicar;
+          }
+        });
+        item.Quantidade=Number(item.Quantidade||0)+consumido;
+      }else{
+        item.Quantidade=Number(item.Quantidade||0)+consumido;
+        p.Materiais=mats;
+      }
+      p.Materiais=mats;
+      audit26('Remover material do projeto',`${v.MaterialID} → ${p.ID}${consumido?` — estorno de ${consumido} ${un}`:''}`);
+      renderMateriaisProjeto(p);if(window.renderProjetos)window.renderProjetos();if(window.renderMateriais)window.renderMateriais();window.montarBaixaAtual();
+      alert(consumido>0?`Material removido. ${consumido} ${un} foram devolvidos ao estoque.`:'Material removido do projeto.');
+    }catch(err){console.error(err);alert('Não foi possível remover o material: '+err.message);}
+  };
+
+  // ---------- Baixa geral: grava referência exata e atualiza o projeto ----------
+  window.salvarBaixa=async function(e){
+    e.preventDefault();
+    const raw=document.getElementById('baixaItemSelect')?.value||'',parts=raw.split('|'),origem=parts[0]||'',fs=parts[1]||'',id=parts.slice(2).join('|');
+    const qtd=Number(String(document.getElementById('baixaQtd')?.value||'').replace(',','.'));
+    const data=document.getElementById('baixaData')?.value||new Date().toISOString().slice(0,10);
+    const pid=document.getElementById('baixaProjetoSelect')?.value||''; const p=proj26(pid); const destino=p?`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`:(document.getElementById('baixaDestino')?.value||'').trim().toUpperCase(); const resp=user26();
+    const arr=origem==='material'?(DB.materiais||[]):(DB.estoque||[]);
+    const item=fs?arr.find(x=>String(x.firestoreId||'')===String(fs)):arr.filter(x=>String(x.ID)===String(id)).length===1?arr.find(x=>String(x.ID)===String(id)):null;
+    if(!item){alert(arr.filter(x=>String(x.ID)===String(id)).length>1?`O ID ${id} está duplicado. Corrija a integridade dos IDs antes de realizar a baixa.`:'O estoque atual mudou. Atualize a lista e tente novamente.');window.montarBaixaAtual();return;}
+    if(!p){alert('Selecione um projeto / obra válido.');return;}
+    if(!Number.isFinite(qtd)||qtd<=0){alert('Informe uma quantidade válida.');return;}
+    if(Number(item.Quantidade||0)<qtd){alert(`Estoque insuficiente. Saldo atual: ${item.Quantidade} ${item.Unidade||'un'}.`);window.montarBaixaAtual();return;}
+    const col=origem==='material'?'materiais':'estoque';
+    try{
+      const mats=[...(p.Materiais||[])];
+      let vi=mats.findIndex(v=>String(v.MaterialID)===String(item.ID)&&String(v.Origem||origem)===String(origem)&&String(v.ItemFirestoreId||'')===String(item.firestoreId||fs));
+      if(vi<0){ mats.push({MaterialID:item.ID,ItemFirestoreId:item.firestoreId||fs,ColecaoOrigem:col,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,QuantidadeNecessaria:0,QuantidadeConsumida:qtd,Unidade:item.Unidade||'un',VinculadoEm:now26(),OrigemConsumo:'Baixa geral'}); vi=mats.length-1; }
+      else mats[vi]={...mats[vi],ItemFirestoreId:item.firestoreId||mats[vi].ItemFirestoreId,ColecaoOrigem:col,QuantidadeConsumida:Number(mats[vi].QuantidadeConsumida||0)+qtd};
+      if(dbStore&&item.firestoreId){
+        const ref=dbStore.collection(col).doc(item.firestoreId),projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID),saidaRef=dbStore.collection('saidas').doc(),movRef=dbStore.collection('movimentacoes').doc();
+        await dbStore.runTransaction(async tx=>{
+          const snap=await tx.get(ref);if(!snap.exists)throw new Error('Item não existe mais no Firebase.');
+          const atual=Number(snap.data().Quantidade||0);if(atual<qtd)throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
+          tx.update(ref,{Quantidade:atual-qtd,AtualizadoEm:now26()});
+          tx.set(projRef,{Materiais:mats,AtualizadoEm:now26()},{merge:true});
+          tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:resp,ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now26()});
+          tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:resp,TipoOrigem:col,Data:now26()});
+        });
+      }
+      item.Quantidade=Number(item.Quantidade)-qtd;p.Materiais=mats;
+      if(!dbStore){ DB.saidas=Array.isArray(DB.saidas)?DB.saidas:[]; DB.saidas.unshift({IDItem:item.ID,ItemFirestoreId:item.firestoreId||fs,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:resp,ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now26()}); }
+      audit26('Registrar Baixa',`${qtd} ${item.Tipo||item.Categoria||col} ${item.ID} → ${p.ID}`);
+      closeModal('modalNovaBaixa');document.getElementById('formBaixa')?.reset();document.getElementById('editBaixaIndex').value='-1';window.montarBaixaAtual();preencherProjetosBaixa();if(window.renderProjetos)window.renderProjetos();if(window.renderVinculosProjeto)window.renderVinculosProjeto(p);refreshAllViews();alert('Baixa confirmada e vinculada ao projeto.');
+    }catch(err){console.error(err);alert('Baixa não realizada: '+err.message);}
+  };
+
+  // ---------- Integridade de IDs: correção determinística e rastreável ----------
+  function dupGroups26(){
+    const groups=new Map();
+    const cols=[['estoque',DB.estoque||[]],['materiais',DB.materiais||[]],['projetos',DB.projetos||[]]];
+    for(const [colecao,arr] of cols){
+      arr.forEach((item,index)=>{const id=String(item.ID||'').trim().toUpperCase();if(!id)return;const key=colecao+'::'+id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push({colecao,arr,item,index});});
+    }
+    return [...groups.entries()].filter(([,g])=>g.length>1).map(([key,items])=>({colecao:key.split('::')[0],id:key.split('::').slice(1).join('::'),items}));
+  }
+  function exactRefsCount26(item){
+    const fs=String(item.firestoreId||'');let n=0;
+    (DB.projetos||[]).forEach(p=>(p.Materiais||[]).forEach(v=>{if(fs&&String(v.ItemFirestoreId||'')===fs)n++;else if(!v.ItemFirestoreId&&String(v.MaterialID||'')===String(item.ID))n++;}));
+    (DB.saidas||[]).forEach(s=>{if(fs&&String(s.ItemFirestoreId||'')===fs)n++;else if(!s.ItemFirestoreId&&String(s.IDItem||'')===String(item.ID))n++;});
+    (DB.movimentacoes||[]).forEach(m=>{if(fs&&String(m.ItemFirestoreId||'')===fs)n++;else if(!m.ItemFirestoreId&&String(m.ItemID||'')===String(item.ID))n++;});
+    return n;
+  }
+  function keeper26(group){
+    return [...group.items].sort((a,b)=>{
+      const ra=exactRefsCount26(a.item), rb=exactRefsCount26(b.item);if(rb!==ra)return rb-ra;
+      const qa=Number(a.item.Quantidade||0),qb=Number(b.item.Quantidade||0);if(qb!==qa)return qb-qa;
+      return String(a.item.CriadoEm||'').localeCompare(String(b.item.CriadoEm||''));
+    })[0];
+  }
+  function prefix26(id){const m=String(id||'').match(/^([A-Z0-9]+)-/i);return m?m[1].toUpperCase():'GEN';}
+
+  window.corrigirDuplicidadesIDs=async function(){
+    if(!currentUser?.master){alert('Somente o MASTER pode corrigir IDs.');return;}
+    const dups=dupGroups26();if(!dups.length){alert('Nenhuma duplicidade de ID encontrada.');renderIntegridadeIDs();return;}
+    const resumo=dups.map(d=>`${d.id} — ${d.items.length} registros em ${d.colecao}`).join('\n');
+    if(!confirm(`Foram encontradas duplicidades:\n\n${resumo}\n\nO sistema vai manter como principal o registro com maior vínculo histórico e renomear os demais com um novo ID único. Nenhuma quantidade será somada ou descartada.\n\nContinuar?`))return;
+    let corrigidos=0;const falhas=[];
+    try{
+      for(const g of dups){
+        const keep=keeper26(g);
+        // Registra o ID mantido no catálogo de reservas.
+        if(dbStore){try{await dbStore.collection('_registro_ids').doc(String(keep.item.ID)).set({ID:keep.item.ID,Prefixo:prefix26(keep.item.ID),ReservadoEm:now26(),ReservadoPor:user26(),Origem:'existente-corrigido'},{merge:true});}catch(_) {}}
+        const restantes=g.items.filter(x=>x!==keep);
+        for(const x of restantes){
+          let novo;
+          try{
+            if(typeof reservarCodigo==='function') novo=await reservarCodigo(prefix26(x.item.ID),x.colecao);
+            else { const base=String(x.item.ID).replace(/^(.*?)-\d+$/,'$1'); novo=base+'-'+Date.now().toString().slice(-5); }
+            if(!novo || String(novo).toUpperCase()===String(x.item.ID).toUpperCase()) throw new Error('Não foi possível gerar novo ID.');
+            const antigo=x.item.ID;x.item.ID=novo;x.item.IDAnterior=antigo;x.item.IDCorrigidoEm=now26();
+            if(dbStore&&x.item.firestoreId){await dbStore.collection(x.colecao).doc(x.item.firestoreId).update({ID:novo,IDAnterior:antigo,IDCorrigidoEm:now26(),AtualizadoEm:now26()});}
+            // Tudo que já estava sem referência exata continua apontando para o ID principal (keeper); os novos vínculos passam a usar firestoreId.
+            audit26('Corrigir ID duplicado',`${antigo} → ${novo} (${x.colecao}); principal mantido: ${keep.item.ID}`);
+            corrigidos++;
+          }catch(err){falhas.push(`${g.id} / ${x.colecao}: ${err.message}`);}
+        }
+        // Depois de separar a duplicidade, vincula as referências legadas por ID ao registro principal exato.
+        const kfs=String(keep.item.firestoreId||'');
+        if(kfs){
+          for(const p of (DB.projetos||[])){
+            if(!Array.isArray(p.Materiais))continue;
+            let changed=false;
+            p.Materiais=p.Materiais.map(v=>{
+              if(!v.ItemFirestoreId && String(v.MaterialID)===String(g.id)) { changed=true; return {...v,ItemFirestoreId:kfs,ColecaoOrigem:g.colecao,Origem:g.colecao==='materiais'?'material':'estoque'}; }
+              return v;
+            });
+            if(changed&&dbStore&&p.firestoreId) await dbStore.collection('projetos').doc(p.firestoreId).set({Materiais:p.Materiais,AtualizadoEm:now26()},{merge:true});
+          }
+          for(const s of (DB.saidas||[])){
+            if(!s.ItemFirestoreId&&String(s.IDItem)===String(g.id)) {s.ItemFirestoreId=kfs;s.TipoOrigem=s.TipoOrigem|| (g.colecao==='materiais'?'material':'estoque');if(dbStore&&s.firestoreId)await dbStore.collection('saidas').doc(s.firestoreId).update({ItemFirestoreId:kfs,TipoOrigem:s.TipoOrigem});}
+          }
+          for(const m of (DB.movimentacoes||[])){
+            if(!m.ItemFirestoreId&&String(m.ItemID)===String(g.id)) {m.ItemFirestoreId=kfs;if(dbStore&&m.firestoreId)await dbStore.collection('movimentacoes').doc(m.firestoreId).update({ItemFirestoreId:kfs});}
+          }
+        }
+      }
+      renderIntegridadeIDs();refreshAllViews();
+      alert(`Correção concluída.\n\nIDs corrigidos: ${corrigidos}\nFalhas que exigem análise: ${falhas.length}${falhas.length?'\n\n'+falhas.join('\n'):''}`);
+    }catch(err){console.error(err);alert('A correção de IDs foi interrompida: '+err.message);}
+  };
+
+  window.renderIntegridadeIDs=function(){
+    const box=document.getElementById('integridadeIdsBox');if(!box)return;
+    const dups=dupGroups26();
+    if(!dups.length){box.innerHTML='<div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs">✅ Nenhuma duplicidade de ID detectada.</div>';return;}
+    box.innerHTML='<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs"><strong>⚠️ IDs duplicados encontrados:</strong><div class="mt-2 space-y-1">'+dups.map(g=>`<div><span class="font-mono font-bold">${esc26(g.id)}</span> — ${g.items.length} registros (${esc26(g.colecao)})</div>`).join('')+'</div><button onclick="corrigirDuplicidadesIDs()" class="mt-3 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold">Corrigir duplicidades agora</button></div>';
+  };
+
+  // Expor migração para diagnóstico manual, sem alterar estoque.
+  window.migrarReferenciasExatas=bindMaterialRefs26;
+
+  function init26(){
+    try{bindMaterialRefs26().then(()=>{window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();if(window.renderProjetos)window.renderProjetos();}).catch(console.warn);}catch(e){console.warn(e);}
+  }
+  window.addEventListener('load',()=>setTimeout(init26,1200));
+  setInterval(()=>{try{window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();}catch(e){}},6000);
+})();
+</script>
+
+<script>
+/* DECORART ERP 2.4 - correções de integração entre módulos */
+(function(){
+  'use strict';
+  function ensureRenderers(){
+    // As funções são exportadas pela camada 2.0; estas referências só evitam quebra caso
+    // o script antigo seja carregado em uma ordem diferente.
+    if(typeof window.renderProjetos !== 'function') console.warn('renderProjetos ainda não disponível.');
+    if(typeof window.renderMateriais !== 'function') console.warn('renderMateriais ainda não disponível.');
+  }
+  window.addEventListener('load',()=>setTimeout(ensureRenderers,1200));
+})();
+</script>
+
+<script>
+/* DECORART ERP 2.5 - integridade de estoque, estornos e IDs */
+(function(){
+  'use strict';
+
+  const CLEAN_FIELDS = new Set(['firestoreId','CriadoEm','AtualizadoEm','updatedAt','createdAt','DataAtualizacao']);
+  const idQueue = [];
+  let initialized=false;
+
+  function e(v){ return String(v ?? '').replace(/[&<>'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s])); }
+  function now(){ return new Date().toISOString(); }
+  function audit(a,d){ try { if(typeof window.registrarAuditoria === 'function') return window.registrarAuditoria(a,d); } catch(_){} try{ if(typeof window.auditoria==='function') return window.auditoria(a,d); }catch(_){} }
+  function arrays(){ return [DB.estoque||[],DB.materiais||[],DB.projetos||[],DB.localizacoes||[]]; }
+  function todosIds(){ const set=new Set(); arrays().forEach(a=>a.forEach(x=>{if(x?.ID)set.add(String(x.ID).toUpperCase())})); return set; }
+  function prefixFromId(id){ const m=String(id||'').match(/^([A-Z0-9]+)-/i); return m?m[1].toUpperCase():'GEN'; }
+  function maxNumerico(prefix){
+    let max=0;
+    arrays().forEach(a=>a.forEach(x=>{
+      const m=String(x?.ID||'').match(new RegExp('^'+prefix+'-(\\d+)(?:-[A-Z0-9]+)?$','i'));
+      if(m) max=Math.max(max,Number(m[1]));
+    }));
+    return max;
+  }
+  function fallbackCodigo(prefix){
+    const used=todosIds();
+    let n=maxNumerico(prefix)+1, id;
+    do { id=prefix+'-'+String(n).padStart(5,'0'); n++; } while(used.has(id.toUpperCase()));
+    return id;
+  }
+
+  async function reservarCodigo(prefix, collectionName){
+    prefix=String(prefix||'GEN').toUpperCase();
+    if(!dbStore) return fallbackCodigo(prefix);
+    // Mantém o contador por prefixo centralizado no Firestore e registra a reserva do ID.
+    const seqRef=dbStore.collection('_controle_ids').doc(prefix);
+    let firestoreFloor=1;
+    try{
+      if(collectionName){
+        const snap=await dbStore.collection(collectionName).get();
+        snap.forEach(doc=>{ const id=String(doc.data()?.ID||''); const m=id.match(new RegExp('^'+prefix+'-(\\d+)(?:-[A-Z0-9]+)?$','i')); if(m) firestoreFloor=Math.max(firestoreFloor,Number(m[1])+1); });
+      }
+    }catch(readErr){ console.warn('Não foi possível consultar IDs existentes:',readErr); }
+    const localFloor=Math.max(maxNumerico(prefix)+1,firestoreFloor);
+    try{
+      return await dbStore.runTransaction(async tx=>{
+        const seqSnap=await tx.get(seqRef);
+        let next=Math.max(localFloor, Number(seqSnap.exists ? seqSnap.data().next : 1));
+        for(let guard=0;guard<1000;guard++){
+          const id=prefix+'-'+String(next).padStart(5,'0');
+          const regRef=dbStore.collection('_registro_ids').doc(id);
+          const regSnap=await tx.get(regRef);
+          if(!regSnap.exists){
+            tx.set(regRef,{ID:id,Prefixo:prefix,ReservadoEm:now(),ReservadoPor:currentUser?.login||currentUser?.nome||'Sistema'},{merge:true});
+            tx.set(seqRef,{next:next+1,AtualizadoEm:now()},{merge:true});
+            return id;
+          }
+          next++;
+        }
+        throw new Error('Não foi possível reservar um ID único.');
+      });
+    }catch(err){
+      console.warn('Reserva de ID via Firestore indisponível:',err);
+      return fallbackCodigo(prefix);
+    }
+  }
+
+  async function reservarVarios(prefix,n,collectionName){ const out=[]; for(let i=0;i<n;i++) out.push(await reservarCodigo(prefix,collectionName)); return out; }
+
+  // Impede a geração de um segundo ID pelo código legado: quando houver uma reserva, ela é consumida.
+  const gerarLegado = window.gerarProximoId;
+  window.gerarProximoId = function(tipo){
+    if(idQueue.length) return idQueue.shift();
+    if(typeof gerarLegado==='function'){
+      let id=gerarLegado(tipo);
+      const usados=todosIds();
+      if(!usados.has(String(id).toUpperCase())) return id;
+      return fallbackCodigo(tipo==='Chapa Inteira'?'CHP':tipo==='Retalho'?'RET':'MAT');
+    }
+    return fallbackCodigo(tipo==='Chapa Inteira'?'CHP':tipo==='Retalho'?'RET':'MAT');
+  };
+
+  // Faz o mesmo para a camada de Projetos/Materiais, que utiliza proximoCodigo().
+  const proximoLegado = window.proximoCodigo;
+  window.proximoCodigo = function(prefix, arr){
+    if(idQueue.length) return idQueue.shift();
+    if(typeof proximoLegado==='function'){
+      const id=proximoLegado(prefix,arr||[]);
+      if(!todosIds().has(String(id).toUpperCase())) return id;
+    }
+    return fallbackCodigo(prefix);
+  };
+
+  function categoriaPrefix(cat){ return cat==='Fita de borda'?'FIT':cat==='Ferragem'?'FER':cat==='Acessório'?'ACE':cat==='Móvel pronto'?'MOV':'MAT'; }
+
+  function wrapChapa(){
+    if(typeof window.salvarNovaChapa!=='function' || window.__decorart25Chapa)return;
+    const old=window.salvarNovaChapa; window.__decorart25Chapa=true;
+    window.salvarNovaChapa=async function(ev){
+      const editIdx=Number(document.getElementById('editChapaIndex')?.value||-1);
+      if(editIdx>=0) return old(ev);
+      idQueue.push(await reservarCodigo('CHP','estoque')); return old(ev);
+    };
+  }
+  function wrapRetalho(){
+    if(typeof window.salvarRetalho!=='function' || window.__decorart25Ret)return;
+    const old=window.salvarRetalho; window.__decorart25Ret=true;
+    window.salvarRetalho=async function(ev){
+      const editIdx=Number(document.getElementById('editRetalhoIndex')?.value||-1);
+      if(editIdx>=0) return old(ev);
+      idQueue.push(await reservarCodigo('RET','estoque')); return old(ev);
+    };
+  }
+  function wrapLote(){
+    if(typeof window.salvarEntradaLoteTabela!=='function' || window.__decorart25Lote)return;
+    const old=window.salvarEntradaLoteTabela; window.__decorart25Lote=true;
+    window.salvarEntradaLoteTabela=async function(){
+      const linhas=[...(document.querySelectorAll('#tabelaEntradaLoteCorpo tr')||[])];
+      const tipos=linhas.map(tr=>tr.querySelector('.lote-tipo')?.value||'Chapa Inteira');
+      const ids=[];
+      for(const tipo of tipos) ids.push(await reservarCodigo(tipo==='Retalho'?'RET':'CHP','estoque'));
+      idQueue.push(...ids);
+      return old();
+    };
+  }
+  function wrapProjeto(){
+    if(typeof window.salvarProjeto!=='function' || window.__decorart25Proj)return;
+    const old=window.salvarProjeto; window.__decorart25Proj=true;
+    window.salvarProjeto=async function(ev){
+      const idAtual=document.getElementById('projId')?.value||'';
+      if(idAtual) return old(ev);
+      window.__decorart25IdQueue=window.__decorart25IdQueue||[]; window.__decorart25IdQueue.push(await reservarCodigo('PRJ','projetos')); return old(ev);
+    };
+  }
+  function wrapMaterial(){
+    if(typeof window.salvarMaterial!=='function' || window.__decorart25Mat)return;
+    const old=window.salvarMaterial; window.__decorart25Mat=true;
+    window.salvarMaterial=async function(ev){
+      window.__decorart25IdQueue=window.__decorart25IdQueue||[]; window.__decorart25IdQueue.push(await reservarCodigo(categoriaPrefix(document.getElementById('matCategoria')?.value||'Outro'),'materiais'));
+      return old(ev);
+    };
+  }
+
+  function normalizeBusiness(x){
+    const o={}; Object.keys(x||{}).sort().forEach(k=>{ if(!CLEAN_FIELDS.has(k)) o[k]=x[k]; }); return o;
+  }
+  function sameBusiness(a,b){ try{return JSON.stringify(normalizeBusiness(a))===JSON.stringify(normalizeBusiness(b));}catch(_){return false;} }
+
+  function referenciasDoId(id){
+    const refs=[]; id=String(id);
+    (DB.projetos||[]).forEach(p=>(p.Materiais||[]).forEach(v=>{if(String(v.MaterialID)===id)refs.push({origem:'projeto',projeto:p.ID});}));
+    (DB.saidas||[]).forEach(s=>{if(String(s.IDItem)===id && s.Status!=='Estornado')refs.push({origem:'saida',projeto:s.ProjetoID||''});});
+    (DB.movimentacoes||[]).forEach(m=>{if(String(m.ItemID)===id)refs.push({origem:'movimentacao',projeto:m.ProjetoID||''});});
+    return refs;
+  }
+  function coletarDuplicidades(){
+    const grupos=new Map();
+    const colecoes=[['estoque',DB.estoque||[]],['materiais',DB.materiais||[]],['projetos',DB.projetos||[]],['localizacoes',DB.localizacoes||[]]];
+    colecoes.forEach(([colecao,arr])=>arr.forEach((item,index)=>{const id=String(item.ID||'').trim().toUpperCase();if(!id)return;const k=id; if(!grupos.has(k))grupos.set(k,[]);grupos.get(k).push({colecao,arr,item,index});}));
+    return [...grupos.entries()].filter(([,g])=>g.length>1).map(([id,g])=>({id,items:g}));
+  }
+
+  async function corrigirDuplicidades(){
+    if(!currentUser?.master){alert('Somente o MASTER pode corrigir IDs.');return;}
+    const dups=coletarDuplicidades();
+    if(!dups.length){alert('Nenhuma duplicidade de ID encontrada.');renderIntegridadeIDs();return;}
+    const resumo=dups.map(d=>`${d.id}: ${d.items.length} registros`).join('\n');
+    if(!confirm(`Foram encontradas duplicidades de ID:\n\n${resumo}\n\nO sistema só fará correções automáticas seguras: registros idênticos serão consolidados e registros não referenciados poderão receber um novo ID. Casos ambíguos permanecerão bloqueados.\n\nContinuar?`))return;
+    let corrigidos=0,bloqueados=[];
+    for(const d of dups){
+      // 1) Duplicatas de negócio idênticas: consolidar sem quebrar referências.
+      const base=d.items[0];
+      const identicos=d.items.filter(x=>sameBusiness(x.item,base.item));
+      if(identicos.length===d.items.length){
+        for(const extra of identicos.slice(1).sort((a,b)=>String(a.item.CriadoEm||'').localeCompare(String(b.item.CriadoEm||'')))){
+          try{
+            if(dbStore && extra.item.firestoreId) await dbStore.collection(extra.colecao).doc(extra.item.firestoreId).delete();
+            extra.arr.splice(extra.arr.indexOf(extra.item),1); corrigidos++; audit('Consolidar ID duplicado',`${d.id} — registro duplicado removido com segurança.`);
+          }catch(err){bloqueados.push(`${d.id}: ${err.message}`);}
+        }
+        continue;
+      }
+      // 2) Duplicatas diferentes: só renomeia o que não tem referência operacional.
+      for(const x of d.items.slice(1)){
+        if(referenciasDoId(x.item.ID).length>0){bloqueados.push(`${d.id} — ${x.colecao}: registro possui referências; correção manual necessária.`);continue;}
+        try{
+          const novo=await reservarCodigo(prefixFromId(x.item.ID));
+          const antigo=x.item.ID; x.item.ID=novo;
+          if(dbStore && x.item.firestoreId) await dbStore.collection(x.colecao).doc(x.item.firestoreId).update({ID:novo,AtualizadoEm:now()});
+          corrigidos++; audit('Corrigir ID duplicado',`${antigo} → ${novo} (${x.colecao}).`);
+        }catch(err){bloqueados.push(`${d.id} — ${x.colecao}: ${err.message}`);}
+      }
+    }
+    renderIntegridadeIDs(); refreshAllViews();
+    alert(`Correção concluída.\n\nCorrigidos: ${corrigidos}\nBloqueados para análise manual: ${bloqueados.length}${bloqueados.length?'\n\n'+bloqueados.join('\n'):''}`);
+  }
+  window.corrigirDuplicidadesIDs=corrigirDuplicidades;
+
+  function renderIntegridadeIDs(){
+    const box=document.getElementById('integridadeIdsBox'); if(!box)return;
+    const dups=coletarDuplicidades();
+    if(!dups.length){box.innerHTML='<div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs">✅ Nenhuma duplicidade de ID detectada.</div>';return;}
+    box.innerHTML='<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs"><strong>⚠️ IDs duplicados encontrados:</strong><div class="mt-2 space-y-1">'+dups.map(d=>`<div><span class="font-mono font-bold">${e(d.id)}</span> — ${d.items.length} registros (${d.items.map(x=>e(x.colecao)).join(', ')})</div>`).join('')+'</div><button onclick="corrigirDuplicidadesIDs()" class="mt-3 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold">Corrigir duplicidades seguras</button></div>';
+  }
+  window.renderIntegridadeIDs=renderIntegridadeIDs;
+
+  function inserirPainelIntegridade(){
+    if(document.getElementById('integridadeIdsBox')) return;
+    const alvo=document.querySelector('#view-usuarios > div');
+    if(!alvo)return;
+    const div=document.createElement('div'); div.className='pt-4 border-t border-[var(--border-color)]';
+    div.innerHTML='<h4 class="text-sm font-bold mb-2">Integridade dos cadastros</h4><p class="text-xs opacity-60 mb-3">O sistema impede novas colisões de ID e permite corrigir duplicidades antigas de forma controlada.</p><div id="integridadeIdsBox"></div>';
+    alvo.appendChild(div); renderIntegridadeIDs();
+  }
+
+  // ---------------- Remoção de material empregado: estorno do estoque ----------------
+  window.removerMaterialProjeto=async function(index){
+    const titulo=document.getElementById('vinculoProjetoTitulo')?.textContent||'';
+    const idp=titulo.split(' • ')[0]; const p=(DB.projetos||[]).find(x=>String(x.ID)===String(idp));
+    if(!p)return;
+    const v=(p.Materiais||[])[index]; if(!v)return;
+    const origem=v.Origem||'material'; const col=origem==='material'?'materiais':'estoque';
+    const arr=col==='material'?DB.materiais:DB.estoque;
+    const matches=(arr||[]).filter(x=>String(x.ID)===String(v.MaterialID));
+    if(matches.length>1){alert(`O ID ${v.MaterialID} está duplicado. Para preservar o estoque, corrija a duplicidade de IDs antes de remover este item do projeto.`);return;}
+    const item=matches[0];
+    const consumido=Number(v.QuantidadeConsumida||0);
+    if(!currentUser?.master){alert('A remoção de material empregado exige autorização MASTER.');return;}
+    const senha=prompt(`Remover ${nomeItem(v)} do projeto ${p.ID}.\n${consumido>0?`\n${consumido} ${unItem(v)} foram consumidos e voltarão ao estoque.\n`:''}\nDigite a senha MASTER:`);
+    const ok=(DB.usuarios||[]).some(u=>u.master && String(u.senha||'')===String(senha||'').trim());
+    if(!ok){audit('Tentativa bloqueada','Remoção de material do projeto — senha MASTER inválida.');alert('Senha MASTER inválida.');return;}
+    if(!confirm(`Confirma remover ${nomeItem(v)} do projeto?${consumido>0?' O estoque será estornado em '+consumido+' '+unItem(v)+'.':''}`))return;
+    try{
+      const saidaDocs=[];
+      if(dbStore && consumido>0){
+        try{
+          const snap=await dbStore.collection('saidas').where('ProjetoID','==',p.ID).where('IDItem','==',v.MaterialID).get();
+          snap.forEach(doc=>{const x=doc.data(); if(x.Status!=='Estornado')saidaDocs.push({ref:doc.ref,data:x});});
+        }catch(qerr){console.warn('Não foi possível localizar saídas para estorno:',qerr);}
+      }
+      if(dbStore && item?.firestoreId){
+        const ref=dbStore.collection(col).doc(item.firestoreId); const projRef=dbStore.collection('projetos').doc(p.firestoreId||p.ID); const movRef=dbStore.collection('movimentacoes').doc();
+        await dbStore.runTransaction(async tx=>{
+          const snap=await tx.get(ref); if(!snap.exists)throw new Error('Item não existe mais no Firebase.');
+          const atual=Number(snap.data().Quantidade||0);
+          const mats=[...(p.Materiais||[])]; mats.splice(index,1);
+          tx.update(ref,{Quantidade:atual+consumido,AtualizadoEm:now()});
+          tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});
+          tx.set(movRef,{Tipo:'ESTORNO_CONSUMO_PROJETO',ItemID:v.MaterialID,Qtd:consumido,Unidade:v.Unidade||item.Unidade||'un',ProjetoID:p.ID,Responsavel:usuarioAtual(),Data:now(),Motivo:'Remoção de material empregado do projeto' });
+          let restante=consumido;
+          for(const sd of saidaDocs){
+            if(restante<=0)break;
+            const q=Number(sd.data.Qtd||0), est=Number(sd.data.QtdEstornada||0), disponivel=Math.max(q-est,0); if(disponivel<=0)continue;
+            const aplicar=Math.min(restante,disponivel), novoEst=est+aplicar;
+            tx.update(sd.ref,{QtdEstornada:novoEst,Status:novoEst>=q?'Estornado':'Parcialmente Estornado',EstornadoEm:now(),EstornadoPor:usuarioAtual()}); restante-=aplicar;
+          }
+        });
+      } else {
+        if(item) item.Quantidade=Number(item.Quantidade||0)+consumido;
+        p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[]; p.Materiais.splice(index,1);
+      }
+      if(item) item.Quantidade=Number(item.Quantidade||0)+ (dbStore&&item.firestoreId ? consumido : 0);
+      p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[]; if(p.Materiais[index]===v)p.Materiais.splice(index,1);
+      audit('Remover material do projeto',`${v.MaterialID} → ${p.ID}${consumido?' — estorno de '+consumido+' '+unItem(v):''}`);
+      renderMateriaisProjeto(p); if(window.renderProjetos)window.renderProjetos(); if(window.renderMateriais)window.renderMateriais(); montarBaixaAtual();
+      alert(consumido>0?`Material removido. ${consumido} ${unItem(v)} foram devolvidos ao estoque.`:'Material removido do projeto.');
+    }catch(err){console.error(err);alert('Não foi possível remover o material: '+err.message);}
+  };
+
+  function renderAposDados(){
+    try{inserirPainelIntegridade();renderIntegridadeIDs();}catch(_){}
+  }
+  function preparar(){
+    if(initialized)return;
+    wrapChapa();wrapRetalho();wrapLote();wrapProjeto();wrapMaterial();
+    initialized=true;
+    renderAposDados();
+    setTimeout(renderAposDados,1200);
+    setTimeout(renderAposDados,3500);
+  }
+  window.addEventListener('load',preparar);
+  setInterval(()=>{wrapChapa();wrapRetalho();wrapLote();wrapProjeto();wrapMaterial();renderIntegridadeIDs();},5000);
+})();
+</script>
+
+<script>
+/* DECORART ERP 2.8 - HOTFIX ESTABILIDADE UI / EDIÇÃO / INTEGRIDADE */
+(function(){
+  'use strict';
+
+  // 1) Funções de modal precisam ser globais porque existem elementos HTML
+  // inseridos por camadas posteriores ao IIFE original.
+  window.openModal = window.openModal || function(id){
+    const el=document.getElementById(id); if(el) el.classList.remove('hidden');
+  };
+  window.closeModal = window.closeModal || function(id){
+    const el=document.getElementById(id); if(el) el.classList.add('hidden');
+  };
+
+  const br=v=>String(v??'').replace(/[&<>\'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+  const now=()=>new Date().toISOString();
+  const user=()=>{try{return typeof window.usuarioAtual==='function'?window.usuarioAtual():(window.currentUser?.nome||window.currentUser?.login||'Sistema')}catch(_){return 'Sistema'}};
+  const audit=(a,d)=>{try{if(typeof window.registrarAuditoria==='function')window.registrarAuditoria(a,d)}catch(_){}};
+  const isMaster=()=>!!window.currentUser?.master;
+  const askMaster=async(motivo)=>{
+    if(!isMaster()){alert('Somente o MASTER pode executar esta operação.');return false;}
+    const senha=prompt(motivo+'\n\nDigite a senha MASTER para confirmar:');
+    if(senha===null)return false;
+    const ok=(window.DB?.usuarios||[]).some(u=>u.master&&String(u.senha||'')===String(senha).trim());
+    audit(ok?'Autorização MASTER':'Tentativa bloqueada',motivo+(ok?'':' — senha MASTER inválida.'));
+    if(!ok)alert('Senha MASTER inválida.');
+    return ok;
+  };
+
+  // Garante que o clique de Materiais utilize uma função totalmente independente
+  // das versões antigas que ficaram sobrescritas durante as evoluções.
+  window.abrirMateriaisProjeto=function(id){
+    const projetos=Array.isArray(window.DB?.projetos)?window.DB.projetos:[];
+    const p=projetos.find(x=>String(x.ID)===String(id));
+    if(!p){alert('Projeto não encontrado.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const titulo=document.getElementById('vinculoProjetoTitulo');
+    if(titulo)titulo.textContent=`${p.ID} • ${p.Nome||''} • ${p.Cliente||'-'}`;
+    const sel=document.getElementById('vinculoMaterialSelect');
+    if(sel){
+      const op=[];
+      (window.DB.estoque||[]).forEach(i=>op.push({o:'estoque',id:i.ID,fs:i.firestoreId||'',tipo:i.Tipo||'Item',desc:i.Cor||i.Tipo||i.ID,saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      (window.DB.materiais||[]).filter(i=>i.Status!=='Inativo').forEach(i=>op.push({o:'material',id:i.ID,fs:i.firestoreId||'',tipo:i.Categoria||'Material',desc:i.Descricao||i.ID,saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      sel.innerHTML=op.length?op.map(o=>`<option value="${br(o.o+'|'+o.fs+'|'+o.id)}">[${br(o.id)}] ${br(o.tipo)} — ${br(o.desc)} | Saldo: ${o.saldo.toLocaleString('pt-BR')} ${br(o.un)}</option>`).join(''):'<option value="">Nenhum item cadastrado</option>';
+    }
+    if(typeof window.renderVinculosProjeto==='function')window.renderVinculosProjeto(p);
+    window.openModal('modalVincularMaterialProjeto');
+    try{window.lucide?.createIcons()}catch(_){ }
+  };
+
+  // 2) Edição de Projeto que realmente reaproveita o mesmo documento.
+  window.editarProjeto=function(id){
+    const p=(window.DB?.projetos||[]).find(x=>String(x.ID)===String(id));
+    if(!p){alert('Projeto não encontrado.');return;}
+    document.getElementById('projId').value=p.ID||'';
+    document.getElementById('projNome').value=p.Nome||'';
+    document.getElementById('projCliente').value=p.Cliente||'';
+    document.getElementById('projPrazo').value=p.Prazo||'';
+    document.getElementById('projStatus').value=p.Status||'Planejamento';
+    document.getElementById('projObs').value=p.Observacao||'';
+    const h=document.querySelector('#modalNovoProjeto h3'); if(h)h.textContent='Editar Projeto / Obra';
+    window.openModal('modalNovoProjeto');
+  };
+  window.abrirNovoProjeto=function(){
+    document.getElementById('formNovoProjeto')?.reset();
+    document.getElementById('projId').value='';
+    const h=document.querySelector('#modalNovoProjeto h3'); if(h)h.textContent='Novo Projeto / Obra';
+    window.openModal('modalNovoProjeto');
+  };
+  window.salvarProjeto=async function(e){
+    e.preventDefault();
+    const idAtual=document.getElementById('projId')?.value.trim();
+    const base=window.DB||{}; base.projetos=Array.isArray(base.projetos)?base.projetos:[];
+    const dados={Nome:document.getElementById('projNome').value.trim(),Cliente:document.getElementById('projCliente').value.trim(),Prazo:document.getElementById('projPrazo').value||'',Status:document.getElementById('projStatus').value,Observacao:document.getElementById('projObs').value.trim(),AtualizadoEm:now()};
+    try{
+      if(idAtual){
+        const p=base.projetos.find(x=>String(x.ID)===idAtual); if(!p){alert('Projeto não encontrado.');return;}
+        Object.assign(p,dados);
+        if(window.dbStore)p.firestoreId?p.firestoreId&&await window.dbStore.collection('projetos').doc(p.firestoreId).set(dados,{merge:true}):await window.dbStore.collection('projetos').doc(p.ID).set(dados,{merge:true});
+        audit('Editar Projeto',`${p.ID} — ${p.Nome}`);
+      }else{
+        const ids=new Set(base.projetos.map(x=>String(x.ID||'').toUpperCase()));
+        let n=1,id; do{id='PRJ-'+String(n).padStart(5,'0');n++;}while(ids.has(id));
+        const p={ID:id,...dados,Materiais:[],CriadoEm:now()};
+        base.projetos.push(p);
+        if(window.dbStore)await window.dbStore.collection('projetos').doc(id).set(p);
+        audit('Criar Projeto',`${id} — ${p.Nome}`);
+      }
+      window.closeModal('modalNovoProjeto');
+      if(window.renderProjetos)window.renderProjetos();
+      if(typeof window.preencherProjetosBaixa==='function')window.preencherProjetosBaixa();
+      document.getElementById('formNovoProjeto')?.reset();
+      document.getElementById('projId').value='';
+      const h=document.querySelector('#modalNovoProjeto h3'); if(h)h.textContent='Novo Projeto / Obra';
+    }catch(err){console.error(err);alert('Não foi possível salvar o projeto: '+err.message)}
+  };
+
+  // 3) Edição de Materiais/Ferragens.
+  window.editarMaterial=function(id){
+    const m=(window.DB?.materiais||[]).find(x=>String(x.ID)===String(id));
+    if(!m){alert('Material não encontrado.');return;}
+    document.getElementById('editMatId').value=m.ID||'';
+    document.getElementById('editMatCategoria').value=m.Categoria||'Outro';
+    document.getElementById('editMatUnidade').value=m.Unidade||'un';
+    document.getElementById('editMatDescricao').value=m.Descricao||'';
+    document.getElementById('editMatQuantidade').value=Number(m.Quantidade||0);
+    document.getElementById('editMatMinimo').value=Number(m.Minimo||0);
+    document.getElementById('editMatCusto').value=Number(m.CustoUnitario||0);
+    document.getElementById('editMatLocal').value=m.Localizacao||'';
+    document.getElementById('editMatObs').value=m.Observacao||'';
+    window.openModal('modalEditarMaterial');
+  };
+  window.salvarEdicaoMaterial=async function(e){
+    e.preventDefault();
+    const id=document.getElementById('editMatId').value;
+    const m=(window.DB?.materiais||[]).find(x=>String(x.ID)===String(id));
+    if(!m){alert('Material não encontrado.');return;}
+    const antes=Number(m.Quantidade||0),depois=Number(document.getElementById('editMatQuantidade').value)||0;
+    const dados={Categoria:document.getElementById('editMatCategoria').value,Unidade:document.getElementById('editMatUnidade').value,Descricao:document.getElementById('editMatDescricao').value.trim(),Quantidade:depois,Minimo:Number(document.getElementById('editMatMinimo').value)||0,CustoUnitario:Number(document.getElementById('editMatCusto').value)||0,Localizacao:document.getElementById('editMatLocal').value.trim().toUpperCase(),Observacao:document.getElementById('editMatObs').value.trim(),AtualizadoEm:now()};
+    try{
+      if(depois!==antes){
+        const ok=await askMaster(`Alteração de saldo do material ${id} (${antes} → ${depois}).`); if(!ok)return;
+      }
+      Object.assign(m,dados);
+      if(window.dbStore && m.firestoreId)await window.dbStore.collection('materiais').doc(m.firestoreId).set(dados,{merge:true});
+      else if(window.dbStore)await window.dbStore.collection('materiais').doc(m.ID).set({...m,firestoreId:undefined},{merge:true});
+      audit('Editar Material',`${id} — ${m.Descricao}${depois!==antes?' — ajuste de saldo '+antes+' → '+depois:''}`);
+      if(depois!==antes && window.dbStore)await window.dbStore.collection('movimentacoes').add({Tipo:'AJUSTE',ItemID:id,ItemFirestoreId:m.firestoreId||'',Qtd:depois-antes,SaldoAnterior:antes,SaldoNovo:depois,Responsavel:user(),Data:now(),Motivo:'Edição manual de material'});
+      window.closeModal('modalEditarMaterial'); if(window.renderMateriais)window.renderMateriais();
+    }catch(err){console.error(err);alert('Não foi possível salvar o material: '+err.message)}
+  };
+  window.excluirMaterialAtual=async function(){
+    const id=document.getElementById('editMatId').value;
+    const m=(window.DB?.materiais||[]).find(x=>String(x.ID)===String(id)); if(!m)return;
+    const ok=await askMaster(`Exclusão permanente do material ${id} — ${m.Descricao}.`); if(!ok)return;
+    if(!confirm(`Confirma a exclusão permanente de ${id}?`))return;
+    try{
+      if(window.dbStore&&m.firestoreId)await window.dbStore.collection('materiais').doc(m.firestoreId).delete();
+      window.DB.materiais=window.DB.materiais.filter(x=>String(x.ID)!==String(id));
+      audit('Excluir Material',`${id} — ${m.Descricao}`);
+      window.closeModal('modalEditarMaterial'); if(window.renderMateriais)window.renderMateriais();
+    }catch(err){console.error(err);alert('Não foi possível excluir o material: '+err.message)}
+  };
+
+  // 4) Integridade: correção automática somente quando conseguimos identificar
+  // exatamente qual documento está referenciado. Legados por ID continuam bloqueados.
+  function refsExatos(item,col){
+    const refs=[]; const fs=String(item.firestoreId||''),id=String(item.ID||'');
+    (window.DB?.projetos||[]).forEach(p=>(p.Materiais||[]).forEach(v=>{if(String(v.ItemFirestoreId||'')===fs&&fs)refs.push({tipo:'projeto',id:p.ID});}));
+    (window.DB?.saidas||[]).forEach(s=>{if(fs&&String(s.ItemFirestoreId||'')===fs&&s.Status!=='Estornado')refs.push({tipo:'saida',id:s.firestoreId||''});});
+    (window.DB?.movimentacoes||[]).forEach(m=>{if(fs&&String(m.ItemFirestoreId||'')===fs)refs.push({tipo:'movimentacao',id:m.firestoreId||''});});
+    return refs;
+  }
+  function idsUsados(){const s=new Set();['estoque','materiais','projetos','localizacoes'].forEach(c=>(window.DB?.[c]||[]).forEach(x=>x.ID&&s.add(String(x.ID).toUpperCase())));return s;}
+  function novoIdUnico(orig){
+    const p=(String(orig||'GEN').match(/^([A-Z0-9]+)/i)||[])[1]||'GEN'; const used=idsUsados(); let n=1,id; const itens=[...used].filter(x=>x.startsWith(p.toUpperCase()+'-')); for(const x of itens){const m=x.match(new RegExp('^'+p+'-(\\d+)$','i'));if(m)n=Math.max(n,Number(m[1])+1);} do{id=p.toUpperCase()+'-'+String(n++).padStart(5,'0')}while(used.has(id));return id;
+  }
+  async function corrigirDuplicidadesSeguras(){
+    if(!isMaster()){alert('Somente o MASTER pode corrigir IDs.');return;}
+    const colecoes=['estoque','materiais','projetos','localizacoes'];
+    const grupos=new Map();
+    colecoes.forEach(c=>(window.DB?.[c]||[]).forEach((item,index)=>{const id=String(item.ID||'').trim().toUpperCase();if(!id)return;const k=c+'|'+id;if(!grupos.has(k))grupos.set(k,[]);grupos.get(k).push({c,item,index})}));
+    const dups=[...grupos.entries()].filter(([,g])=>g.length>1);
+    if(!dups.length){renderIntegridadeIdsAtual();alert('Nenhuma duplicidade de ID encontrada.');return;}
+    let corrigidos=0,bloq=[];
+    for(const [key,g] of dups){
+      const [c,id]=key.split('|');
+      // Se forem cópias de negócio idênticas, só consolida quando o registro extra
+      // não tiver nenhuma referência exata.
+      const base=g[0].item;
+      const iguais=g.filter(x=>JSON.stringify({...x.item,firestoreId:undefined,CriadoEm:undefined,AtualizadoEm:undefined})===JSON.stringify({...base,firestoreId:undefined,CriadoEm:undefined,AtualizadoEm:undefined}));
+      if(iguais.length===g.length){
+        const extras=iguais.slice(1).filter(x=>refsExatos(x.item,c).length===0);
+        for(const x of extras){try{if(window.dbStore&&x.item.firestoreId)await window.dbStore.collection(c).doc(x.item.firestoreId).delete();window.DB[c]=window.DB[c].filter(y=>y!==x.item);corrigidos++;audit('Consolidar ID duplicado',`${id} — ${c}`)}catch(e){bloq.push(`${id} — ${c}: ${e.message}`)}}
+        if(extras.length<g.length-1)bloq.push(`${id} — ${c}: há registros idênticos com referências exatas.`);
+        continue;
+      }
+      // Renomeia automaticamente somente os documentos sem referência exata.
+      const exatos=g.map(x=>({x,refs:refsExatos(x.item,c)}));
+      for(const r of exatos.slice(1)){
+        if(r.refs.length){bloq.push(`${id} — ${c}: registro ${r.x.item.firestoreId||'(sem doc ID)'} possui ${r.refs.length} referências exatas.`);continue;}
+        // Procura referências legadas apenas por ID. Se existirem, bloquear para evitar ambiguidade.
+        const legacyProjeto=(window.DB?.projetos||[]).some(p=>(p.Materiais||[]).some(v=>String(v.MaterialID||'')===String(id)&&!v.ItemFirestoreId));
+        const legacySaida=(window.DB?.saidas||[]).some(s=>String(s.IDItem||'')===String(id)&&!s.ItemFirestoreId&&s.Status!=='Estornado');
+        if(legacyProjeto||legacySaida){bloq.push(`${id} — ${c}: existem referências legadas somente por ID.`);continue;}
+        try{const novo=novoIdUnico(id);const antigo=r.x.item.ID;r.x.item.ID=novo;if(window.dbStore&&r.x.item.firestoreId)await window.dbStore.collection(c).doc(r.x.item.firestoreId).update({ID:novo,IDAnterior:antigo,AtualizadoEm:now()});corrigidos++;audit('Corrigir ID duplicado',`${antigo} → ${novo} (${c})`);}catch(e){bloq.push(`${id} — ${c}: ${e.message}`)}
+      }
+    }
+    if(window.renderIntegridadeIDs)window.renderIntegridadeIDs(); else renderIntegridadeIdsAtual();
+    try{window.refreshAllViews?.()}catch(_){ }
+    alert(`Correção concluída.\n\nCorrigidos: ${corrigidos}\nBloqueados para análise manual: ${bloq.length}${bloq.length?'\n\n'+bloq.join('\n'):''}`);
+  }
+  function renderIntegridadeIdsAtual(){
+    const box=document.getElementById('integridadeIdsBox');if(!box)return;
+    const grupos=new Map();['estoque','materiais','projetos','localizacoes'].forEach(c=>(window.DB?.[c]||[]).forEach(item=>{const id=String(item.ID||'').trim().toUpperCase();if(!id)return;if(!grupos.has(id))grupos.set(id,[]);grupos.get(id).push({c,item})}));
+    const dups=[...grupos.entries()].filter(([,g])=>g.length>1);
+    box.innerHTML=dups.length?'<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs"><strong>⚠️ IDs duplicados encontrados:</strong><div class="mt-2 space-y-1">'+dups.map(([id,g])=>`<div><span class="font-mono font-bold">${br(id)}</span> — ${g.length} registros (${g.map(x=>br(x.c)).join(', ')})</div>`).join('')+'</div><button onclick="corrigirDuplicidadesSeguras280()" class="mt-3 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold">Corrigir duplicidades seguras</button></div>':'<div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs">✅ Nenhuma duplicidade de ID detectada.</div>';
+  }
+  window.corrigirDuplicidadesSeguras280=corrigirDuplicidadesSeguras;
+  window.renderIntegridadeIDs=renderIntegridadeIdsAtual;
+
+  // 5) Ao finalizar a carga, normaliza a interface e expõe os modais.
+  window.addEventListener('load',()=>setTimeout(()=>{
+    try{
+      window.openModal=window.openModal||function(id){document.getElementById(id)?.classList.remove('hidden')};
+      window.closeModal=window.closeModal||function(id){document.getElementById(id)?.classList.add('hidden')};
+      window.DB=DB;
+      window.currentUser=currentUser;
+      window.dbStore=dbStore;
+      window.authService=authService;
+      if(window.renderProjetos)window.renderProjetos();
+      if(window.renderMateriais)window.renderMateriais();
+      renderIntegridadeIdsAtual();
+    }catch(e){console.warn('Hotfix 2.8 init:',e)}
+  },900));
+})();
+</script>
+
+<script>
+/* DECORART ERP 3.0 — camada estável de Projetos, Materiais e Consumos
+   Objetivo: eliminar conflitos das camadas anteriores, preservar dados e
+   concentrar as operações críticas em funções globais únicas.
+*/
+(function(){
+  'use strict';
+
+  const state=()=>window.DB||{};
+  const db=()=>window.dbStore||null;
+  const current=()=>window.currentUser||null;
+  const now=()=>new Date().toISOString();
+  const escSafe=v=>String(v??'').replace(/[&<>'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+  const arr=(name)=>Array.isArray(state()[name])?state()[name]:(state()[name]=[]);
+  const audit=(acao,detalhes)=>{try{ if(typeof window.registrarAuditoria==='function') window.registrarAuditoria(acao,detalhes); }catch(_){}};
+  const userName=()=>{const u=current();return u?.nome||u?.login||'Sistema';};
+  const masterOk=()=>!!current()?.master;
+  function openM(id){if(typeof window.openModal==='function')window.openModal(id);else document.getElementById(id)?.classList.remove('hidden');}
+  function closeM(id){if(typeof window.closeModal==='function')window.closeModal(id);else document.getElementById(id)?.classList.add('hidden');}
+
+  function getProject(id){return arr('projetos').find(p=>String(p.ID)===String(id));}
+  function collectionForOrigin(origem){return origem==='material'?'materiais':'estoque';}
+  function findItem(ref){
+    const dbx=state();
+    const origem=ref.Origem||((dbx.materiais||[]).some(x=>x.ID===ref.MaterialID)?'material':'estoque');
+    const c=collectionForOrigin(origem), a=arr(c), fs=String(ref.ItemFirestoreId||'');
+    if(fs){const exact=a.find(x=>String(x.firestoreId||'')===fs);if(exact)return {origem,c,item:exact};}
+    const matches=a.filter(x=>String(x.ID)===String(ref.MaterialID));
+    return {origem,c,item:matches.length===1?matches[0]:null,matches};
+  }
+  function itemLabel(ref){const r=findItem(ref);const i=r.item;return i?.Descricao||i?.Cor||i?.Tipo||ref.Descricao||ref.MaterialID||'-';}
+  function itemUnit(ref){const r=findItem(ref);return r.item?.Unidade||ref.Unidade||'un';}
+  function itemCost(ref){const r=findItem(ref);return Number(r.item?.CustoUnitario||r.item?.PrecoUnitario||r.item?.Custo||0);}
+  function itemBalance(ref){return Number(findItem(ref).item?.Quantidade||0);}
+
+  function allIds(ignore){
+    const set=new Set();
+    ['estoque','materiais','projetos','localizacoes'].forEach(c=>arr(c).forEach(x=>{
+      if(x!==ignore&&x?.ID)set.add(String(x.ID).toUpperCase());
+    }));
+    return set;
+  }
+  async function reserveId(prefix){
+    prefix=String(prefix||'MAT').toUpperCase();
+    const used=allIds();
+    let floor=1;
+    used.forEach(id=>{const m=id.match(new RegExp('^'+prefix+'-(\\d+)$'));if(m)floor=Math.max(floor,Number(m[1])+1);});
+    const firestore=db();
+    if(firestore){
+      const seq=firestore.collection('_controle_ids').doc(prefix);
+      try{
+        return await firestore.runTransaction(async tx=>{
+          const snap=await tx.get(seq);
+          let n=Math.max(floor,Number(snap.exists?snap.data().next||1:1));
+          for(let guard=0;guard<1000;guard++){
+            const id=prefix+'-'+String(n).padStart(5,'0');
+            if(used.has(id)){n++;continue;}
+            const reg=firestore.collection('_registro_ids').doc(id);
+            const rs=await tx.get(reg);
+            if(rs.exists){n++;continue;}
+            tx.set(reg,{ID:id,Prefixo:prefix,ReservadoEm:now(),ReservadoPor:userName(),Origem:'ERP3'},{merge:true});
+            tx.set(seq,{next:n+1,AtualizadoEm:now()},{merge:true});
+            return id;
+          }
+          throw new Error('Não foi possível reservar um ID único.');
+        });
+      }catch(e){console.warn('Reserva centralizada indisponível, usando fallback.',e);}
+    }
+    let n=floor,id;
+    do{id=prefix+'-'+String(n++).padStart(5,'0');}while(used.has(id));
+    return id;
+  }
+  function prefixMaterial(cat){return cat==='Fita de borda'?'FIT':cat==='Ferragem'?'FER':cat==='Acessório'?'ACE':cat==='Móvel pronto'?'MOV':'MAT';}
+
+  // ----------------- Materiais: cadastro robusto -----------------
+  window.salvarMaterial=async function(ev){
+    ev?.preventDefault?.();
+    const cat=document.getElementById('matCategoria')?.value||'Outro';
+    const desc=(document.getElementById('matDescricao')?.value||'').trim();
+    const qtd=Number(document.getElementById('matQuantidade')?.value||0);
+    const minimo=Number(document.getElementById('matMinimo')?.value||0);
+    const custo=Number(document.getElementById('matCusto')?.value||0);
+    const unidade=document.getElementById('matUnidade')?.value||'un';
+    const local=(document.getElementById('matLocal')?.value||'').trim().toUpperCase();
+    const obs=(document.getElementById('matObs')?.value||'').trim();
+    if(!desc){alert('Informe a descrição do material.');return;}
+    if(!Number.isFinite(qtd)||qtd<0){alert('Informe uma quantidade válida.');return;}
+    let id='';
+    try{
+      id=await reserveId(prefixMaterial(cat));
+      const m={ID:id,Categoria:cat,Descricao:desc,Quantidade:qtd,Minimo:minimo,CustoUnitario:custo,Unidade:unidade,Localizacao:local,Observacao:obs,Status:'Ativo',CriadoEm:now()};
+      if(db()){
+        const ref=db().collection('materiais').doc();
+        await ref.set(m);
+        m.firestoreId=ref.id;
+      }
+      arr('materiais').push(m);
+      audit('Cadastrar material',`${id} — ${desc} — ${cat} — saldo ${qtd} ${unidade}`);
+      closeM('modalNovoMaterial');
+      document.getElementById('formNovoMaterial')?.reset();
+      if(window.renderMateriais)window.renderMateriais();
+      if(window.mostrarQRMaterial){try{window.mostrarQRMaterial(id);}catch(_){}
+      }
+      alert(`Material cadastrado com sucesso.\n\nCódigo: ${id}`);
+    }catch(err){
+      console.error('Cadastro de material:',err);
+      alert('Não foi possível cadastrar o material.\n\n'+err.message);
+    }
+  };
+
+  // ----------------- Materiais: edição robusta -----------------
+  window.editarMaterial=function(id){
+    const m=arr('materiais').find(x=>String(x.ID)===String(id));
+    if(!m){alert('Material não encontrado. Atualize a tela e tente novamente.');return;}
+    const set=(idv,v)=>{const el=document.getElementById(idv);if(el)el.value=v??'';};
+    set('editMatId',m.ID);set('editMatCategoria',m.Categoria||'Outro');set('editMatUnidade',m.Unidade||'un');set('editMatDescricao',m.Descricao||'');set('editMatQuantidade',Number(m.Quantidade||0));set('editMatMinimo',Number(m.Minimo||0));set('editMatCusto',Number(m.CustoUnitario||0));set('editMatLocal',m.Localizacao||'');set('editMatObs',m.Observacao||'');
+    openM('modalEditarMaterial');
+  };
+
+  window.salvarEdicaoMaterial=async function(ev){
+    ev?.preventDefault?.();
+    const id=document.getElementById('editMatId')?.value||'';
+    const m=arr('materiais').find(x=>String(x.ID)===String(id));
+    if(!m){alert('Material não encontrado.');return;}
+    const antes=Number(m.Quantidade||0),depois=Number(document.getElementById('editMatQuantidade')?.value||0);
+    const dados={Categoria:document.getElementById('editMatCategoria')?.value||'Outro',Unidade:document.getElementById('editMatUnidade')?.value||'un',Descricao:(document.getElementById('editMatDescricao')?.value||'').trim(),Quantidade:depois,Minimo:Number(document.getElementById('editMatMinimo')?.value||0),CustoUnitario:Number(document.getElementById('editMatCusto')?.value||0),Localizacao:(document.getElementById('editMatLocal')?.value||'').trim().toUpperCase(),Observacao:(document.getElementById('editMatObs')?.value||'').trim(),AtualizadoEm:now()};
+    if(!dados.Descricao){alert('Informe a descrição.');return;}
+    if(depois!==antes && !masterOk()){alert('Somente o MASTER pode alterar o saldo do estoque.');return;}
+    if(depois!==antes){const senha=prompt(`Alteração de saldo do material ${id}: ${antes} → ${depois}\n\nDigite a senha MASTER:`);if(senha===null)return;const ok=arr('usuarios').some(u=>u.master&&String(u.senha||'')===String(senha).trim());if(!ok){audit('Tentativa bloqueada',`Ajuste de saldo ${id}`);alert('Senha MASTER inválida.');return;}}
+    try{
+      if(db()){
+        const ref=db().collection('materiais').doc(m.firestoreId||m.ID);
+        const movRef=db().collection('movimentacoes').doc();
+        if(m.firestoreId){
+          await db().runTransaction(async tx=>{
+            const snap=await tx.get(ref);if(!snap.exists)throw new Error('Material não existe mais no Firebase.');
+            tx.update(ref,dados);
+            if(depois!==antes)tx.set(movRef,{Tipo:'AJUSTE',ItemID:id,ItemFirestoreId:m.firestoreId,Qtd:depois-antes,SaldoAnterior:antes,SaldoNovo:depois,Responsavel:userName(),Data:now(),Motivo:'Edição manual de material'});
+          });
+        }else{
+          await ref.set(dados,{merge:true});
+          if(depois!==antes)await movRef.set({Tipo:'AJUSTE',ItemID:id,ItemFirestoreId:'',Qtd:depois-antes,SaldoAnterior:antes,SaldoNovo:depois,Responsavel:userName(),Data:now(),Motivo:'Edição manual de material'});
+        }
+      }
+      Object.assign(m,dados);
+      audit('Editar material',`${id} — ${dados.Descricao}${depois!==antes?` — ajuste ${antes} → ${depois}`:''}`);
+      closeM('modalEditarMaterial');if(window.renderMateriais)window.renderMateriais();
+      alert('Material atualizado com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível salvar o material.\n\n'+err.message);}
+  };
+
+  // ----------------- Projetos: edição/cadastro -----------------
+  window.editarProjeto=function(id){
+    const p=getProject(id);if(!p){alert('Projeto não encontrado. Atualize a tela e tente novamente.');return;}
+    const set=(idv,v)=>{const el=document.getElementById(idv);if(el)el.value=v??'';};
+    set('projId',p.ID);set('projNome',p.Nome||'');set('projCliente',p.Cliente||'');set('projPrazo',p.Prazo||'');set('projStatus',p.Status||'Planejamento');set('projObs',p.Observacao||'');
+    const h=document.querySelector('#modalNovoProjeto h3');if(h)h.textContent='Editar Projeto / Obra';openM('modalNovoProjeto');
+  };
+  window.abrirNovoProjeto=function(){document.getElementById('formNovoProjeto')?.reset();document.getElementById('projId').value='';const h=document.querySelector('#modalNovoProjeto h3');if(h)h.textContent='Novo Projeto / Obra';openM('modalNovoProjeto');};
+  window.salvarProjeto=async function(ev){
+    ev?.preventDefault?.();
+    const base=state();arr('projetos');
+    const idAtual=(document.getElementById('projId')?.value||'').trim();
+    const dados={Nome:(document.getElementById('projNome')?.value||'').trim(),Cliente:(document.getElementById('projCliente')?.value||'').trim(),Prazo:document.getElementById('projPrazo')?.value||'',Status:document.getElementById('projStatus')?.value||'Planejamento',Observacao:(document.getElementById('projObs')?.value||'').trim(),AtualizadoEm:now()};
+    if(!dados.Nome||!dados.Cliente){alert('Informe nome do projeto e cliente.');return;}
+    try{
+      if(idAtual){
+        const p=getProject(idAtual);if(!p){alert('Projeto não encontrado.');return;}
+        if(db())await db().collection('projetos').doc(p.firestoreId||p.ID).set(dados,{merge:true});
+        Object.assign(p,dados);audit('Editar projeto',`${p.ID} — ${p.Nome}`);
+      }else{
+        const id=await reserveId('PRJ');const p={ID:id,...dados,Materiais:[],CriadoEm:now()};
+        if(db()){const ref=db().collection('projetos').doc();await ref.set(p);p.firestoreId=ref.id;}
+        arr('projetos').push(p);audit('Criar projeto',`${id} — ${p.Nome}`);
+      }
+      closeM('modalNovoProjeto');document.getElementById('formNovoProjeto')?.reset();document.getElementById('projId').value='';const h=document.querySelector('#modalNovoProjeto h3');if(h)h.textContent='Novo Projeto / Obra';
+      if(window.renderProjetos)window.renderProjetos();if(window.preencherProjetosBaixa)window.preencherProjetosBaixa();
+      alert(idAtual?'Projeto atualizado com sucesso.':'Projeto criado com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível salvar o projeto.\n\n'+err.message);}
+  };
+
+  window.renderProjetos=function(){
+    const body=document.getElementById('tableProjetosBody');if(!body)return;const ps=arr('projetos');
+    ['kpiProjetosTotal','kpiProjetosAndamento','kpiProjetosMaterial','kpiProjetosProntos'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[ps.length,ps.filter(p=>['Em produção','Planejamento'].includes(p.Status)).length,ps.filter(p=>p.Status==='Aguardando material').length,ps.filter(p=>p.Status==='Pronto').length][i];});
+    body.innerHTML=ps.slice().sort((a,b)=>String(b.CriadoEm||'').localeCompare(String(a.CriadoEm||''))).map(p=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${escSafe(p.ID)}</td><td class="py-3 px-4 font-semibold">${escSafe(p.Nome)}</td><td class="py-3 px-4">${escSafe(p.Cliente)}</td><td class="py-3 px-4">${p.Prazo?new Date(p.Prazo+'T00:00:00').toLocaleDateString('pt-BR'):'-'}</td><td class="py-3 px-4"><span class="px-2 py-1 rounded bg-amber-500/10 text-amber-500">${escSafe(p.Status||'-')}</span></td><td class="py-3 px-4">${Array.isArray(p.Materiais)?p.Materiais.length:0}</td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="abrirMateriaisProjeto('${escSafe(p.ID)}')" class="text-amber-500 hover:underline">Materiais</button><button onclick="editarProjeto('${escSafe(p.ID)}')" class="text-sky-400 hover:underline">Editar</button><button onclick="abrirOrcamentoProjeto('${escSafe(p.ID)}')" class="text-emerald-400 hover:underline">Orçamento</button><button onclick="excluirProjeto('${escSafe(p.ID)}')" class="text-red-500 hover:underline">Excluir</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="py-8 text-center opacity-60">Nenhum projeto cadastrado.</td></tr>';
+  };
+
+  // ----------------- Projeto x materiais -----------------
+  window.renderMateriaisProjeto=function(p){
+    const body=document.getElementById('vinculosProjetoBody');if(!body)return;
+    const materiais=Array.isArray(p?.Materiais)?p.Materiais:[];
+    body.innerHTML=materiais.map((v,i)=>{
+      const r=findItem(v),item=r.item,nec=Number(v.QuantidadeNecessaria||0),cons=Number(v.QuantidadeConsumida||0),saldo=Number(item?.Quantidade||0),falt=Math.max(nec-cons,0),ok=item&&saldo>=falt;
+      return `<tr class="border-t border-[var(--border-color)]"><td class="p-2 font-semibold">${escSafe(itemLabel(v))}<div class="text-[10px] opacity-50">${escSafe(v.MaterialID)} • ${escSafe(item?.Categoria||item?.Tipo||r.c)}</div></td><td class="p-2 text-center">${nec.toLocaleString('pt-BR')} ${escSafe(itemUnit(v))}</td><td class="p-2 text-center">${cons.toLocaleString('pt-BR')} ${escSafe(itemUnit(v))}</td><td class="p-2 text-center">${saldo.toLocaleString('pt-BR')} ${escSafe(itemUnit(v))}</td><td class="p-2 text-center"><span class="px-2 py-1 rounded ${ok?'bg-emerald-500/15 text-emerald-500':'bg-red-500/15 text-red-500'}">${item?(ok?'Disponível':'Falta material'):'Item não encontrado'}</span></td><td class="p-2 text-center whitespace-nowrap">${item&&falt>0?`<button onclick="baixarItemDoProjeto('${escSafe(p.ID)}',${i})" class="text-amber-500 hover:underline mr-2">Baixar</button>`:''}<button onclick="removerMaterialProjeto(${i})" class="text-red-500 hover:underline">Remover</button></td></tr>`;
+    }).join('')||'<tr><td colspan="6" class="p-5 text-center opacity-60">Nenhum material vinculado.</td></tr>';
+  };
+  window.renderVinculosProjeto=window.renderMateriaisProjeto;
+
+  window.abrirMateriaisProjeto=function(id){
+    const p=getProject(id);if(!p){alert('Projeto não encontrado. Atualize a tela e tente novamente.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const t=document.getElementById('vinculoProjetoTitulo');if(t)t.textContent=`${p.ID} • ${p.Nome||''} • ${p.Cliente||'-'}`;
+    const sel=document.getElementById('vinculoMaterialSelect');if(sel){
+      const opts=[];
+      arr('estoque').forEach(i=>opts.push({o:'estoque',fs:i.firestoreId||'',id:i.ID,tipo:i.Tipo||'Estoque',desc:(i.Cor||i.Tipo||i.ID)+(i.Espessura?` (${i.Espessura} mm)`:''),saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      arr('materiais').filter(i=>i.Status!=='Inativo').forEach(i=>opts.push({o:'material',fs:i.firestoreId||'',id:i.ID,tipo:i.Categoria||'Material',desc:i.Descricao||i.ID,saldo:Number(i.Quantidade||0),un:i.Unidade||'un'}));
+      sel.innerHTML=opts.length?opts.map(o=>`<option value="${escSafe(o.o+'|'+o.fs+'|'+o.id)}">[${escSafe(o.id)}] ${escSafe(o.tipo)} — ${escSafe(o.desc)} | Saldo: ${o.saldo.toLocaleString('pt-BR')} ${escSafe(o.un)}</option>`).join(''):'<option value="">Nenhum item cadastrado</option>';
+    }
+    const q=document.getElementById('vinculoQtd');if(q)q.value='1';
+    window.renderMateriaisProjeto(p);openM('modalVincularMaterialProjeto');try{window.lucide?.createIcons()}catch(_){}
+  };
+
+  window.adicionarMaterialProjeto=async function(){
+    const titulo=document.getElementById('vinculoProjetoTitulo')?.textContent||'',idp=titulo.split(' • ')[0],p=getProject(idp);if(!p){alert('Projeto não encontrado.');return;}
+    const raw=document.getElementById('vinculoMaterialSelect')?.value||'',parts=raw.split('|'),origem=parts[0]||'',fs=parts[1]||'',id=parts.slice(2).join('|');
+    const q=Number(String(document.getElementById('vinculoQtd')?.value||'').replace(',','.'));
+    const a=arr(collectionForOrigin(origem));const matches=a.filter(x=>String(x.ID)===String(id));const item=fs?a.find(x=>String(x.firestoreId||'')===String(fs)):(matches.length===1?matches[0]:null);
+    if(!item){alert(matches.length>1?'Há mais de um registro com este ID. Corrija a integridade antes do vínculo.':'Item não encontrado no estoque.');return;}
+    if(!Number.isFinite(q)||q<=0){alert('Informe uma quantidade válida.');return;}
+    p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[];
+    const existing=p.Materiais.find(v=>String(v.MaterialID)===String(item.ID)&&String(v.Origem||origem)===String(origem)&&String(v.ItemFirestoreId||'')===String(item.firestoreId||fs));
+    if(existing)existing.QuantidadeNecessaria=Number(existing.QuantidadeNecessaria||0)+q;
+    else p.Materiais.push({MaterialID:item.ID,ItemFirestoreId:item.firestoreId||fs,ColecaoOrigem:collectionForOrigin(origem),Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,QuantidadeNecessaria:q,QuantidadeConsumida:0,Unidade:item.Unidade||'un',VinculadoEm:now()});
+    try{
+      if(db()){const pref=db().collection('projetos').doc(p.firestoreId||p.ID);await pref.set({Materiais:p.Materiais,AtualizadoEm:now()},{merge:true});}
+      audit('Vincular item ao projeto',`${item.ID} → ${p.ID} — ${q} ${item.Unidade||'un'}`);
+      window.renderMateriaisProjeto(p);if(window.renderProjetos)window.renderProjetos();
+      if(document.getElementById('vinculoQtd'))document.getElementById('vinculoQtd').value='1';
+      alert('Item vinculado ao projeto com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível vincular o item: '+err.message);}
+  };
+
+  window.baixarItemDoProjeto=async function(idp,index){
+    const p=getProject(idp);if(!p)return;const v=(p.Materiais||[])[index];if(!v)return;const r=findItem(v),item=r.item;
+    if(!item){alert('O item vinculado não foi encontrado de forma segura no estoque.');return;}
+    const necessario=Math.max(Number(v.QuantidadeNecessaria||0)-Number(v.QuantidadeConsumida||0),0),saldo=Number(item.Quantidade||0);
+    if(necessario<=0){alert('Este item já foi totalmente consumido para o projeto.');return;}if(saldo<=0){alert('Este item está sem saldo no estoque.');return;}
+    const qraw=prompt(`Baixa para ${p.ID} — ${p.Nome}\n\n${itemLabel(v)}\nNecessário: ${necessario} ${itemUnit(v)}\nSaldo: ${saldo} ${itemUnit(v)}\n\nQuantidade a baixar:`,String(Math.min(necessario,saldo)));if(qraw===null)return;const q=Number(String(qraw).replace(',','.'));
+    if(!Number.isFinite(q)||q<=0||q>necessario||q>saldo){alert('Quantidade inválida.');return;}
+    try{
+      if(db()&&item.firestoreId){
+        const itemRef=db().collection(r.c).doc(item.firestoreId),projRef=db().collection('projetos').doc(p.firestoreId||p.ID),saidaRef=db().collection('saidas').doc(),movRef=db().collection('movimentacoes').doc();
+        await db().runTransaction(async tx=>{
+          const s=await tx.get(itemRef);if(!s.exists)throw new Error('Item não existe mais no Firebase.');const atual=Number(s.data().Quantidade||0);if(atual<q)throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
+          const mats=[...(p.Materiais||[])];mats[index]={...mats[index],ItemFirestoreId:item.firestoreId,ColecaoOrigem:r.c,QuantidadeConsumida:Number(mats[index].QuantidadeConsumida||0)+q};
+          tx.update(itemRef,{Quantidade:atual-q,AtualizadoEm:now()});tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});
+          tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||r.c,Qtd:q,Unidade:item.Unidade||'un',Data:new Date().toISOString().slice(0,10),Destino:`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:r.c,CriadoEm:now()});
+          tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:q,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`,Responsavel:userName(),TipoOrigem:r.c,Data:now()});
+        });
+      }else{
+        item.Quantidade=saldo-q;v.QuantidadeConsumida=Number(v.QuantidadeConsumida||0)+q;p.Materiais=[...(p.Materiais||[])];
+        if(db())await db().collection('projetos').doc(p.firestoreId||p.ID).set({Materiais:p.Materiais,AtualizadoEm:now()},{merge:true});
+      }
+      item.Quantidade=Number(item.Quantidade||saldo)- (db()&&item.firestoreId? q:0);v.QuantidadeConsumida=Number(v.QuantidadeConsumida||0)+(db()&&item.firestoreId?q:0);
+      audit('Baixa direta no projeto',`${item.ID} — ${q} ${item.Unidade||'un'} → ${p.ID}`);window.renderMateriaisProjeto(p);if(window.renderMateriais)window.renderMateriais();if(window.renderProjetos)window.renderProjetos();if(window.montarBaixaAtual)window.montarBaixaAtual();
+      alert('Baixa registrada e vinculada ao projeto.');
+    }catch(err){console.error(err);alert('Não foi possível registrar a baixa: '+err.message);}
+  };
+
+  window.removerMaterialProjeto=async function(index){
+    const titulo=document.getElementById('vinculoProjetoTitulo')?.textContent||'',idp=titulo.split(' • ')[0],p=getProject(idp);if(!p)return;const v=(p.Materiais||[])[index];if(!v)return;
+    if(!masterOk()){alert('A remoção de material empregado exige autorização MASTER.');return;}
+    const r=findItem(v),item=r.item;
+    if(!item){alert('O item empregado não foi encontrado de forma segura. O sistema manterá o vínculo para não perder o controle.');return;}
+    const consumido=Number(v.QuantidadeConsumida||0),nome=itemLabel(v),un=itemUnit(v);
+    const senha=prompt(`Remover ${nome} do projeto ${p.ID}.${consumido>0?`\n\n${consumido} ${un} serão devolvidos ao estoque.`:''}\n\nDigite a senha MASTER:`);if(senha===null)return;const ok=arr('usuarios').some(u=>u.master&&String(u.senha||'')===String(senha).trim());if(!ok){audit('Tentativa bloqueada',`Remoção de ${v.MaterialID} do projeto ${p.ID}`);alert('Senha MASTER inválida.');return;}
+    if(!confirm(`Confirma remover ${nome} do projeto ${p.ID}?${consumido>0?` O estoque receberá +${consumido} ${un}.`:''}`))return;
+    try{
+      if(db()&&item.firestoreId){
+        const itemRef=db().collection(r.c).doc(item.firestoreId),projRef=db().collection('projetos').doc(p.firestoreId||p.ID),movRef=db().collection('movimentacoes').doc();
+        const saidaSnapshot=consumido>0?await db().collection('saidas').where('ProjetoID','==',p.ID).get():null;
+        const estornaveis=[];saidaSnapshot?.forEach(d=>{const s=d.data();const mesma=(String(s.ItemFirestoreId||'')===String(item.firestoreId))||(String(s.IDItem||'')===String(item.ID)&&!s.ItemFirestoreId);if(mesma&&s.Status!=='Estornado')estornaveis.push({ref:d.ref,data:s});});
+        await db().runTransaction(async tx=>{
+          const is=await tx.get(itemRef);if(!is.exists)throw new Error('Item não existe mais no Firebase.');const atual=Number(is.data().Quantidade||0);const mats=[...(p.Materiais||[])];mats.splice(index,1);
+          tx.update(itemRef,{Quantidade:atual+consumido,AtualizadoEm:now()});tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});tx.set(movRef,{Tipo:'ESTORNO_CONSUMO_PROJETO',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:consumido,Unidade:un,ProjetoID:p.ID,Responsavel:userName(),Data:now(),Motivo:'Remoção de material empregado do projeto'});
+          let restante=consumido;for(const s of estornaveis){if(restante<=0)break;const q0=Number(s.data.Qtd||0),qe=Number(s.data.QtdEstornada||0),disp=Math.max(q0-qe,0);if(disp<=0)continue;const ap=Math.min(restante,disp),novo=qe+ap;tx.update(s.ref,{QtdEstornada:novo,Status:novo>=q0?'Estornado':'Parcialmente Estornado',EstornadoEm:now(),EstornadoPor:userName()});restante-=ap;}
+        });
+        item.Quantidade=Number(item.Quantidade||0)+consumido;
+      }else{
+        item.Quantidade=Number(item.Quantidade||0)+consumido;
+      }
+      p.Materiais=[...(p.Materiais||[])];p.Materiais.splice(index,1);
+      if(!db()){}
+      audit('Remover material do projeto',`${v.MaterialID} → ${p.ID}${consumido?` — estorno de ${consumido} ${un}`:''}`);
+      window.renderMateriaisProjeto(p);if(window.renderProjetos)window.renderProjetos();if(window.renderMateriais)window.renderMateriais();if(window.montarBaixaAtual)window.montarBaixaAtual();
+      alert(consumido>0?`Material removido. ${consumido} ${un} devolvidos ao estoque.`:'Material removido do projeto.');
+    }catch(err){console.error(err);alert('Não foi possível remover o material: '+err.message);}
+  };
+
+  // ----------------- Baixa geral: sempre registra projeto e usuário -----------------
+  window.salvarBaixa=async function(ev){
+    ev?.preventDefault?.();
+    const raw=document.getElementById('baixaItemSelect')?.value||'',parts=raw.split('|'),origem=parts[0]||'estoque',fs=parts[1]||'',id=parts.slice(2).join('|');
+    const qtd=Number(String(document.getElementById('baixaQtd')?.value||'').replace(',','.')),data=document.getElementById('baixaData')?.value||new Date().toISOString().slice(0,10),pid=document.getElementById('baixaProjetoSelect')?.value||'';
+    const p=getProject(pid);const a=arr(collectionForOrigin(origem)),matches=a.filter(x=>String(x.ID)===String(id)),item=fs?a.find(x=>String(x.firestoreId||'')===String(fs)):(matches.length===1?matches[0]:null);
+    if(!item){alert(matches.length>1?'Este ID possui mais de um registro. Corrija a integridade antes da baixa.':'Item não encontrado na base atual.');if(window.montarBaixaAtual)window.montarBaixaAtual();return;}
+    if(!p){alert('Selecione um projeto / obra válido.');return;}
+    if(!Number.isFinite(qtd)||qtd<=0){alert('Informe uma quantidade válida.');return;}
+    if(Number(item.Quantidade||0)<qtd){alert(`Estoque insuficiente. Saldo atual: ${item.Quantidade} ${item.Unidade||'un'}.`);return;}
+    const col=collectionForOrigin(origem),destino=`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`;
+    try{
+      const mats=[...(p.Materiais||[])];let idx=mats.findIndex(v=>String(v.MaterialID)===String(item.ID)&&String(v.Origem||origem)===String(origem)&&String(v.ItemFirestoreId||'')===String(item.firestoreId||fs));
+      if(idx<0){idx=mats.length;mats.push({MaterialID:item.ID,ItemFirestoreId:item.firestoreId||fs,ColecaoOrigem:col,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,QuantidadeNecessaria:0,QuantidadeConsumida:qtd,Unidade:item.Unidade||'un',VinculadoEm:now(),OrigemConsumo:'Baixa geral'});}else{mats[idx]={...mats[idx],QuantidadeConsumida:Number(mats[idx].QuantidadeConsumida||0)+qtd,ItemFirestoreId:item.firestoreId||mats[idx].ItemFirestoreId,ColecaoOrigem:col};}
+      if(db()&&item.firestoreId){
+        const itemRef=db().collection(col).doc(item.firestoreId),projRef=db().collection('projetos').doc(p.firestoreId||p.ID),saidaRef=db().collection('saidas').doc(),movRef=db().collection('movimentacoes').doc();
+        await db().runTransaction(async tx=>{
+          const s=await tx.get(itemRef);if(!s.exists)throw new Error('Item não existe mais no Firebase.');const atual=Number(s.data().Quantidade||0);if(atual<qtd)throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
+          tx.update(itemRef,{Quantidade:atual-qtd,AtualizadoEm:now()});tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});
+          tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});
+          tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:userName(),TipoOrigem:col,Data:now()});
+        });
+        item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;
+      }else{item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;arr('saidas').unshift({IDItem:item.ID,ItemFirestoreId:item.firestoreId||fs,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});}
+      audit('Registrar baixa',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID}`);closeM('modalNovaBaixa');document.getElementById('formBaixa')?.reset();if(window.montarBaixaAtual)window.montarBaixaAtual();if(window.preencherProjetosBaixa)window.preencherProjetosBaixa();if(window.renderProjetos)window.renderProjetos();if(window.renderVinculosProjeto)window.renderVinculosProjeto(p);if(window.renderMateriais)window.renderMateriais();alert('Baixa confirmada e vinculada ao projeto.');
+    }catch(err){console.error(err);alert('Baixa não realizada: '+err.message);}
+  };
+
+  // ----------------- Botão geral Nova Baixa -----------------
+  window.abrirNovaBaixaSegura=window.abrirNovaBaixaSegura||function(){document.getElementById('formBaixa')?.reset();document.getElementById('editBaixaIndex').value='-1';if(window.montarBaixaAtual)window.montarBaixaAtual();if(window.preencherProjetosBaixa)window.preencherProjetosBaixa();const d=document.getElementById('baixaData');if(d)d.value=new Date().toISOString().slice(0,10);const r=document.getElementById('baixaResponsavel');if(r){r.value=userName();r.readOnly=true;}openM('modalNovaBaixa');};
+
+  // ----------------- Refresh seguro -----------------
+  function refreshStable(){
+    try{arr('projetos');arr('materiais');arr('estoque');arr('saidas');arr('movimentacoes');arr('usuarios');
+      if(window.renderProjetos)window.renderProjetos();if(window.renderMateriais)window.renderMateriais();
+      if(document.getElementById('tableProjetosBody')?.offsetParent!==null)window.renderProjetos?.();
+    }catch(e){console.warn('refreshStable',e);}
+  }
+  window.addEventListener('load',()=>setTimeout(refreshStable,1500));
+
+  // Corrige eventual perda do vínculo após atualização em tempo real.
+  setInterval(()=>{try{
+    if(document.getElementById('modalVincularMaterialProjeto') && !document.getElementById('modalVincularMaterialProjeto').classList.contains('hidden')){
+      const id=(document.getElementById('vinculoProjetoTitulo')?.textContent||'').split(' • ')[0],p=getProject(id);if(p)window.renderMateriaisProjeto(p);
+    }
+  }catch(_){}},4000);
+
+})();
+</script>
+
+</body></html>
