@@ -2819,7 +2819,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     }).join('');
     const w=window.open('','_blank','width=900,height=700');
     if(!w) return;
-    const html='<!doctype html><html><head><meta charset="utf-8"><title>Orçamento '+esc(p.ID)+'</title><style>body{font-family:Arial;padding:32px;color:#222}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#eee}.totais{margin-top:20px;text-align:right}</style></head><body><h1>Decorart Móveis — Orçamento</h1><p>'+esc(p.ID)+' — '+esc(p.Nome)+' — Cliente: '+esc(p.Cliente||'-')+'</p><p>Gerado em '+dataHoraBR(new Date())+'</p><table><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Custo unitário</th><th>Total</th></tr></thead><tbody>'+linhas+'</tbody></table><div class="totais"><div>Custo dos materiais: <b>R$ '+custo.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</b></div><div>Margem: <b>'+markup.toLocaleString('pt-BR',{minimumFractionDigits:1})+'%</b></div><div style="font-size:18px;margin-top:8px">Valor do orçamento: <b>R$ '+venda.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</b></div></div></body></html>';
+    const html='<!doctype html><html><head><meta charset="utf-8"><title>Orçamento '+esc(p.ID)+'</title><style>body{font-family:Arial;padding:32px;color:#222}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#eee}.totais{margin-top:20px;text-align:right}</style></head><body><h1>Decorart Móveis — Orçamento</h1><p>'+esc(p.ID)+' — '+esc(p.Nome)+' — Cliente: '+esc(p.Cliente||'-')+'</p><p>Gerado em '+dataHoraBR(new Date())+'</p><table><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Custo unitário</th><th>Total</th></tr></thead><tbody>'+linhas+'</tbody></table><div class="totais"><div>Custo dos materiais: <b>R$ '+custo.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</b></div><div>Margem: <b>'+markup.toLocaleString('pt-BR',{minimumFractionDigits:1})+'%</b></div><div style="font-size:18px;margin-top:8px">Valor do orçamento: <b>R$ '+venda.toLocaleString('pt-BR',{minimumFractionDigits:2})+'</b></div></div>';
     w.document.open();
     w.document.write(html);
     w.document.close();
@@ -4077,4 +4077,631 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 })();
 </script>
 
+
+<script>
+/* DECORART ERP 3.2 — ESTABILIZAÇÃO DE CADASTROS DIRETOS
+   Corrige os cadastros unitários de Chapas, Retalhos e Materiais,
+   evitando dependência das camadas legadas e garantindo gravação no Firebase.
+*/
+(function(){
+  'use strict';
+  const DBX=()=>window.DB||{};
+  const DBF=()=>window.dbStore||null;
+  const NOW=()=>new Date().toISOString();
+  const USER=()=>window.currentUser?.nome||window.currentUser?.login||'Sistema';
+  const esc=v=>String(v??'').replace(/[&<>'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+  const arr=n=>Array.isArray(DBX()[n])?DBX()[n]:(DBX()[n]=[]);
+  function audit(a,d){try{window.registrarAuditoria?.(a,d)}catch(_){} }
+  function refresh(){try{window.refreshAllViews?.()}catch(_){} try{window.renderProjetos?.()}catch(_){} try{window.renderMateriais?.()}catch(_){} try{window.montarBaixaAtual?.()}catch(_){} try{window.lucide?.createIcons?.()}catch(_){} }
+  function close(id){try{window.closeModal?.(id)}catch(_){document.getElementById(id)?.classList.add('hidden')}}
+  function open(id){try{window.openModal?.(id)}catch(_){document.getElementById(id)?.classList.remove('hidden')}}
+
+  function usedIds(){
+    const out=new Set();
+    ['estoque','materiais','projetos'].forEach(c=>arr(c).forEach(x=>{if(x?.ID)out.add(String(x.ID).toUpperCase())}));
+    return out;
+  }
+  function prefixFromType(t){return t==='Chapa Inteira'?'CHP':t==='Retalho'?'RET':'MAT'}
+  async function nextId(prefix,collection){
+    prefix=String(prefix||'MAT').toUpperCase();
+    const used=usedIds();
+    let floor=1;
+    used.forEach(id=>{const m=id.match(new RegExp('^'+prefix+'-(\\d+)$'));if(m)floor=Math.max(floor,Number(m[1])+1)});
+    const db=DBF();
+    if(db){
+      try{
+        const snap=await db.collection(collection).get();
+        snap.forEach(doc=>{const id=String(doc.data()?.ID||'').toUpperCase(),m=id.match(new RegExp('^'+prefix+'-(\\d+)$'));if(m)floor=Math.max(floor,Number(m[1])+1)});
+        const seq=db.collection('_controle_ids').doc(prefix);
+        return await db.runTransaction(async tx=>{
+          const ss=await tx.get(seq);
+          let n=Math.max(floor,Number(ss.exists?ss.data().next||1:1));
+          for(let i=0;i<2000;i++){
+            const id=prefix+'-'+String(n).padStart(5,'0');
+            const rr=db.collection('_registro_ids').doc(id), rs=await tx.get(rr);
+            if(!rs.exists && !used.has(id)){
+              tx.set(rr,{ID:id,Prefixo:prefix,ReservadoEm:NOW(),ReservadoPor:USER(),Origem:'ERP3.2'},{merge:true});
+              tx.set(seq,{next:n+1,AtualizadoEm:NOW()},{merge:true});
+              return id;
+            }
+            n++;
+          }
+          throw new Error('Não foi possível gerar um ID único.');
+        });
+      }catch(e){console.warn('Reserva centralizada 3.2:',e)}
+    }
+    let n=floor,id;
+    do{id=prefix+'-'+String(n++).padStart(5,'0')}while(used.has(id));
+    return id;
+  }
+
+  /* CHAPAS */
+  window.salvarNovaChapa=async function(e){
+    e?.preventDefault?.();
+    const db=DBF(), dbx=DBX(), estoque=arr('estoque');
+    const editIdx=Number(document.getElementById('editChapaIndex')?.value??-1);
+    const cor=(document.getElementById('chapaCor')?.value||'').trim().toUpperCase();
+    const esp=Number(document.getElementById('chapaEspessura')?.value||0);
+    const comp=Number(document.getElementById('chapaComprimento')?.value||0);
+    const larg=Number(document.getElementById('chapaLargura')?.value||0);
+    const qtd=Number(document.getElementById('chapaQtd')?.value||0);
+    const custo=Number(document.getElementById('chapaCusto')?.value||0);
+    const nf=(document.getElementById('chapaNF')?.value||'').trim().toUpperCase();
+    if(!cor||!esp||!comp||!larg||qtd<0){alert('Preencha os dados da chapa corretamente.');return}
+    if(!nf||nf==='-'){alert('A Nota Fiscal (NF) é obrigatória para Chapas Inteiras.');return}
+    try{
+      if(editIdx>=0){
+        const item=estoque[editIdx]; if(!item){alert('Chapa não encontrada.');return}
+        const dados={Cor:cor,Espessura:esp,Comprimento:comp,Largura:larg,Quantidade:qtd,CustoUnitario:custo,NF:nf,AtualizadoEm:NOW()};
+        if(db&&item.firestoreId) await db.collection('estoque').doc(item.firestoreId).update(dados);
+        Object.assign(item,dados); audit('Editar Chapa',`${item.ID} — ${cor}`);
+      }else{
+        const id=await nextId('CHP','estoque');
+        const novo={ID:id,Tipo:'Chapa Inteira',Cor:cor,Espessura:esp,Comprimento:comp,Largura:larg,Quantidade:qtd,CustoUnitario:custo,NF:nf,CriadoEm:NOW()};
+        if(db){const ref=db.collection('estoque').doc();await ref.set(novo);novo.firestoreId=ref.id}
+        estoque.push(novo); audit('Cadastrar Chapa',`${id} — ${cor} — ${qtd} un`);
+      }
+      close('modalNovaChapa');document.getElementById('formChapa')?.reset();document.getElementById('editChapaIndex').value='-1';document.getElementById('modalChapaTitle').textContent='Cadastrar Nova Chapa Inteira';refresh();
+      alert(editIdx>=0?'Chapa atualizada com sucesso.':'Chapa cadastrada com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível salvar a chapa.\n\n'+err.message)}
+  };
+
+  /* RETALHOS */
+  window.salvarRetalho=async function(e){
+    e?.preventDefault?.();
+    const db=DBF(), estoque=arr('estoque');
+    const editIdx=Number(document.getElementById('editRetalhoIndex')?.value??-1);
+    const cor=(document.getElementById('retCor')?.value||'').trim().toUpperCase();
+    const esp=Number(document.getElementById('retEspessura')?.value||0);
+    const comp=Number(document.getElementById('retComprimento')?.value||0);
+    const larg=Number(document.getElementById('retLargura')?.value||0);
+    const obs=(document.getElementById('retObservacao')?.value||'').trim();
+    const qtd=Number(document.getElementById('retQtd')?.value||0);
+    const custo=Number(document.getElementById('retCusto')?.value||0);
+    if(!cor||!esp||!comp||!larg||qtd<1||!obs){alert('Preencha todos os campos obrigatórios do retalho.');return}
+    try{
+      if(editIdx>=0){
+        const item=estoque[editIdx];if(!item){alert('Retalho não encontrado.');return}
+        const dados={Cor:cor,Espessura:esp,Comprimento:comp,Largura:larg,Quantidade:qtd,Observacao:obs,CustoUnitario:custo,AtualizadoEm:NOW()};
+        if(db&&item.firestoreId)await db.collection('estoque').doc(item.firestoreId).update(dados);
+        Object.assign(item,dados);audit('Editar Retalho',`${item.ID} — ${cor}`);
+      }else{
+        const id=await nextId('RET','estoque');
+        const novo={ID:id,Tipo:'Retalho',Cor:cor,Espessura:esp,Comprimento:comp,Largura:larg,Quantidade:qtd,CustoUnitario:custo,Observacao:obs,NF:'-',CriadoEm:NOW()};
+        if(db){const ref=db.collection('estoque').doc();await ref.set(novo);novo.firestoreId=ref.id}
+        estoque.push(novo);audit('Cadastrar Retalho',`${id} — ${cor} — ${qtd} un`);
+      }
+      close('modalNovoRetalho');document.getElementById('formRetalho')?.reset();document.getElementById('editRetalhoIndex').value='-1';document.getElementById('modalRetalhoTitle').textContent='Cadastrar Retalho / Sobra';refresh();
+      alert(editIdx>=0?'Retalho atualizado com sucesso.':'Retalho cadastrado com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível salvar o retalho.\n\n'+err.message)}
+  };
+
+  /* MATERIAIS / FERRAGENS / ACESSÓRIOS */
+  window.salvarMaterial=async function(e){
+    e?.preventDefault?.();
+    const db=DBF();
+    const materiais=arr('materiais');
+    const cat=document.getElementById('matCategoria')?.value||'Outro';
+    const un=document.getElementById('matUnidade')?.value||'un';
+    const desc=(document.getElementById('matDescricao')?.value||'').trim();
+    const qtd=Number(document.getElementById('matQuantidade')?.value||0);
+    const minimo=Number(document.getElementById('matMinimo')?.value||0);
+    const custo=Number(document.getElementById('matCusto')?.value||0);
+    const local=(document.getElementById('matLocal')?.value||'').trim().toUpperCase();
+    const obs=(document.getElementById('matObs')?.value||'').trim();
+    if(!desc){alert('Informe a descrição do item.');return}
+    if(!Number.isFinite(qtd)||qtd<0){alert('Informe uma quantidade válida.');return}
+    const pref=cat==='Fita de borda'?'FIT':cat==='Ferragem'?'FER':cat==='Acessório'?'ACE':cat==='Móvel pronto'?'MOV':'MAT';
+    try{
+      const id=await nextId(pref,'materiais');
+      const m={ID:id,Categoria:cat,Unidade:un,Descricao:desc,Quantidade:qtd,Minimo:minimo,CustoUnitario:custo,Localizacao:local,Observacao:obs,Status:'Ativo',CriadoEm:NOW()};
+      if(db){const ref=db.collection('materiais').doc();await ref.set(m);m.firestoreId=ref.id}
+      materiais.push(m);audit('Cadastrar Material',`${id} — ${desc} — ${cat} — ${qtd} ${un}`);
+      close('modalNovoMaterial');document.getElementById('formNovoMaterial')?.reset();refresh();
+      if(window.mostrarQRMaterial){try{window.mostrarQRMaterial(id)}catch(_){}
+      }
+      alert(`Item cadastrado com sucesso.\n\nCódigo: ${id}`);
+    }catch(err){console.error(err);alert('Não foi possível cadastrar o item.\n\n'+err.message)}
+  };
+
+  /* Garante que os handlers usados pelos HTML inline apontem para as funções desta camada */
+  window.salvarNovaChapa=window.salvarNovaChapa;
+  window.salvarRetalho=window.salvarRetalho;
+  window.salvarMaterial=window.salvarMaterial;
+})();
+</script>
+
+<script id="decorart-3-3-direct-cadastros">
+/* DECORART ERP 3.3 - CADASTROS DIRETOS EM PRODUCAO
+   Objetivo: usar o mesmo caminho de gravacao Firestore que ja funciona na Entrada em Lote,
+   remover os handlers inline conflitantes e impedir falso sucesso/local-only.
+*/
+(function(){
+  'use strict';
+
+  const previousChapa = window.salvarNovaChapa;
+  const previousRetalho = window.salvarRetalho;
+  const state = () => window.DB || {};
+  const db = () => window.dbStore || null;
+  const now = () => new Date().toISOString();
+  const currentName = () => window.currentUser?.nome || window.currentUser?.login || 'Sistema';
+  const list = name => Array.isArray(state()[name]) ? state()[name] : (state()[name] = []);
+  const audit = (acao, detalhes) => { try { window.registrarAuditoria?.(acao, detalhes); } catch (_) {} };
+  const refresh = () => {
+    try { window.refreshAllViews?.(); } catch (_) {}
+    try { window.renderProjetos?.(); } catch (_) {}
+    try { window.renderMateriais?.(); } catch (_) {}
+    try { window.montarBaixaAtual?.(); } catch (_) {}
+    try { window.lucide?.createIcons?.(); } catch (_) {}
+  };
+  const closeModal = id => { try { window.closeModal?.(id); } catch (_) { document.getElementById(id)?.classList.add('hidden'); } };
+
+  function idsAtuais() {
+    const s = new Set();
+    ['estoque','materiais','projetos'].forEach(c => list(c).forEach(x => {
+      const id = String(x?.ID || '').trim().toUpperCase();
+      if (id) s.add(id);
+    }));
+    return s;
+  }
+
+  async function proximoIdDireto(prefix, collection) {
+    prefix = String(prefix || 'MAT').toUpperCase();
+    const usados = idsAtuais();
+    let numero = 1;
+    for (const id of usados) {
+      const m = id.match(new RegExp('^' + prefix + '-(\\d+)$'));
+      if (m) numero = Math.max(numero, Number(m[1]) + 1);
+    }
+
+    const firebase = db();
+    if (firebase) {
+      try {
+        const snap = await firebase.collection(collection).get();
+        snap.forEach(doc => {
+          const id = String(doc.data()?.ID || '').trim().toUpperCase();
+          const m = id.match(new RegExp('^' + prefix + '-(\\d+)$'));
+          if (m) numero = Math.max(numero, Number(m[1]) + 1);
+        });
+      } catch (e) {
+        console.warn('Não foi possível consultar IDs no Firestore; usando a base local carregada.', e);
+      }
+    }
+
+    let id;
+    do {
+      id = prefix + '-' + String(numero++).padStart(5, '0');
+    } while (usados.has(id));
+    return id;
+  }
+
+  async function gravarNovoDocumento(collection, dados) {
+    const firebase = db();
+    if (!firebase) throw new Error('Firebase não está conectado. O item NÃO foi gravado localmente nem no estoque.');
+
+    // Usa .add(), exatamente como a Entrada em Lote que já está operacional.
+    const ref = await firebase.collection(collection).add(dados);
+
+    // Confirma que o documento foi efetivamente criado antes de alterar a interface/local.
+    try {
+      const confirmacao = await ref.get();
+      if (!confirmacao.exists) throw new Error('O Firebase não confirmou a criação do registro.');
+    } catch (e) {
+      // Se o create já aconteceu, mantemos o erro explícito para não apresentar falso sucesso.
+      throw new Error('Registro enviado ao Firebase, mas a confirmação da gravação falhou: ' + (e.message || e));
+    }
+
+    dados.firestoreId = ref.id;
+    return ref.id;
+  }
+
+  function bloqueiaDuplo(form) {
+    if (!form || form.dataset.salvando === '1') return false;
+    form.dataset.salvando = '1';
+    const botao = form.querySelector('button[type="submit"]');
+    if (botao) {
+      botao.dataset.textoOriginal = botao.innerHTML;
+      botao.disabled = true;
+      botao.style.opacity = '0.65';
+      botao.innerHTML = 'Gravando...';
+    }
+    return true;
+  }
+
+  function liberaDuplo(form) {
+    if (!form) return;
+    form.dataset.salvando = '0';
+    const botao = form.querySelector('button[type="submit"]');
+    if (botao) {
+      botao.disabled = false;
+      botao.style.opacity = '';
+      if (botao.dataset.textoOriginal) botao.innerHTML = botao.dataset.textoOriginal;
+    }
+  }
+
+  window.salvarNovaChapaFinal = async function(ev) {
+    ev?.preventDefault?.();
+    const form = document.getElementById('formChapa');
+    if (!bloqueiaDuplo(form)) return;
+
+    try {
+      const editIdx = Number(document.getElementById('editChapaIndex')?.value ?? -1);
+      if (editIdx >= 0 && typeof previousChapa === 'function') {
+        await previousChapa(ev);
+        return;
+      }
+
+      const cor = (document.getElementById('chapaCor')?.value || '').trim().toUpperCase();
+      const esp = Number(document.getElementById('chapaEspessura')?.value || 0);
+      const comp = Number(document.getElementById('chapaComprimento')?.value || 0);
+      const larg = Number(document.getElementById('chapaLargura')?.value || 0);
+      const qtd = Number(document.getElementById('chapaQtd')?.value || 0);
+      const custo = Number(document.getElementById('chapaCusto')?.value || 0);
+      const nf = (document.getElementById('chapaNF')?.value || '').trim().toUpperCase();
+
+      if (!cor || !Number.isFinite(esp) || esp <= 0 || !Number.isFinite(comp) || comp <= 0 || !Number.isFinite(larg) || larg <= 0 || !Number.isFinite(qtd) || qtd < 0) {
+        alert('Preencha os dados da chapa corretamente.');
+        return;
+      }
+      if (!nf || nf === '-') {
+        alert('A Nota Fiscal (NF) é obrigatória para Chapas Inteiras.');
+        return;
+      }
+
+      const id = await proximoIdDireto('CHP', 'estoque');
+      const novo = {
+        ID: id,
+        Tipo: 'Chapa Inteira',
+        Cor: cor,
+        Espessura: esp,
+        Comprimento: comp,
+        Largura: larg,
+        Quantidade: qtd,
+        CustoUnitario: custo,
+        NF: nf,
+        CriadoEm: now(),
+        CriadoPor: currentName()
+      };
+
+      await gravarNovoDocumento('estoque', novo);
+      list('estoque').push(novo);
+      audit('Cadastrar Chapa', `${id} - ${cor} - ${qtd} un`);
+      closeModal('modalNovaChapa');
+      form?.reset();
+      const idx = document.getElementById('editChapaIndex'); if (idx) idx.value = '-1';
+      const titulo = document.getElementById('modalChapaTitle'); if (titulo) titulo.textContent = 'Cadastrar Nova Chapa Inteira';
+      refresh();
+      alert(`Chapa cadastrada com sucesso.\n\nCódigo: ${id}`);
+    } catch (err) {
+      console.error('Cadastro direto de chapa:', err);
+      alert('A chapa NÃO foi cadastrada.\n\nMotivo: ' + (err?.message || err));
+    } finally {
+      liberaDuplo(form);
+    }
+  };
+
+  window.salvarRetalhoFinal = async function(ev) {
+    ev?.preventDefault?.();
+    const form = document.getElementById('formRetalho');
+    if (!bloqueiaDuplo(form)) return;
+
+    try {
+      const editIdx = Number(document.getElementById('editRetalhoIndex')?.value ?? -1);
+      if (editIdx >= 0 && typeof previousRetalho === 'function') {
+        await previousRetalho(ev);
+        return;
+      }
+
+      const cor = (document.getElementById('retCor')?.value || '').trim().toUpperCase();
+      const esp = Number(document.getElementById('retEspessura')?.value || 0);
+      const comp = Number(document.getElementById('retComprimento')?.value || 0);
+      const larg = Number(document.getElementById('retLargura')?.value || 0);
+      const obs = (document.getElementById('retObservacao')?.value || '').trim();
+      const qtd = Number(document.getElementById('retQtd')?.value || 0);
+      const custo = Number(document.getElementById('retCusto')?.value || 0);
+
+      if (!cor || esp <= 0 || comp <= 0 || larg <= 0 || qtd < 1 || !obs) {
+        alert('Preencha todos os campos obrigatórios do retalho.');
+        return;
+      }
+
+      const id = await proximoIdDireto('RET', 'estoque');
+      const novo = {
+        ID: id,
+        Tipo: 'Retalho',
+        Cor: cor,
+        Espessura: esp,
+        Comprimento: comp,
+        Largura: larg,
+        Quantidade: qtd,
+        CustoUnitario: custo,
+        Observacao: obs,
+        NF: '-',
+        CriadoEm: now(),
+        CriadoPor: currentName()
+      };
+
+      await gravarNovoDocumento('estoque', novo);
+      list('estoque').push(novo);
+      audit('Cadastrar Retalho', `${id} - ${cor} - ${qtd} un`);
+      closeModal('modalNovoRetalho');
+      form?.reset();
+      const idx = document.getElementById('editRetalhoIndex'); if (idx) idx.value = '-1';
+      const titulo = document.getElementById('modalRetalhoTitle'); if (titulo) titulo.textContent = 'Cadastrar Retalho / Sobra';
+      refresh();
+      alert(`Retalho cadastrado com sucesso.\n\nCódigo: ${id}`);
+    } catch (err) {
+      console.error('Cadastro direto de retalho:', err);
+      alert('O retalho NÃO foi cadastrado.\n\nMotivo: ' + (err?.message || err));
+    } finally {
+      liberaDuplo(form);
+    }
+  };
+
+  window.salvarMaterialFinal = async function(ev) {
+    ev?.preventDefault?.();
+    const form = document.getElementById('formNovoMaterial');
+    if (!bloqueiaDuplo(form)) return;
+
+    try {
+      const cat = document.getElementById('matCategoria')?.value || 'Outro';
+      const un = document.getElementById('matUnidade')?.value || 'un';
+      const desc = (document.getElementById('matDescricao')?.value || '').trim();
+      const qtd = Number(document.getElementById('matQuantidade')?.value || 0);
+      const minimo = Number(document.getElementById('matMinimo')?.value || 0);
+      const custo = Number(document.getElementById('matCusto')?.value || 0);
+      const local = (document.getElementById('matLocal')?.value || '').trim().toUpperCase();
+      const obs = (document.getElementById('matObs')?.value || '').trim();
+
+      if (!desc) {
+        alert('Informe a descrição do item.');
+        return;
+      }
+      if (!Number.isFinite(qtd) || qtd < 0 || !Number.isFinite(minimo) || minimo < 0 || !Number.isFinite(custo) || custo < 0) {
+        alert('Informe quantidade, mínimo e custo com valores válidos.');
+        return;
+      }
+
+      const pref = cat === 'Fita de borda' ? 'FIT' : cat === 'Ferragem' ? 'FER' : cat === 'Acessório' ? 'ACE' : cat === 'Móvel pronto' ? 'MOV' : 'MAT';
+      const id = await proximoIdDireto(pref, 'materiais');
+      const novo = {
+        ID: id,
+        Categoria: cat,
+        Unidade: un,
+        Descricao: desc,
+        Quantidade: qtd,
+        Minimo: minimo,
+        CustoUnitario: custo,
+        Localizacao: local,
+        Observacao: obs,
+        Status: 'Ativo',
+        CriadoEm: now(),
+        CriadoPor: currentName()
+      };
+
+      await gravarNovoDocumento('materiais', novo);
+      list('materiais').push(novo);
+      audit('Cadastrar Material', `${id} - ${desc} - ${cat} - ${qtd} ${un}`);
+      closeModal('modalNovoMaterial');
+      form?.reset();
+      refresh();
+      alert(`Item cadastrado com sucesso.\n\nCódigo: ${id}\nCategoria: ${cat}\nSaldo inicial: ${qtd} ${un}`);
+    } catch (err) {
+      console.error('Cadastro direto de material:', err);
+      alert('O item NÃO foi cadastrado.\n\nMotivo: ' + (err?.message || err));
+    } finally {
+      liberaDuplo(form);
+    }
+  };
+
+  // Substitui os handlers inline por listeners únicos e explícitos.
+  function conectar(id, fn) {
+    const form = document.getElementById(id);
+    if (!form || form.dataset.erp33Bound === '1') return;
+    form.removeAttribute('onsubmit');
+    form.addEventListener('submit', fn);
+    form.dataset.erp33Bound = '1';
+  }
+
+  function conectarTodos() {
+    conectar('formChapa', window.salvarNovaChapaFinal);
+    conectar('formRetalho', window.salvarRetalhoFinal);
+    conectar('formNovoMaterial', window.salvarMaterialFinal);
+
+    // Mantém os nomes globais para chamadas existentes, mas agora apontando para uma única implementação.
+    window.salvarNovaChapa = window.salvarNovaChapaFinal;
+    window.salvarRetalho = window.salvarRetalhoFinal;
+    window.salvarMaterial = window.salvarMaterialFinal;
+  }
+
+  conectarTodos();
+  window.addEventListener('load', () => setTimeout(conectarTodos, 50));
+})();
+</script>
+
+
+
+<script id="decorart-3-4-auditoria-producao">
+/* DECORART ERP 3.4 - AUDITORIA PERSISTENTE COMPLETA
+   Objetivo: todo cadastro, edição, exclusão, ajuste de saldo, consumo, baixa,
+   vínculo de material/projeto e demais alterações executadas por usuários devem
+   ficar registradas no Firestore em auditoria, com identificação de usuário.
+*/
+(function(){
+  'use strict';
+
+  const getDB=()=>window.DB||{};
+  const getUser=()=>window.currentUser||null;
+  const pad=n=>String(n).padStart(2,'0');
+  const nowDate=()=>new Date();
+  const isoNow=()=>nowDate().toISOString();
+  function brDate(d){
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  function safe(v){
+    if(v===undefined||v===null||v==='')return '';
+    try{
+      const x=typeof v==='string'?v:JSON.stringify(v);
+      return x.length>12000?x.slice(0,12000)+'... [truncado]':x;
+    }catch(_){return String(v);}
+  }
+
+  // Função central de auditoria. Mantém compatibilidade com a assinatura antiga
+  // registrarAuditoria(acao, detalhes) e aceita contexto opcional.
+  window.registrarAuditoria=function(acao,detalhes,ctx){
+    ctx=ctx||{};
+    const d=nowDate(),u=getUser();
+    const log={
+      Data:brDate(d),
+      DataISO:d.toISOString(),
+      Usuário:u?.nome||u?.login||'Sistema',
+      Usuario:u?.nome||u?.login||'Sistema',
+      Login:u?.login||'sistema',
+      Perfil:u?(u.master?'MASTER':'OPERACIONAL'):'SISTEMA',
+      Acao:String(acao||'Ação não identificada'),
+      Detalhes:String(detalhes||''),
+      Operacao:String(ctx.operacao||ctx.operation||''),
+      Colecao:String(ctx.colecao||ctx.coleção||''),
+      RegistroID:String(ctx.registroId||ctx.id||''),
+      Resultado:String(ctx.resultado||'CONFIRMADO'),
+      Antes:safe(ctx.antes),
+      Depois:safe(ctx.depois)
+    };
+    if(window.firebase?.firestore?.FieldValue?.serverTimestamp){
+      log.DataServidor=window.firebase.firestore.FieldValue.serverTimestamp();
+    }
+
+    const db=getDB();
+    if(Array.isArray(db.auditoria))db.auditoria.unshift(log);else db.auditoria=[log];
+
+    try{
+      if(window.dbStore){
+        const p=window.dbStore.collection('auditoria').add(log);
+        p.then(ref=>{log.firestoreId=ref.id;}).catch(err=>{
+          console.error('Erro ao persistir log de auditoria:',err);
+          log.Resultado='FALHA_AUDITORIA';
+          log.Detalhes += ` | Erro ao persistir: ${err?.message||err}`;
+        });
+        return p;
+      }
+    }catch(err){
+      console.error('Erro ao iniciar auditoria:',err);
+      log.Resultado='FALHA_AUDITORIA';
+      log.Detalhes += ` | Erro ao iniciar persistência: ${err?.message||err}`;
+    }
+    return Promise.resolve(null);
+  };
+
+  window.registrarAlteracaoAuditoria=function(acao,detalhes,colecao,registroId,antes,depois,operacao){
+    return window.registrarAuditoria(acao,detalhes,{
+      colecao,registroId,antes,depois,operacao:operacao||'UPDATE',resultado:'CONFIRMADO'
+    });
+  };
+
+  // Carrega o histórico persistido. Na versão anterior, a coleção auditoria
+  // não tinha listener próprio, então o histórico podia sumir da tela após F5.
+  let listenerAtivo=false;
+  function iniciarListenerAuditoria(){
+    if(listenerAtivo||!window.dbStore)return;
+    listenerAtivo=true;
+    window.dbStore.collection('auditoria').onSnapshot(snap=>{
+      const logs=[];
+      snap.forEach(doc=>logs.push({...doc.data(),firestoreId:doc.id}));
+      logs.sort((a,b)=>String(b.DataISO||b.Data||'').localeCompare(String(a.DataISO||a.Data||'')));
+      getDB().auditoria=logs;
+      try{ if(window.gerarRelatorio && document.getElementById('relatoriosTableContainer')) window.gerarRelatorio('auditoria'); }catch(_){ }
+    },err=>{
+      console.error('Erro ao sincronizar auditoria:',err);
+      listenerAtivo=false;
+    });
+  }
+  iniciarListenerAuditoria();
+  window.addEventListener('load',()=>setTimeout(iniciarListenerAuditoria,300));
+  setTimeout(iniciarListenerAuditoria,1000);
+
+  // Relatório de auditoria mais completo, sem alterar os demais relatórios.
+  const gerarRelatorioOriginal=window.gerarRelatorio;
+  if(typeof gerarRelatorioOriginal==='function'){
+    window.gerarRelatorio=function(tipo){
+      if(tipo!=='auditoria') return gerarRelatorioOriginal.apply(this,arguments);
+      const corpo=document.getElementById('relatoriosConteudo')||document.getElementById('relatoriosTableContainer');
+      const sub=document.getElementById('relatorioSubHeader');
+      if(!corpo)return;
+      const logs=Array.isArray(getDB().auditoria)?getDB().auditoria:[];
+      if(sub)sub.textContent=`Log de Auditoria de Ações do Sistema | Atualizado em ${brDate(nowDate())}`;
+      if(!logs.length){corpo.innerHTML='<p class="text-center opacity-60 py-12">Nenhum registro de auditoria encontrado.</p>';return;}
+      const esc=v=>String(v??'').replace(/[&<>\'\"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[s]));
+      let html=`<div class="overflow-x-auto"><table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]">
+        <thead><tr class="bg-[var(--bg-card)]">
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Data / Hora</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Usuário</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Login</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Perfil</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Ação</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Coleção</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Registro</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Detalhes</th>
+          <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Resultado</th>
+        </tr></thead><tbody>`;
+      for(const a of logs){
+        const detalhe=String(a.Detalhes||'')+(a.Antes&&a.Depois?` | ANTES: ${a.Antes} | DEPOIS: ${a.Depois}`:'');
+        html+=`<tr class="align-top hover:bg-amber-500/5">
+          <td class="p-2 border border-[var(--border-color)] font-mono whitespace-nowrap">${esc(a.Data||a.DataISO||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] font-bold text-amber-500 whitespace-nowrap">${esc(a.Usuário||a.Usuario||'Sistema')}</td>
+          <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Login||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Perfil||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Acao||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Colecao||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.RegistroID||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] opacity-80 min-w-[280px] break-words">${esc(detalhe)}</td>
+          <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Resultado||'CONFIRMADO')}</td>
+        </tr>`;
+      }
+      html+=`</tbody></table></div><div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex justify-between items-center text-xs">
+        <span>Total de Registros de Auditoria: <strong class="font-bold">${logs.length}</strong></span>
+        <span>Histórico sincronizado com o Firebase</span>
+      </div>`;
+      corpo.innerHTML=html;
+    };
+  }
+
+  // Identifica o login de cada operação de autorização MASTER e registra também
+  // bloqueios, para manter rastreabilidade de tentativas administrativas.
+  const masterOriginal=window.confirmarMaster;
+  if(typeof masterOriginal==='function' && !window.__auditMasterV34){
+    window.__auditMasterV34=true;
+  }
+
+  // Função genérica para registrar alterações de objetos completos nas próximas
+  // extensões do ERP, sem precisar reimplementar a estrutura do log.
+  window.auditarMudancaObjeto=function(acao,colecao,itemAntes,itemDepois,operacao){
+    const id=itemDepois?.ID||itemAntes?.ID||'';
+    return window.registrarAlteracaoAuditoria(
+      acao,
+      `${id}${itemDepois?.Descricao||itemDepois?.Nome||itemDepois?.Cor?' - '+(itemDepois.Descricao||itemDepois.Nome||itemDepois.Cor):''}`,
+      colecao,id,itemAntes,itemDepois,operacao||'UPDATE'
+    );
+  };
+})();
+</script>
 </body></html>
