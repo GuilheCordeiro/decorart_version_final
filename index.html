@@ -340,9 +340,6 @@
 <i class="w-4 h-4" data-lucide="layer-group"></i>
 <span class="hidden sm:inline">Entrada em Lote</span>
 </button>
-<button class="p-2 opacity-80 hover:opacity-100 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg transition-colors" onclick="exportBackupJSON()" title="Exportar Backup JSON">
-<i class="w-4 h-4" data-lucide="download"></i>
-</button>
 </div>
 </header>
 
@@ -583,6 +580,19 @@ Ver Retalhos
 </div>
 </div>
 
+<!-- BACKUP PROTEGIDO -->
+<div class="pt-4 border-t border-[var(--border-color)]">
+<div class="bg-amber-950/20 border border-amber-600/40 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+<div>
+<h4 class="text-sm font-bold text-amber-500 flex items-center gap-2"><i class="w-4 h-4" data-lucide="download"></i> Backup do Sistema</h4>
+<p class="text-xs opacity-70 mt-0.5">Exporta um backup completo em JSON. Disponível somente para usuário MASTER e protegido por senha.</p>
+</div>
+<button onclick="exportBackupJSONProtegido()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap shadow-sm">
+Exportar Backup JSON
+</button>
+</div>
+</div>
+
 <!-- ZONA DE PERIGO / VIRADA DE CHAVE PROTEGIDA POR SENHA MASTER -->
 <div class="pt-4 border-t border-[var(--border-color)]">
 <div class="bg-red-950/20 border border-red-600/40 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -630,8 +640,9 @@ Zerar Estoque (Master)
 <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Acessórios</span><p class="text-xl font-bold" id="kpiAcessorios">0</p></div>
 <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Móveis prontos</span><p class="text-xl font-bold" id="kpiMoveisProntos">0</p></div>
 <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Abaixo do mínimo</span><p class="text-xl font-bold text-red-500" id="kpiMateriaisCriticos">0</p></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl p-3"><span class="text-[10px] opacity-70">Valor do estoque</span><p class="text-xl font-bold text-emerald-500" id="kpiValorMateriais">R$ 0,00</p></div>
 </div>
-<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-[var(--bg-card)] border-b border-[var(--border-color)]"><tr><th class="py-3 px-4">ID</th><th class="py-3 px-4">Categoria</th><th class="py-3 px-4">Descrição</th><th class="py-3 px-4">Saldo</th><th class="py-3 px-4">Mínimo</th><th class="py-3 px-4">Un.</th><th class="py-3 px-4">Local</th><th class="py-3 px-4">QR</th><th class="py-3 px-4 text-center">Ações</th></tr></thead><tbody id="tableMateriaisBody" class="divide-y divide-[var(--border-color)]"></tbody></table></div></div>
+<div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-[var(--bg-card)] border-b border-[var(--border-color)]"><tr><th class="py-3 px-4">ID</th><th class="py-3 px-4">Categoria</th><th class="py-3 px-4">Descrição</th><th class="py-3 px-4">Saldo</th><th class="py-3 px-4">Mínimo</th><th class="py-3 px-4">Un.</th><th class="py-3 px-4">Custo Unit.</th><th class="py-3 px-4">Valor Total</th><th class="py-3 px-4">Local</th><th class="py-3 px-4">QR</th><th class="py-3 px-4 text-center">Ações</th></tr></thead><tbody id="tableMateriaisBody" class="divide-y divide-[var(--border-color)]"></tbody></table></div></div>
 </section>
 
 <!-- LOCALIZAÇÕES -->
@@ -1152,14 +1163,17 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     }
 
     function registrarAuditoria(acao, detalhes) {
+      // Camada final 3.5: todos os módulos legados que chamam registrarAuditoria(...)
+      // sem o prefixo window. também passam pelo gravador persistente.
+      if (typeof window !== 'undefined' && typeof window.__registrarAuditoriaV35 === 'function') {
+        return window.__registrarAuditoriaV35(acao, detalhes);
+      }
       const agora = new Date();
       const dataStr = agora.toISOString().slice(0,10) + ' ' + agora.toTimeString().slice(0,5);
       const log = { Data: dataStr, Usuário: currentUser ? currentUser.nome : 'Sistema', Acao: acao, Detalhes: detalhes };
-      
-      if(dbStore) {
-          dbStore.collection("auditoria").add(log).catch(console.error);
-      }
+      if(dbStore) dbStore.collection('auditoria').add(log).catch(console.error);
       DB.auditoria.unshift(log);
+      return Promise.resolve(null);
     }
 
     function iniciarSessao(user) {
@@ -2450,8 +2464,80 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   window.verProjeto=function(id){ const p=DB.projetos.find(x=>x.ID===id); if(!p) return; alert(`${p.ID} - ${p.Nome}\nCliente: ${p.Cliente}\nStatus: ${p.Status}\nPrazo: ${p.Prazo||'-'}\nMateriais vinculados: ${Array.isArray(p.Materiais)?p.Materiais.length:0}`); };
 
   function renderMateriais(){
-    const body=document.getElementById('tableMateriaisBody'); if(!body) return; const ms=DB.materiais; const cats=['Fita de borda','Ferragem','Acessório','Móvel pronto','Outro']; cats.forEach(c=>{const el=document.getElementById('kpi'+({"Fita de borda":'Fitas',Ferragem:'Ferragens',Acessório:'Acessorios','Móvel pronto':'MoveisProntos'}[c]||''));if(el)el.textContent=ms.filter(m=>m.Categoria===c).length;}); const crit=ms.filter(m=>Number(m.Quantidade)<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0); const ec=document.getElementById('kpiMateriaisCriticos');if(ec)ec.textContent=crit.length;
-    body.innerHTML=ms.map(m=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${esc(m.ID)}</td><td class="py-3 px-4">${esc(m.Categoria)}</td><td class="py-3 px-4 font-semibold">${esc(m.Descricao)}</td><td class="py-3 px-4 font-bold ${Number(m.Quantidade)<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0?'text-red-500':''}">${Number(m.Quantidade).toFixed(m.Unidade==='m'?3:0)}</td><td class="py-3 px-4">${Number(m.Minimo||0)}</td><td class="py-3 px-4">${esc(m.Unidade)}</td><td class="py-3 px-4">${esc(m.Localizacao||'-')}</td><td class="py-3 px-4"><button onclick="mostrarQRMaterial('${esc(m.ID)}')" class="text-amber-500">QR</button></td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="editarMaterial('${esc(m.ID)}')" class="text-sky-400 hover:underline">Editar</button><button onclick="abrirConsumoMaterial('${esc(m.ID)}')" class="text-red-500 hover:underline">Consumir</button></div></td></tr>`).join('') || `<tr><td colspan="9" class="py-8 text-center opacity-60">Nenhum material cadastrado.</td></tr>`;
+    const body=document.getElementById('tableMateriaisBody');
+    if(!body) return;
+    const ms=Array.isArray(DB?.materiais)?DB.materiais.slice():[];
+    const moneyBR=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const valNum=v=>Number(v||0);
+    const getCusto=m=>valNum(m?.CustoUnitario ?? m?.Custo ?? m?.PrecoUnitario ?? 0);
+    const getQtd=m=>valNum(m?.Quantidade ?? m?.Saldo ?? 0);
+    const getMin=m=>valNum(m?.Minimo ?? 0);
+    const getUn=m=>String(m?.Unidade ?? 'un');
+    const getLocal=m=>String(m?.Localizacao ?? m?.Local ?? '-');
+    const catMap={'Fita de borda':'Fitas','Ferragem':'Ferragens','Acessório':'Acessorios','Móvel pronto':'MoveisProntos'};
+
+    Object.entries(catMap).forEach(([categoria,kpiSuffix])=>{
+      const el=document.getElementById('kpi'+kpiSuffix);
+      if(el) el.textContent=String(ms.filter(m=>String(m?.Categoria||'')===categoria).length);
+    });
+
+    const criticos=ms.filter(m=>getMin(m)>0 && getQtd(m)<=getMin(m)).length;
+    const critEl=document.getElementById('kpiMateriaisCriticos');
+    if(critEl) critEl.textContent=String(criticos);
+
+    const valorTotal=ms.reduce((sum,m)=>sum+(getQtd(m)*getCusto(m)),0);
+    const valorEl=document.getElementById('kpiValorMateriais');
+    if(valorEl) valorEl.textContent=moneyBR(valorTotal);
+
+    if(!ms.length){
+      body.innerHTML='<tr><td colspan="11" class="py-8 text-center opacity-60">Nenhum material cadastrado.</td></tr>';
+      return;
+    }
+
+    ms.sort((a,b)=>String(a?.ID||'').localeCompare(String(b?.ID||''), 'pt-BR', {numeric:true}));
+
+    body.innerHTML=ms.map(m=>{
+      const id=String(m?.ID??'');
+      const categoria=String(m?.Categoria??'-');
+      const descricao=String(m?.Descricao??'-');
+      const qtd=getQtd(m);
+      const minimo=getMin(m);
+      const unidade=getUn(m);
+      const custo=getCusto(m);
+      const total=qtd*custo;
+      const local=getLocal(m);
+      const dec=unidade==='m'?3:2;
+      const critico=minimo>0 && qtd<=minimo;
+      const idJson=JSON.stringify(id);
+      return `<tr class="hover:bg-amber-500/5 align-middle">
+        <td class="py-3 px-4 font-mono font-bold whitespace-nowrap">${esc(id)}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${esc(categoria)}</td>
+        <td class="py-3 px-4 font-semibold min-w-[220px]">${esc(descricao)}</td>
+        <td class="py-3 px-4 font-bold whitespace-nowrap ${critico?'text-red-500':''}">${qtd.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:dec})}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${minimo.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:dec})}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${esc(unidade)}</td>
+        <td class="py-3 px-4 whitespace-nowrap font-semibold">${moneyBR(custo)}</td>
+        <td class="py-3 px-4 whitespace-nowrap font-bold text-emerald-500">${moneyBR(total)}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${esc(local)}</td>
+        <td class="py-3 px-4 text-center whitespace-nowrap">
+          <button type="button" onclick='mostrarQRMaterial(${idJson})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-semibold" title="Ver QR Code">
+            <i data-lucide="qr-code" class="w-3.5 h-3.5"></i><span>Ver QR</span>
+          </button>
+        </td>
+        <td class="py-3 px-4 whitespace-nowrap text-center">
+          <div class="flex justify-center gap-2">
+            <button type="button" onclick='editarMaterial(${idJson})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 font-semibold" title="Editar item">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i><span>Editar</span>
+            </button>
+            <button type="button" onclick='abrirConsumoMaterial(${idJson})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 font-semibold" title="Consumir item">
+              <i data-lucide="minus-circle" class="w-3.5 h-3.5"></i><span>Consumir</span>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    try{window.lucide?.createIcons?.();}catch(_){ }
   }
   function renderLocalizacoes(){ const b=document.getElementById('tableLocalizacoesBody'); if(!b)return; b.innerHTML=DB.localizacoes.map(l=>{const n=DB.estoque.filter(i=>String(i.Localizacao||'').toUpperCase()===String(l.Codigo).toUpperCase()).length+DB.materiais.filter(i=>String(i.Localizacao||'').toUpperCase()===String(l.Codigo).toUpperCase()).length;return `<tr><td class="py-3 px-4 font-mono font-bold">${esc(l.Codigo)}</td><td class="py-3 px-4">${esc(l.Descricao)}</td><td class="py-3 px-4">${esc(l.Tipo)}</td><td class="py-3 px-4">${n}</td></tr>`}).join('')||`<tr><td colspan="4" class="py-8 text-center opacity-60">Nenhuma localização cadastrada.</td></tr>`; }
   // Exporta renderizadores para os módulos e eventos inline da camada 2.3+.
@@ -4704,4 +4790,468 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   };
 })();
 </script>
+
+
+<script id="decorart-3-5-auditoria-balanco">
+/* DECORART ERP 3.5
+   Auditoria persistente + relatório de balanço de estoque por categoria + valor total dos materiais.
+   Camada final para preservar as funcionalidades já validadas na 3.4.
+*/
+(function(){
+  'use strict';
+
+  const DBX=()=>window.DB||{};
+  const db=()=>window.dbStore||null;
+  const user=()=>window.currentUser||null;
+  const pad=n=>String(n).padStart(2,'0');
+  const esc=v=>String(v??'').replace(/[&<>\'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[s]));
+  const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const now=()=>new Date();
+  const brDate=d=>`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const arr=(n)=>Array.isArray(DBX()[n])?DBX()[n]:(DBX()[n]=[]);
+  const resumoItem=m=>Number(m?.Quantidade||0)*Number(m?.CustoUnitario||0);
+
+  /* ---------------- AUDITORIA ---------------- */
+  const fila=[];
+  let listenerAtivo=false;
+  let timerFila=null;
+
+  function montarLog(acao,detalhes,ctx){
+    const d=now(),u=user()||{};
+    return {
+      Data:brDate(d),
+      DataISO:d.toISOString(),
+      Usuário:String(u.nome||u.login||'Sistema'),
+      Usuario:String(u.nome||u.login||'Sistema'),
+      Login:String(u.login||'sistema'),
+      Perfil:u.master?'MASTER':'OPERACIONAL',
+      Acao:String(acao||'Ação não identificada'),
+      Detalhes:String(detalhes||''),
+      Operacao:String(ctx?.operacao||ctx?.operation||''),
+      Colecao:String(ctx?.colecao||ctx?.coleção||''),
+      RegistroID:String(ctx?.registroId||ctx?.id||''),
+      Resultado:String(ctx?.resultado||'CONFIRMADO'),
+      Antes:ctx?.antes==null?'':(typeof ctx.antes==='string'?ctx.antes:JSON.stringify(ctx.antes)),
+      Depois:ctx?.depois==null?'':(typeof ctx.depois==='string'?ctx.depois:JSON.stringify(ctx.depois))
+    };
+  }
+
+  async function gravarLog(log){
+    const store=db();
+    if(!store){ fila.push(log); return null; }
+    try{
+      const ref=await store.collection('auditoria').add(log);
+      log.firestoreId=ref.id;
+      return ref;
+    }catch(err){
+      console.error('Falha ao gravar auditoria:',err);
+      if(!log.__tentativas || log.__tentativas<5){
+        log.__tentativas=(log.__tentativas||0)+1;
+        fila.push(log);
+        agendarFlush();
+      }
+      return null;
+    }
+  }
+
+  async function flushFila(){
+    if(!db()||!fila.length)return;
+    const itens=fila.splice(0,fila.length);
+    for(const log of itens) await gravarLog(log);
+  }
+  function agendarFlush(){
+    if(timerFila)return;
+    timerFila=setTimeout(async()=>{timerFila=null;await flushFila();},2000);
+  }
+
+  // Esta implementação final é usada por todos os módulos que chamam window.registrarAuditoria.
+  window.registrarAuditoria=function(acao,detalhes,ctx){
+    const log=montarLog(acao,detalhes,ctx||{});
+    if(Array.isArray(DBX().auditoria)) DBX().auditoria.unshift(log); else DBX().auditoria=[log];
+    const p=gravarLog(log);
+    if(!db()) agendarFlush();
+    return p;
+  };
+  window.__registrarAuditoriaV35=window.registrarAuditoria;
+  window.registrarAlteracaoAuditoria=function(acao,detalhes,colecao,registroId,antes,depois,operacao){
+    return window.registrarAuditoria(acao,detalhes,{colecao,registroId,antes,depois,operacao:operacao||'UPDATE'});
+  };
+
+  // Reforça a função local original usada por módulos legados que chamam registrarAuditoria(...)
+  // sem window., mas sem desmontar a camada principal já validada.
+  try{
+    if(typeof window.DB!=='undefined'){
+      // Os módulos novos usam window.registrarAuditoria. Os módulos antigos continuam com sua função local.
+      // Não é seguro sobrescrever bindings léxicos aqui, portanto garantimos persistência também via um fallback.
+    }
+  }catch(_){ }
+
+  function iniciarListener(){
+    if(listenerAtivo||!db())return;
+    listenerAtivo=true;
+    db().collection('auditoria').onSnapshot(snap=>{
+      const logs=[];
+      snap.forEach(doc=>logs.push({...doc.data(),firestoreId:doc.id}));
+      logs.sort((a,b)=>String(b.DataISO||b.Data||'').localeCompare(String(a.DataISO||a.Data||'')));
+      DBX().auditoria=logs;
+      const corpo=document.getElementById('relatorioCorpoConteudo');
+      const rel=document.getElementById('view-relatorios');
+      if(corpo && rel && !rel.classList.contains('hidden') && window.__decorartUltimoRelatorio==='auditoria'){
+        window.gerarRelatorio('auditoria');
+      }
+    },err=>{
+      console.error('Erro no listener da auditoria:',err);
+      listenerAtivo=false;
+      setTimeout(iniciarListener,3000);
+    });
+  }
+  flushFila();
+  iniciarListener();
+  window.addEventListener('load',()=>{setTimeout(()=>{flushFila();iniciarListener();},500);setTimeout(()=>{flushFila();iniciarListener();},2000);});
+
+  /* ---------------- ESTOQUE DE MATERIAIS ---------------- */
+  function renderMateriaisValor(){
+    const body=document.getElementById('tableMateriaisBody');
+    if(!body)return;
+    const ms=arr('materiais');
+    const cats=['Fita de borda','Ferragem','Acessório','Móvel pronto','Outro'];
+    const map={ 'Fita de borda':'Fitas','Ferragem':'Ferragens','Acessório':'Acessorios','Móvel pronto':'MoveisProntos' };
+    cats.forEach(c=>{const el=document.getElementById('kpi'+(map[c]||''));if(el)el.textContent=ms.filter(m=>m.Categoria===c).length;});
+    const crit=ms.filter(m=>Number(m.Quantidade)<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0);
+    const ec=document.getElementById('kpiMateriaisCriticos');if(ec)ec.textContent=crit.length;
+    const total=ms.reduce((s,m)=>s+resumoItem(m),0);
+    const kt=document.getElementById('kpiValorMateriais');if(kt)kt.textContent=money(total);
+    body.innerHTML=ms.map(m=>{
+      const q=Number(m.Quantidade||0), custo=Number(m.CustoUnitario||0), totalItem=q*custo;
+      const casas=m.Unidade==='m'?3:2;
+      const critica=q<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0;
+      return `<tr class="hover:bg-amber-500/5">
+        <td class="py-3 px-4 font-mono font-bold">${esc(m.ID)}</td>
+        <td class="py-3 px-4">${esc(m.Categoria)}</td>
+        <td class="py-3 px-4 font-semibold">${esc(m.Descricao)}</td>
+        <td class="py-3 px-4 font-bold ${critica?'text-red-500':''}">${q.toFixed(casas)}</td>
+        <td class="py-3 px-4">${Number(m.Minimo||0)}</td>
+        <td class="py-3 px-4">${esc(m.Unidade)}</td>
+        <td class="py-3 px-4">${money(custo)}</td>
+        <td class="py-3 px-4 font-bold text-emerald-500">${money(totalItem)}</td>
+        <td class="py-3 px-4">${esc(m.Localizacao||'-')}</td>
+        <td class="py-3 px-4"><button onclick="mostrarQRMaterial('${esc(m.ID)}')" class="text-amber-500">QR</button></td>
+        <td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="editarMaterial('${esc(m.ID)}')" class="text-sky-400 hover:underline">Editar</button><button onclick="abrirConsumoMaterial('${esc(m.ID)}')" class="text-red-500 hover:underline">Consumir</button></div></td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="11" class="py-8 text-center opacity-60">Nenhum material cadastrado.</td></tr>`;
+  }
+  const renderOriginal=window.renderMateriais;
+  window.renderMateriais=function(){
+    try{
+      renderMateriaisValor();
+      return;
+    }catch(err){
+      console.error('Renderização de materiais 3.5:',err);
+      try{renderOriginal?.()}catch(_){ }
+    }
+  };
+  window.addEventListener('load',()=>setTimeout(()=>{try{renderMateriaisValor()}catch(_){}},200));
+
+  /* ---------------- RELATÓRIO DE AUDITORIA ---------------- */
+  function gerarAuditoria(){
+    const corpo=document.getElementById('relatorioCorpoConteudo');
+    const sub=document.getElementById('relatorioSubHeader');
+    if(!corpo)return;
+    window.__decorartUltimoRelatorio='auditoria';
+    const logs=Array.isArray(DBX().auditoria)?DBX().auditoria:[];
+    const usuarios=[...new Set(logs.map(x=>String(x.Login||'sistema')).filter(Boolean))].sort();
+    const acoes=[...new Set(logs.map(x=>String(x.Acao||'')).filter(Boolean))].sort();
+    const hoje=now();
+    if(sub)sub.textContent=`Log de Auditoria de Ações do Sistema | ${brDate(hoje)}`;
+    corpo.innerHTML=`
+      <div class="no-print flex flex-wrap items-end gap-3 mb-4 p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] text-xs">
+        <div><label class="block font-semibold mb-1">Usuário</label><select id="audFiltroUsuario" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5"><option value="">Todos</option>${usuarios.map(u=>`<option value="${esc(u)}">${esc(u)}</option>`).join('')}</select></div>
+        <div><label class="block font-semibold mb-1">Ação</label><select id="audFiltroAcao" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5"><option value="">Todas</option>${acoes.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('')}</select></div>
+        <div><label class="block font-semibold mb-1">Data inicial</label><input id="audFiltroInicio" type="date" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5"></div>
+        <div><label class="block font-semibold mb-1">Data final</label><input id="audFiltroFim" type="date" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5"></div>
+        <button id="audBtnAplicar" class="px-3 py-1.5 bg-amber-600 text-white rounded">Aplicar</button>
+        <button id="audBtnLimpar" class="px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded">Limpar</button>
+        <button id="audBtnAtualizar" class="px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded">Atualizar</button>
+      </div>
+      <div id="audTabela"></div>`;
+    const renderTabela=()=>{
+      const u=document.getElementById('audFiltroUsuario')?.value||'';
+      const ac=document.getElementById('audFiltroAcao')?.value||'';
+      const di=document.getElementById('audFiltroInicio')?.value||'';
+      const df=document.getElementById('audFiltroFim')?.value||'';
+      const filtrados=logs.filter(a=>{
+        if(u && String(a.Login||'')!==u)return false;
+        if(ac && String(a.Acao||'')!==ac)return false;
+        const d=String(a.DataISO||'').slice(0,10);
+        if(di && d<di)return false;
+        if(df && d>df)return false;
+        return true;
+      });
+      if(!filtrados.length){document.getElementById('audTabela').innerHTML='<p class="text-center opacity-60 py-12">Nenhum registro encontrado com os filtros selecionados.</p>';return;}
+      let html=`<div class="overflow-x-auto"><table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]"><thead><tr class="bg-[var(--bg-card)]">
+        <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Data / Hora</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Usuário</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Login</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Perfil</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Ação</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Coleção</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Registro</th><th class="p-2 border border-[var(--border-color)]">Detalhes</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Resultado</th></tr></thead><tbody>`;
+      for(const a of filtrados){
+        const detalhe=String(a.Detalhes||'')+(a.Antes&&a.Depois?` | ANTES: ${a.Antes} | DEPOIS: ${a.Depois}`:'');
+        html+=`<tr class="align-top hover:bg-amber-500/5"><td class="p-2 border border-[var(--border-color)] font-mono whitespace-nowrap">${esc(a.Data||a.DataISO||'-')}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500 whitespace-nowrap">${esc(a.Usuário||a.Usuario||'Sistema')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Login||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Perfil||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Acao||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Colecao||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.RegistroID||'-')}</td><td class="p-2 border border-[var(--border-color)] min-w-[280px] break-words">${esc(detalhe)}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Resultado||'CONFIRMADO')}</td></tr>`;
+      }
+      html+=`</tbody></table></div><div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex justify-between items-center text-xs"><span>Registros exibidos: <strong>${filtrados.length}</strong></span><span>Total no histórico: <strong>${logs.length}</strong></span><span>Sincronizado com Firebase</span></div>`;
+      document.getElementById('audTabela').innerHTML=html;
+    };
+    document.getElementById('audBtnAplicar')?.addEventListener('click',renderTabela);
+    document.getElementById('audBtnAtualizar')?.addEventListener('click',()=>{iniciarListener();gerarAuditoria();});
+    document.getElementById('audBtnLimpar')?.addEventListener('click',()=>{document.getElementById('audFiltroUsuario').value='';document.getElementById('audFiltroAcao').value='';document.getElementById('audFiltroInicio').value='';document.getElementById('audFiltroFim').value='';renderTabela();});
+    renderTabela();
+  }
+
+  /* ---------------- BALANÇO DE ESTOQUE ---------------- */
+  function baseRegistros(){
+    const estoque=arr('estoque').map(x=>({ID:x.ID,Grupo:x.Tipo==='Chapa Inteira'?'Chapas Inteiras':'Retalhos',Descricao:`${x.Cor||''} ${x.Espessura?`(${x.Espessura}mm)`:''}`.trim(),Quantidade:Number(x.Quantidade||0),Unidade:'un',Custo:Number(x.CustoUnitario||0),Valor:Number(x.Quantidade||0)*Number(x.CustoUnitario||0)}));
+    const mats=arr('materiais').map(x=>({ID:x.ID,Grupo:x.Categoria||'Outro',Descricao:x.Descricao||'',Quantidade:Number(x.Quantidade||0),Unidade:x.Unidade||'un',Custo:Number(x.CustoUnitario||0),Valor:Number(x.Quantidade||0)*Number(x.CustoUnitario||0)}));
+    return estoque.concat(mats);
+  }
+  function gerarBalanco(){
+    const corpo=document.getElementById('relatorioCorpoConteudo');
+    const sub=document.getElementById('relatorioSubHeader');
+    if(!corpo)return;
+    window.__decorartUltimoRelatorio='balanco';
+    const grupos=['Todos','Chapas Inteiras','Retalhos','Fita de borda','Ferragem','Acessório','Móvel pronto','Outro'];
+    const regs=baseRegistros();
+    const selAtual=window.__decorartBalanocoFiltro||'Todos';
+    const escolhido=grupos.includes(selAtual)?selAtual:'Todos';
+    const filtrados=escolhido==='Todos'?regs:regs.filter(r=>r.Grupo===escolhido);
+    const qtdItens=filtrados.length;
+    const valor=filtrados.reduce((s,r)=>s+r.Valor,0);
+    const qtdPorUn={};
+    filtrados.forEach(r=>{qtdPorUn[r.Unidade]=(qtdPorUn[r.Unidade]||0)+r.Quantidade;});
+    if(sub)sub.textContent=`Balanço de Estoque | ${escolhido} | Gerado em ${brDate(now())}`;
+    let html=`<div class="no-print flex flex-wrap items-end gap-3 mb-4 p-3 bg-[var(--bg-card)] rounded-xl border border-[var(--border-color)] text-xs">
+      <div><label class="block font-semibold mb-1">O que deseja balancear?</label><select id="balancoFiltro" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5">${grupos.map(g=>`<option value="${esc(g)}" ${g===escolhido?'selected':''}>${esc(g)}</option>`).join('')}</select></div>
+      <button onclick="gerarRelatorio('balanco')" class="px-3 py-1.5 bg-amber-600 text-white rounded">Atualizar Balanço</button>
+    </div>`;
+    html+=`<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5"><div class="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]"><div class="text-[10px] opacity-60">Itens</div><div class="text-xl font-bold">${qtdItens}</div></div><div class="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]"><div class="text-[10px] opacity-60">Valor do estoque</div><div class="text-xl font-bold text-emerald-500">${money(valor)}</div></div><div class="p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)]"><div class="text-[10px] opacity-60">Quantidades por unidade</div><div class="text-sm font-bold">${Object.entries(qtdPorUn).map(([u,q])=>`${q.toLocaleString('pt-BR')} ${esc(u)}`).join(' • ')||'-'}</div></div></div>`;
+    if(!filtrados.length){corpo.innerHTML=html+'<p class="text-center opacity-60 py-12">Nenhum item encontrado para o balanço selecionado.</p>';return;}
+    html+=`<div class="overflow-x-auto"><table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]"><thead><tr class="bg-[var(--bg-card)]"><th class="p-2 border border-[var(--border-color)]">ID</th><th class="p-2 border border-[var(--border-color)]">Grupo</th><th class="p-2 border border-[var(--border-color)]">Descrição</th><th class="p-2 border border-[var(--border-color)]">Saldo</th><th class="p-2 border border-[var(--border-color)]">Un.</th><th class="p-2 border border-[var(--border-color)]">Custo Unit.</th><th class="p-2 border border-[var(--border-color)]">Valor Total</th></tr></thead><tbody>`;
+    filtrados.forEach(r=>{html+=`<tr><td class="p-2 border border-[var(--border-color)] font-mono">${esc(r.ID)}</td><td class="p-2 border border-[var(--border-color)]">${esc(r.Grupo)}</td><td class="p-2 border border-[var(--border-color)] font-semibold">${esc(r.Descricao)}</td><td class="p-2 border border-[var(--border-color)] font-bold">${r.Quantidade.toLocaleString('pt-BR',{minimumFractionDigits:r.Unidade==='m'?3:0,maximumFractionDigits:r.Unidade==='m'?3:2})}</td><td class="p-2 border border-[var(--border-color)]">${esc(r.Unidade)}</td><td class="p-2 border border-[var(--border-color)]">${money(r.Custo)}</td><td class="p-2 border border-[var(--border-color)] font-bold text-emerald-500">${money(r.Valor)}</td></tr>`;});
+    html+=`</tbody></table></div><div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex flex-wrap justify-between items-center text-xs gap-2"><span>Itens considerados: <strong>${qtdItens}</strong></span><span>Valor total: <strong class="text-emerald-500">${money(valor)}</strong></span></div>`;
+    corpo.innerHTML=html;
+    document.getElementById('balancoFiltro')?.addEventListener('change',e=>{window.__decorartBalanocoFiltro=e.target.value;gerarBalanco();});
+  }
+
+  // Mantém todos os demais relatórios e intercepta apenas auditoria e balanço.
+  const gerarBase=window.gerarRelatorio;
+  if(typeof gerarBase==='function'){
+    window.gerarRelatorio=function(tipo){
+      if(tipo==='auditoria'){gerarAuditoria();return;}
+      if(tipo==='balanco'){gerarBalanco();return;}
+      window.__decorartUltimoRelatorio=tipo;
+      return gerarBase.apply(this,arguments);
+    };
+  }else{
+    window.gerarRelatorio=function(tipo){ if(tipo==='auditoria')return gerarAuditoria(); if(tipo==='balanco')return gerarBalanco(); };
+  }
+
+  // Ao voltar para relatórios, garante que o botão de auditoria continue funcional.
+  window.addEventListener('load',()=>{
+    const btn=document.querySelector('button[onclick="gerarRelatorio(\'auditoria\')"]');
+    if(btn)btn.addEventListener('click',()=>setTimeout(()=>gerarAuditoria(),50));
+  });
+})();
+</script>
+
+<script>
+/* ============================================================
+   DECORART ERP 3.6 - organização do estoque de materiais + QR
+   + backup JSON protegido por senha MASTER
+   ============================================================ */
+(function(){
+  'use strict';
+  const S=(id)=>document.getElementById(id);
+  const arr=(nome)=>Array.isArray(window.DB?.[nome])?window.DB[nome]:[];
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const current=()=>window.currentUser||null;
+  const auditoria=(acao,detalhes)=>{try{return window.registrarAuditoria?.(acao,detalhes)}catch(_){return null}};
+  const getMaterial=(id)=>arr('materiais').find(m=>String(m.ID)===String(id));
+
+  window.renderMateriaisV36=function(){
+    const body=S('tableMateriaisBody');
+    if(!body)return;
+    const ms=arr('materiais').slice().sort((a,b)=>String(a.ID||'').localeCompare(String(b.ID||'')));
+    const kpis={Fitas:0,Ferragens:0,Acessorios:0,MoveisProntos:0};
+    ms.forEach(m=>{
+      if(m.Categoria==='Fita de borda')kpis.Fitas++;
+      else if(m.Categoria==='Ferragem')kpis.Ferragens++;
+      else if(m.Categoria==='Acessório')kpis.Acessorios++;
+      else if(m.Categoria==='Móvel pronto')kpis.MoveisProntos++;
+    });
+    for(const [id,val] of Object.entries(kpis)){const el=S('kpi'+id);if(el)el.textContent=val;}
+    const crit=ms.filter(m=>Number(m.Quantidade||0)<=Number(m.Minimo||0)&&Number(m.Minimo||0)>0);
+    if(S('kpiMateriaisCriticos'))S('kpiMateriaisCriticos').textContent=crit.length;
+    const totalEstoque=ms.reduce((s,m)=>s+Number(m.Quantidade||0)*Number(m.CustoUnitario||0),0);
+    if(S('kpiValorMateriais'))S('kpiValorMateriais').textContent=money(totalEstoque);
+
+    if(!ms.length){
+      body.innerHTML='<tr><td colspan="11" class="py-8 text-center opacity-60">Nenhum material cadastrado.</td></tr>';
+      return;
+    }
+
+    body.innerHTML=ms.map(m=>{
+      const q=Number(m.Quantidade||0);
+      const min=Number(m.Minimo||0);
+      const custo=Number(m.CustoUnitario||0);
+      const total=q*custo;
+      const dec=String(m.Unidade||'')==='m'?3:2;
+      const crit=q<=min && min>0;
+      const idJson=JSON.stringify(String(m.ID));
+      return `<tr class="hover:bg-amber-500/5 align-middle">
+        <td class="py-3 px-4 font-mono font-bold whitespace-nowrap">${esc(m.ID)}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${esc(m.Categoria||'-')}</td>
+        <td class="py-3 px-4 font-semibold min-w-[220px]">${esc(m.Descricao||'-')}</td>
+        <td class="py-3 px-4 font-bold whitespace-nowrap ${crit?'text-red-500':''}">${q.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:dec})}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${min.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:dec})}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${esc(m.Unidade||'-')}</td>
+        <td class="py-3 px-4 whitespace-nowrap font-semibold">${money(custo)}</td>
+        <td class="py-3 px-4 whitespace-nowrap font-bold text-emerald-500">${money(total)}</td>
+        <td class="py-3 px-4 whitespace-nowrap">${esc(m.Localizacao||'-')}</td>
+        <td class="py-3 px-4 text-center whitespace-nowrap">
+          <button type="button" onclick='mostrarQRMaterial(${idJson})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-semibold" title="Ver QR Code">
+            <i data-lucide="qr-code" class="w-3.5 h-3.5"></i><span>Ver QR</span>
+          </button>
+        </td>
+        <td class="py-3 px-4 whitespace-nowrap text-center">
+          <div class="flex justify-center gap-2">
+            <button type="button" onclick='editarMaterial(${idJson})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 font-semibold" title="Editar item">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i><span>Editar</span>
+            </button>
+            <button type="button" onclick='abrirConsumoMaterial(${idJson})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 font-semibold" title="Consumir item">
+              <i data-lucide="minus-circle" class="w-3.5 h-3.5"></i><span>Consumir</span>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    try{window.lucide?.createIcons?.()}catch(_){ }
+  };
+
+  // Esta passa a ser a função final de renderização da tabela.
+  window.renderMateriais=window.renderMateriaisV36;
+
+  // QR Code funcional para materiais.
+  window.mostrarQRMaterial=function(id){
+    const m=getMaterial(id);
+    if(!m)return alert('Material não encontrado.');
+    const modal=S('modalQRMaterial'), box=S('qrMaterialBox');
+    if(!modal||!box)return alert('Janela de QR Code não encontrada.');
+    box.innerHTML='';
+    const payload=typeof window.criarPayloadQR==='function'?window.criarPayloadQR(String(m.ID),'material'):String(m.ID);
+    if(window.QRCode){
+      try{new window.QRCode(box,{text:payload,width:180,height:180,colorDark:'#111827',colorLight:'#ffffff',correctLevel:window.QRCode.CorrectLevel?.M||0});}
+      catch(e){box.textContent='Não foi possível gerar o QR Code.';console.error(e);}
+    }else{
+      box.innerHTML='<p class="text-red-600 text-sm">Biblioteca de QR Code não carregada.</p>';
+    }
+    if(S('qrMaterialDesc'))S('qrMaterialDesc').textContent=m.Descricao||m.Categoria||'Material';
+    if(S('qrMaterialCodigo'))S('qrMaterialCodigo').textContent=String(m.ID);
+    if(S('qrMaterialInfo'))S('qrMaterialInfo').textContent=`${m.Categoria||''} | Saldo: ${Number(m.Quantidade||0).toLocaleString('pt-BR')} ${m.Unidade||'un'} | Local: ${m.Localizacao||'-'}`;
+    modal.dataset.materialId=String(m.ID);
+    modal.classList.remove('hidden');
+    try{window.lucide?.createIcons?.()}catch(_){ }
+  };
+
+  window.imprimirQRMaterial=function(){
+    const modal=S('modalQRMaterial');
+    const id=modal?.dataset.materialId;
+    const m=getMaterial(id);
+    const box=S('qrMaterialBox');
+    if(!m||!box)return;
+    const w=window.open('','_blank','width=420,height=620');
+    if(!w)return alert('O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir a etiqueta.');
+    const qr=box.innerHTML;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ${esc(m.ID)}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px;color:#111}.qr{display:flex;justify-content:center;margin:18px 0}.id{font-size:20px;font-weight:700}.desc{font-size:16px;font-weight:700}.info{font-size:12px;color:#555;margin-top:8px}@media print{@page{margin:8mm}}</style></head><body><div class="desc">${esc(m.Descricao||m.Categoria||'Material')}</div><div class="id">${esc(m.ID)}</div><div class="qr">${qr}</div><div class="info">${esc(m.Categoria||'')} | ${esc(m.Unidade||'')} | Local: ${esc(m.Localizacao||'-')}</div><script>window.onload=()=>{setTimeout(()=>window.print(),150)}<\/script></body></html>`);
+    w.document.close();
+  };
+
+  // Backup: somente MASTER + confirmação da senha da sessão atual.
+  window.exportBackupJSONProtegido=async function(){
+    const u=current();
+    if(!u?.master){alert('Acesso restrito ao usuário MASTER.');return;}
+    const senha=window.prompt(`Confirme a senha do usuário MASTER ${u.nome||u.login||''} para exportar o backup:`);
+    if(senha===null)return;
+    if(String(senha)!==String(u.senha||'')){alert('Senha incorreta. O backup não foi exportado.');return;}
+    try{
+      const backup=JSON.parse(JSON.stringify(window.DB||{}));
+      backup._backup={geradoEm:new Date().toISOString(),usuario:u.login||u.nome||'MASTER',versao:'3.6'};
+      const dataStr='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(backup,null,2));
+      const a=document.createElement('a');
+      a.href=dataStr;
+      a.download=`Estoque_Decorart_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);a.click();a.remove();
+      auditoria('Exportar Backup','Backup JSON exportado pelo usuário MASTER após confirmação de senha.');
+      alert('Backup JSON exportado com sucesso.');
+    }catch(err){console.error(err);alert('Não foi possível exportar o backup: '+(err.message||err));}
+  };
+
+  function renderAgora(){try{window.renderMateriaisV36();}catch(e){console.error('Materiais 3.6:',e)}}
+  window.addEventListener('load',()=>setTimeout(renderAgora,350));
+  // Garante atualização ao abrir a tela de materiais, mesmo que outros layers chamem renderMateriais.
+  const oldNav=window.navegar;
+  if(typeof oldNav==='function'){
+    window.navegar=function(viewName){
+      const r=oldNav.apply(this,arguments);
+      if(viewName==='materiais')setTimeout(renderAgora,30);
+      if(viewName==='usuarios')setTimeout(()=>{try{window.lucide?.createIcons?.()}catch(_){ }},30);
+      return r;
+    };
+  }
+})();
+</script>
 </body></html>
+
+<script>
+/* ============================================================
+   DECORART ERP 3.7 - alinhamento definitivo da tabela Materiais & Ferragens
+   ============================================================ */
+(function(){
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const escV=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const moneyV=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const mats=()=>Array.isArray(window.DB?.materiais)?window.DB.materiais:[];
+  const qtd=m=>Number(m?.Quantidade??m?.Saldo??0)||0;
+  const minimo=m=>Number(m?.Minimo??0)||0;
+  const custo=m=>Number(m?.CustoUnitario??m?.Custo??m?.PrecoUnitario??0)||0;
+  const unidade=m=>String(m?.Unidade??'un');
+  const local=m=>String(m?.Localizacao??m?.Local??'-');
+
+  function renderFinal(){
+    const body=byId('tableMateriaisBody');
+    if(!body)return;
+    const list=mats().slice().sort((a,b)=>String(a?.ID||'').localeCompare(String(b?.ID||''),'pt-BR',{numeric:true}));
+    const map={'Fita de borda':'Fitas','Ferragem':'Ferragens','Acessório':'Acessorios','Móvel pronto':'MoveisProntos'};
+    Object.entries(map).forEach(([cat,k])=>{const e=byId('kpi'+k);if(e)e.textContent=String(list.filter(m=>String(m?.Categoria||'')===cat).length)});
+    const c=list.filter(m=>minimo(m)>0&&qtd(m)<=minimo(m)).length;
+    const ce=byId('kpiMateriaisCriticos');if(ce)ce.textContent=String(c);
+    const valor=list.reduce((s,m)=>s+qtd(m)*custo(m),0);const ve=byId('kpiValorMateriais');if(ve)ve.textContent=moneyV(valor);
+    if(!list.length){body.innerHTML='<tr><td colspan="11" class="py-8 text-center opacity-60">Nenhum material cadastrado.</td></tr>';return;}
+    body.innerHTML=list.map(m=>{
+      const id=String(m?.ID??''), cat=String(m?.Categoria??'-'), desc=String(m?.Descricao??'-'), u=unidade(m), q=qtd(m), mi=minimo(m), cu=custo(m), tot=q*cu, lo=local(m), dec=u==='m'?3:2;
+      const crit=mi>0&&q<=mi, j=JSON.stringify(id);
+      return `<tr class="hover:bg-amber-500/5 align-middle"><td class="py-3 px-4 font-mono font-bold whitespace-nowrap">${escV(id)}</td><td class="py-3 px-4 whitespace-nowrap">${escV(cat)}</td><td class="py-3 px-4 font-semibold min-w-[220px]">${escV(desc)}</td><td class="py-3 px-4 font-bold whitespace-nowrap ${crit?'text-red-500':''}">${q.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:dec})}</td><td class="py-3 px-4 whitespace-nowrap">${mi.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:dec})}</td><td class="py-3 px-4 whitespace-nowrap">${escV(u)}</td><td class="py-3 px-4 whitespace-nowrap font-semibold">${moneyV(cu)}</td><td class="py-3 px-4 whitespace-nowrap font-bold text-emerald-500">${moneyV(tot)}</td><td class="py-3 px-4 whitespace-nowrap">${escV(lo)}</td><td class="py-3 px-4 text-center whitespace-nowrap"><button type="button" onclick='mostrarQRMaterial(${j})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-semibold"><i data-lucide="qr-code" class="w-3.5 h-3.5"></i><span>Ver QR</span></button></td><td class="py-3 px-4 whitespace-nowrap text-center"><div class="flex justify-center gap-2"><button type="button" onclick='editarMaterial(${j})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 font-semibold"><i data-lucide="pencil" class="w-3.5 h-3.5"></i><span>Editar</span></button><button type="button" onclick='abrirConsumoMaterial(${j})' class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 font-semibold"><i data-lucide="minus-circle" class="w-3.5 h-3.5"></i><span>Consumir</span></button></div></td></tr>`;
+    }).join('');
+    try{window.lucide?.createIcons?.()}catch(_){ }
+  }
+  window.renderMateriais=renderFinal;
+  window.renderMateriaisV37=renderFinal;
+  window.addEventListener('load',()=>setTimeout(renderFinal,250));
+  const oldNavigate=window.navegar;
+  if(typeof oldNavigate==='function' && !window.__decorartNavV37){
+    window.__decorartNavV37=true;
+    window.navegar=function(){const r=oldNavigate.apply(this,arguments);if(arguments[0]==='materiais')setTimeout(renderFinal,30);return r;};
+  }
+  const oldNav2=window.navigate;
+  if(typeof oldNav2==='function' && !window.__decorartNavigateV37){
+    window.__decorartNavigateV37=true;
+    window.navigate=function(){const r=oldNav2.apply(this,arguments);if(arguments[0]==='materiais')setTimeout(renderFinal,30);return r;};
+  }
+})();
+</script>
