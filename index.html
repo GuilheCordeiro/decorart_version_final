@@ -6054,3 +6054,105 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   console.info('Decorart ERP 3.7.2: estabilização de baixa e projetos carregada.');
 })();
 </script>
+
+<script id="decorart-3-7-4-saidas-material-cor">
+(function(){
+  'use strict';
+  function arrLocal(nome){
+    try{
+      if(typeof arr==='function') return arr(nome);
+    }catch(_){ }
+    try{
+      const d=(typeof DB!=='undefined')?DB:(window.DB||{});
+      const a=d?.[nome];
+      return Array.isArray(a)?a:[];
+    }catch(_){ return []; }
+  }
+  function escLocal(v){
+    try{ return typeof escSafe==='function' ? escSafe(v) : String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m])); }
+    catch(_){ return String(v??''); }
+  }
+  function itemDaSaida(s){
+    const estoque=arrLocal('estoque'), materiais=arrLocal('materiais');
+    const fs=String(s?.ItemFirestoreId||'');
+    if(fs){
+      const porFs=estoque.find(i=>String(i.firestoreId||'')===fs)||materiais.find(i=>String(i.firestoreId||'')===fs);
+      if(porFs) return porFs;
+    }
+    const id=String(s?.IDItem||'');
+    if(id){
+      const candidatos=[...estoque.filter(i=>String(i.ID||'')===id),...materiais.filter(i=>String(i.ID||'')===id)];
+      if(candidatos.length===1) return candidatos[0];
+      const corSalva=String(s?.MaterialCor||s?.Cor||'').trim();
+      if(corSalva){
+        const porCor=candidatos.find(i=>String(i.Cor||'').trim()===corSalva);
+        if(porCor) return porCor;
+      }
+      return candidatos[0]||null;
+    }
+    return null;
+  }
+  function materialCorSaida(s){
+    const item=itemDaSaida(s);
+    if(item){
+      if(item.Cor) return item.Cor;
+      if(item.Descricao) return item.Descricao;
+      if(item.Tipo && item.Tipo!=='Chapa Inteira' && item.Tipo!=='Retalho') return item.Tipo;
+    }
+    return s?.MaterialCor || s?.Cor || (String(s?.Tipo||'').toUpperCase()==='CHAPA INTEIRA' ? '-' : (s?.Tipo||'-'));
+  }
+  window.renderSaidasTable=function(){
+    const tbody=document.getElementById('tableSaidasBody');
+    if(!tbody) return;
+    const d=(typeof DB!=='undefined')?DB:(window.DB||{});
+    const saidas=Array.isArray(d.saidas)?d.saidas:[];
+    if(!saidas.length){
+      tbody.innerHTML='<tr><td colspan="8" class="py-8 text-center opacity-60">Nenhum registro de baixa.</td></tr>';
+      return;
+    }
+    tbody.innerHTML=saidas.map((s,idx)=>{
+      const item=itemDaSaida(s);
+      const nomeMaterial=materialCorSaida(s);
+      return `<tr class="hover:bg-amber-500/5 transition-colors">
+        <td class="py-3 px-4 opacity-70">${escLocal(s.Data||'-')}</td>
+        <td class="py-3 px-4 font-mono opacity-80">${escLocal(s.IDItem||'-')}</td>
+        <td class="py-3 px-4 font-bold">${escLocal(nomeMaterial)}</td>
+        <td class="py-3 px-4 font-bold text-amber-500">${escLocal(s.Qtd??0)}</td>
+        <td class="py-3 px-4">${escLocal(s.Destino||'-')}</td>
+        <td class="py-3 px-4 opacity-70">${escLocal(s.Responsavel||'-')}</td>
+        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-500/20 text-slate-400">${escLocal(s.Status||'Consumido')}</span></td>
+        <td class="py-3 px-4 text-center">
+          <button onclick="editarBaixa(${idx})" class="text-xs text-amber-500 hover:underline mr-2">Editar</button>
+          <button onclick="excluirBaixa(${idx})" class="text-xs text-red-500 hover:underline">Excluir</button>
+        </td>
+      </tr>`;
+    }).join('');
+  };
+
+  // Garante que novas baixas guardem a descrição/cor no próprio registro,
+  // preservando a informação mesmo que o item seja editado posteriormente.
+  const originalSalvarBaixa = window.salvarBaixa;
+  if(typeof originalSalvarBaixa==='function' && !window.__decorart374BaixaWrapped){
+    window.__decorart374BaixaWrapped=true;
+    window.salvarBaixa=async function(e){
+      const before=Array.isArray((typeof DB!=='undefined'?DB:(window.DB||{})).saidas)?(typeof DB!=='undefined'?DB:(window.DB||{})).saidas.slice():[];
+      const result=await originalSalvarBaixa.call(this,e);
+      try{
+        const d=(typeof DB!=='undefined')?DB:(window.DB||{});
+        const after=Array.isArray(d.saidas)?d.saidas:[];
+        const novo=after.find(x=>!before.includes(x) && x?.IDItem) || after[0];
+        if(novo){
+          const item=itemDaSaida(novo);
+          if(item && !novo.MaterialCor){
+            novo.MaterialCor=item.Cor||item.Descricao||item.Tipo||'';
+          }
+        }
+        window.renderSaidasTable();
+      }catch(_){ }
+      return result;
+    };
+  }
+  try{window.renderSaidasTable();}catch(_){ }
+  console.info('Decorart ERP 3.7.4: coluna Material/Cor das baixas corrigida.');
+})();
+</script>
