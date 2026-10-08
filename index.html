@@ -952,7 +952,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 <div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 no-print" id="modalNovoProjeto">
 <div class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl w-full max-w-lg p-6 shadow-2xl">
 <h3 class="text-base font-bold mb-4">Novo Projeto / Obra</h3>
-<form id="formNovoProjeto" onsubmit="salvarProjeto(event)" class="space-y-3 text-xs">
+<form id="formNovoProjeto" class="space-y-3 text-xs" novalidate>
 <input id="projId" type="hidden"><div><label class="block mb-1">Nome do projeto</label><input id="projNome" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div>
 <div class="grid grid-cols-2 gap-3"><div><label class="block mb-1">Cliente</label><input id="projCliente" required class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div><div><label class="block mb-1">Prazo</label><input id="projPrazo" type="date" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"></div></div>
 <div><label class="block mb-1">Status</label><select id="projStatus" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2.5"><option>Planejamento</option><option>Em produção</option><option>Aguardando material</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select></div>
@@ -2422,9 +2422,16 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     if(DB.localizacoes.includes(encontrado)){
       navigate('localizacoes'); alert('Localização '+(encontrado.Codigo||encontrado.ID)+' reconhecida.'); return;
     }
-    // Chapa/retalho: abre baixa e seleciona automaticamente.
+    // Chapa/retalho: usa a mesma identificação segura da baixa por firestoreId.
     const sel=document.getElementById('baixaItemSelect');
-    if(sel){ openModal('modalNovaBaixa'); preencherSelectBaixaSeguro(); sel.value=`${encontrado.ID}|${encontrado.Cor||encontrado.Tipo||''}|${encontrado.Espessura||''}`; const q=document.getElementById('baixaQtd'); if(q) q.value=1; const d=document.getElementById('baixaDestino'); if(d && !d.value) d.focus(); alert(`QR lido: [${encontrado.ID}] ${encontrado.Cor||encontrado.Tipo||''}. Confirme o consumo.`); }
+    if(sel){
+      if(typeof window.abrirNovaBaixaSegura==='function') window.abrirNovaBaixaSegura(); else openModal('modalNovaBaixa');
+      if(typeof window.montarBaixaAtual==='function') window.montarBaixaAtual({preserveValue:false});
+      const val=`${encontrado instanceof Object && encontrado.ID ? (encontrado.Tipo ? 'estoque' : 'estoque') : 'estoque'}|${String(encontrado.firestoreId||'')}|${String(encontrado.ID||'')}`;
+      if([...sel.options].some(o=>String(o.value)===val)) sel.value=val;
+      const q=document.getElementById('baixaQtd'); if(q) q.value=1;
+      alert(`QR lido: [${encontrado.ID}] ${encontrado.Cor||encontrado.Tipo||''}. Confirme o consumo.`);
+    }
   };
 
   function preencherSelectBaixaSeguro(){
@@ -2448,7 +2455,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   function proximoCodigo(prefix, arr){ if(window.__decorart25IdQueue&&window.__decorart25IdQueue.length)return window.__decorart25IdQueue.shift(); let max=0; arr.forEach(x=>{const m=String(x.ID||'').match(new RegExp('^'+prefix+'-(\\d+)$','i')); if(m) max=Math.max(max,Number(m[1]));}); return `${prefix}-${String(max+1).padStart(5,'0')}`; }
 
   window.abrirNovoProjeto=function(){ document.getElementById('formNovoProjeto').reset(); document.getElementById('projId').value=''; openModal('modalNovoProjeto'); };
-  window.salvarProjeto=async function(e){ e.preventDefault(); const id=proximoCodigo('PRJ',DB.projetos); const p={ID:id,Nome:document.getElementById('projNome').value.trim(),Cliente:document.getElementById('projCliente').value.trim(),Prazo:document.getElementById('projPrazo').value||'',Status:document.getElementById('projStatus').value,Observacao:document.getElementById('projObs').value.trim(),Materiais:[],CriadoEm:new Date().toISOString()}; DB.projetos.push(p); if(dbStore) await dbStore.collection('projetos').doc(id).set(p); registrarAuditoria('Criar Projeto',`${id} - ${p.Nome}`); closeModal('modalNovoProjeto'); renderProjetos(); preencherProjetosBaixa(); };
+  window.salvarProjeto=async function(e){ e.preventDefault(); const id=proximoCodigo('PRJ',DB.projetos); const p={ID:id,Nome:document.getElementById('projNome').value.trim(),Cliente:document.getElementById('projCliente').value.trim(),Prazo:document.getElementById('projPrazo').value||'',Status:document.getElementById('projStatus').value,Observacao:document.getElementById('projObs').value.trim(),Materiais:[],CriadoEm:new Date().toISOString()}; DB.projetos.push(p); if(dbStore) await dbStore.collection('projetos').doc(id).set(p); registrarAuditoria('Criar Projeto',`${id} - ${p.Nome}`); closeModal('modalNovoProjeto'); renderProjetos(); window.preencherProjetosBaixa({preserveValue:true}); };
 
   window.abrirNovoMaterial=function(){ document.getElementById('formNovoMaterial').reset(); openModal('modalNovoMaterial'); };
   window.salvarMaterial=async function(e){ e.preventDefault(); const cat=document.getElementById('matCategoria').value; const prefix=cat==='Fita de borda'?'FIT':cat==='Ferragem'?'FER':cat==='Acessório'?'ACE':cat==='Móvel pronto'?'MOV':'MAT'; const id=proximoCodigo(prefix,DB.materiais); const m={ID:id,Categoria:cat,Descricao:document.getElementById('matDescricao').value.trim(),Quantidade:Number(document.getElementById('matQuantidade').value)||0,Minimo:Number(document.getElementById('matMinimo').value)||0,CustoUnitario:Number(document.getElementById('matCusto').value)||0,Unidade:document.getElementById('matUnidade').value,Localizacao:document.getElementById('matLocal').value.trim().toUpperCase(),Observacao:document.getElementById('matObs').value.trim(),Status:'Ativo',CriadoEm:new Date().toISOString()}; DB.materiais.push(m); if(dbStore) await dbStore.collection('materiais').doc(id).set(m); registrarAuditoria('Cadastrar Material',`${id} - ${m.Descricao}`); closeModal('modalNovoMaterial'); renderMateriais(); };
@@ -2571,11 +2578,11 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 
   function syncEnhanced(){
     if(!dbStore)return;
-    ['projetos','materiais','localizacoes'].forEach(col=>dbStore.collection(col).onSnapshot(s=>{DB[col]=[];s.forEach(d=>DB[col].push({...d.data(),firestoreId:d.id}));renderProjetos();renderMateriais();renderLocalizacoes();preencherProjetosBaixa();},err=>console.warn('Sync '+col,err)));
+    ['projetos','materiais','localizacoes'].forEach(col=>dbStore.collection(col).onSnapshot(s=>{DB[col]=[];s.forEach(d=>DB[col].push({...d.data(),firestoreId:d.id}));renderProjetos();renderMateriais();renderLocalizacoes();if(window.preencherProjetosBaixa)window.preencherProjetosBaixa({preserveValue:true});},err=>console.warn('Sync '+col,err)));
   }
   function initEnhanced(){
     safeArray('projetos');safeArray('materiais');safeArray('localizacoes');safeArray('movimentacoes');
-    syncEnhanced(); preencherProjetosBaixa(); renderProjetos();renderMateriais();renderLocalizacoes();
+    syncEnhanced(); window.preencherProjetosBaixa({preserveValue:true}); renderProjetos();renderMateriais();renderLocalizacoes();
     // Injeta botão de lanterna no leitor existente.
     const box=document.querySelector('#modalLeitorQRCam .flex.justify-between'); if(box && !document.getElementById('btnLanternaQR')){const b=document.createElement('button');b.id='btnLanternaQR';b.onclick=alternarLanternaQR;b.className='px-3 py-2 bg-amber-600/20 text-amber-400 rounded-lg text-xs';b.textContent='Lanterna';box.insertBefore(b,box.firstChild);}
   }
@@ -2787,7 +2794,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       }
       item.Quantidade=saldo-qtd;v.QuantidadeConsumida=Number(v.QuantidadeConsumida||0)+qtd;
       auditoria('Baixa direta no projeto',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID} — ${resp}`);
-      renderMateriaisProjeto(p);if(window.renderMateriais)window.renderMateriais();if(window.renderProjetos)window.renderProjetos();montarBaixaAtual();
+      renderMateriaisProjeto(p);if(window.renderMateriais)window.renderMateriais();if(window.renderProjetos)window.renderProjetos();window.montarBaixaAtual({preserveValue:true});
       alert('Baixa registrada e vinculada ao projeto com sucesso.');
     }catch(err){console.error(err);alert('Não foi possível registrar a baixa: '+err.message);}
   };
@@ -2818,15 +2825,15 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   window.atualizarDestinoBaixaProjeto=atualizarDestinoProjeto;
   window.abrirNovaBaixaSegura=function(){
     document.getElementById('formBaixa')?.reset();document.getElementById('editBaixaIndex').value='-1';document.getElementById('modalBaixaTitle').textContent='Registrar Baixa / Saída';
-    montarBaixaAtual();preencherProjetosBaixa();const d=document.getElementById('baixaData');if(d)d.value=new Date().toISOString().slice(0,10);atualizarDestinoProjeto();openModal('modalNovaBaixa');
+    window.montarBaixaAtual({preserveValue:true});window.preencherProjetosBaixa({preserveValue:true});const d=document.getElementById('baixaData');if(d)d.value=new Date().toISOString().slice(0,10);atualizarDestinoProjeto();openModal('modalNovaBaixa');
   };
   window.salvarBaixa=async function(e){
     e.preventDefault();
     const raw=document.getElementById('baixaItemSelect')?.value||'',parts=raw.split('|'),origem=parts[0],id=parts.slice(1).join('|'),qtd=Number(String(document.getElementById('baixaQtd')?.value||'').replace(',','.')),data=document.getElementById('baixaData')?.value||new Date().toISOString().slice(0,10),pid=document.getElementById('baixaProjetoSelect')?.value||'',p=projeto(pid),item=origem==='material'?(DB.materiais||[]).find(x=>x.ID===id):(DB.estoque||[]).find(x=>x.ID===id),resp=usuarioAtual();
-    if(!item){alert('O estoque atual mudou. A lista será atualizada. Tente novamente.');montarBaixaAtual();return;}
+    if(!item){alert('O estoque atual mudou. A lista será atualizada. Tente novamente.');window.montarBaixaAtual({preserveValue:true});return;}
     if(!p){alert('Selecione um projeto / obra válido.');return;}
     if(!Number.isFinite(qtd)||qtd<=0){alert('Informe uma quantidade válida.');return;}
-    if(Number(item.Quantidade||0)<qtd){alert(`Estoque insuficiente. Saldo atual: ${item.Quantidade} ${item.Unidade||'un'}.`);montarBaixaAtual();return;}
+    if(Number(item.Quantidade||0)<qtd){alert(`Estoque insuficiente. Saldo atual: ${item.Quantidade} ${item.Unidade||'un'}.`);window.montarBaixaAtual({preserveValue:true});return;}
     const destino=`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`;
     try{
       if(dbStore){
@@ -2869,8 +2876,8 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       closeModal('modalNovaBaixa');
       document.getElementById('formBaixa')?.reset();
       document.getElementById('editBaixaIndex').value='-1';
-      montarBaixaAtual();
-      preencherProjetosBaixa();
+      window.montarBaixaAtual({preserveValue:true});
+      window.preencherProjetosBaixa({preserveValue:true});
       if(window.renderProjetos)window.renderProjetos();
       if(window.renderMateriais)window.renderMateriais();
       if(window.renderVinculosProjeto && document.getElementById('vinculosProjetoBody')?.offsetParent!==null)window.renderVinculosProjeto(p);
@@ -2922,7 +2929,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     if(!ok){auditoria('Tentativa bloqueada',motivo+' — senha MASTER inválida.');alert('Senha MASTER inválida.');return false;}
     return true;
   }
-  window.excluirProjeto=async function(id){const p=projeto(id);if(!p)return;if(!await confirmarMaster(`Excluir o projeto ${p.ID} — ${p.Nome}?`))return;if(!confirm(`Confirma a exclusão permanente do projeto ${p.ID}?`))return;try{if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).delete();DB.projetos=DB.projetos.filter(x=>x.ID!==id);auditoria('Excluir projeto',`${p.ID} — ${p.Nome}`);if(window.renderProjetos)window.renderProjetos();preencherProjetosBaixa();}catch(err){alert('Erro ao excluir projeto: '+err.message);}};
+  window.excluirProjeto=async function(id){const p=projeto(id);if(!p)return;if(!await confirmarMaster(`Excluir o projeto ${p.ID} — ${p.Nome}?`))return;if(!confirm(`Confirma a exclusão permanente do projeto ${p.ID}?`))return;try{if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).delete();DB.projetos=DB.projetos.filter(x=>x.ID!==id);auditoria('Excluir projeto',`${p.ID} — ${p.Nome}`);if(window.renderProjetos)window.renderProjetos();window.preencherProjetosBaixa({preserveValue:true});}catch(err){alert('Erro ao excluir projeto: '+err.message);}};
 
   // ---------------- Filtros por clique no cabeçalho ----------------
   const filtros=new WeakMap();
@@ -2952,14 +2959,15 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     if(!Array.isArray(DB.projetos))DB.projetos=[];
     if(!Array.isArray(DB.materiais))DB.materiais=[];
     if(!Array.isArray(DB.movimentacoes))DB.movimentacoes=[];
-    montarBaixaAtual();preencherProjetosBaixa();
+    window.montarBaixaAtual({preserveValue:true});window.preencherProjetosBaixa({preserveValue:true});
     const r=document.getElementById('baixaResponsavel');if(r){r.readOnly=true;r.value=usuarioAtual();}
     anexarFiltros();
     if(currentUser?.master)renderUsuarios();
     try{lucide.createIcons();}catch(e){}
   }
   window.addEventListener('load',()=>setTimeout(inicializar,800));
-  setInterval(()=>{try{ocultarLocalizacoes();montarBaixaAtual();if(document.getElementById('baixaProjetoSelect')){const old=document.getElementById('baixaProjetoSelect').value;preencherProjetosBaixa();if(old){const s=document.getElementById('baixaProjetoSelect');if([...s.options].some(o=>o.value===old)){s.value=old;atualizarDestinoProjeto();}}}anexarFiltros();}catch(e){}},7000);
+  // 3.7.3: desativado refresh periódico legado da baixa, que sobrescrevia a seleção do usuário.
+
 })();
 </script>
 
@@ -3211,7 +3219,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       item.Quantidade=Number(item.Quantidade)-qtd;p.Materiais=mats;
       if(!dbStore){ DB.saidas=Array.isArray(DB.saidas)?DB.saidas:[]; DB.saidas.unshift({IDItem:item.ID,ItemFirestoreId:item.firestoreId||fs,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:resp,ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now26()}); }
       audit26('Registrar Baixa',`${qtd} ${item.Tipo||item.Categoria||col} ${item.ID} → ${p.ID}`);
-      closeModal('modalNovaBaixa');document.getElementById('formBaixa')?.reset();document.getElementById('editBaixaIndex').value='-1';window.montarBaixaAtual();preencherProjetosBaixa();if(window.renderProjetos)window.renderProjetos();if(window.renderVinculosProjeto)window.renderVinculosProjeto(p);refreshAllViews();alert('Baixa confirmada e vinculada ao projeto.');
+      closeModal('modalNovaBaixa');document.getElementById('formBaixa')?.reset();document.getElementById('editBaixaIndex').value='-1';window.montarBaixaAtual();window.preencherProjetosBaixa({preserveValue:true});if(window.renderProjetos)window.renderProjetos();if(window.renderVinculosProjeto)window.renderVinculosProjeto(p);refreshAllViews();alert('Baixa confirmada e vinculada ao projeto.');
     }catch(err){console.error(err);alert('Baixa não realizada: '+err.message);}
   };
 
@@ -3304,7 +3312,8 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     try{bindMaterialRefs26().then(()=>{window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();if(window.renderProjetos)window.renderProjetos();}).catch(console.warn);}catch(e){console.warn(e);}
   }
   window.addEventListener('load',()=>setTimeout(init26,1200));
-  setInterval(()=>{try{window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();}catch(e){}},6000);
+  // 3.7.3: integridade permanece acionada por eventos/sincronização; não reconstruir a seleção por timer.
+
 })();
 </script>
 
@@ -3585,7 +3594,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       if(item) item.Quantidade=Number(item.Quantidade||0)+ (dbStore&&item.firestoreId ? consumido : 0);
       p.Materiais=Array.isArray(p.Materiais)?p.Materiais:[]; if(p.Materiais[index]===v)p.Materiais.splice(index,1);
       audit('Remover material do projeto',`${v.MaterialID} → ${p.ID}${consumido?' — estorno de '+consumido+' '+unItem(v):''}`);
-      renderMateriaisProjeto(p); if(window.renderProjetos)window.renderProjetos(); if(window.renderMateriais)window.renderMateriais(); montarBaixaAtual();
+      renderMateriaisProjeto(p); if(window.renderProjetos)window.renderProjetos(); if(window.renderMateriais)window.renderMateriais(); window.montarBaixaAtual({preserveValue:true});
       alert(consumido>0?`Material removido. ${consumido} ${unItem(v)} foram devolvidos ao estoque.`:'Material removido do projeto.');
     }catch(err){console.error(err);alert('Não foi possível remover o material: '+err.message);}
   };
@@ -3602,7 +3611,8 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     setTimeout(renderAposDados,3500);
   }
   window.addEventListener('load',preparar);
-  setInterval(()=>{wrapChapa();wrapRetalho();wrapLote();wrapProjeto();wrapMaterial();renderIntegridadeIDs();},5000);
+  // 3.7.3: wrappers periódicos removidos para evitar sobrescrita de handlers estáveis.
+
 })();
 </script>
 
@@ -5167,7 +5177,154 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     const w=window.open('','_blank','width=420,height=620');
     if(!w)return alert('O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir a etiqueta.');
     const qr=box.innerHTML;
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ${esc(m.ID)}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px;color:#111}.qr{display:flex;justify-content:center;margin:18px 0}.id{font-size:20px;font-weight:700}.desc{font-size:16px;font-weight:700}.info{font-size:12px;color:#555;margin-top:8px}@media print{@page{margin:8mm}}</style></head><body><div class="desc">${esc(m.Descricao||m.Categoria||'Material')}</div><div class="id">${esc(m.ID)}</div><div class="qr">${qr}</div><div class="info">${esc(m.Categoria||'')} | ${esc(m.Unidade||'')} | Local: ${esc(m.Localizacao||'-')}</div><script>window.onload=()=>{setTimeout(()=>window.print(),150)}<\/script></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ${esc(m.ID)}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px;color:#111}.qr{display:flex;justify-content:center;margin:18px 0}.id{font-size:20px;font-weight:700}.desc{font-size:16px;font-weight:700}.info{font-size:12px;color:#555;margin-top:8px}@media print{@page{margin:8mm}}</style></head><body><div class="desc">${esc(m.Descricao||m.Categoria||'Material')}</div><div class="id">${esc(m.ID)}</div><div class="qr">${qr}</div><div class="info">${esc(m.Categoria||'')} | ${esc(m.Unidade||'')} | Local: ${esc(m.Localizacao||'-')}</div><script>window.onload=()=>{setTimeout(()=>window.print(),150)}<\/script><script id="decorart-3-7-3-final">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const db=()=>window.dbStore||null;
+  const DB=()=>window.DB||{};
+  const now=()=>new Date().toISOString();
+  const audit=(a,d)=>{try{window.registrarAuditoria?.(a,d)}catch(_){} };
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const arr=n=>Array.isArray(DB()[n])?DB()[n]:(DB()[n]=[]);
+
+  function project(id){ return arr('projetos').find(p=>String(p.ID)===String(id)); }
+  function optionExists(s,v){ return !!s && [...s.options].some(o=>String(o.value)===String(v)); }
+
+  // Única fonte para a select de baixa: preserva exatamente o valor escolhido.
+  window.montarBaixaAtual=function(opts={}){
+    const s=$('baixaItemSelect'); if(!s)return;
+    const preserve=opts.preserveValue!==false;
+    const previous=preserve?String(s.value||''):'';
+    const options=[];
+    arr('estoque').filter(i=>Number(i.Quantidade||0)>0).forEach(i=>{
+      const value=`estoque|${String(i.firestoreId||'')}|${String(i.ID||'')}`;
+      options.push(`<option value="${esc(value)}">[${esc(i.ID||'')}] ${esc(i.Tipo||'Item')} ${esc(i.Cor||'')} ${i.Espessura?`(${esc(i.Espessura)} mm)`:''} - Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`);
+    });
+    arr('materiais').filter(i=>i.Status!=='Inativo' && Number(i.Quantidade||0)>0).forEach(i=>{
+      const value=`material|${String(i.firestoreId||'')}|${String(i.ID||'')}`;
+      options.push(`<option value="${esc(value)}">[${esc(i.ID||'')}] ${esc(i.Categoria||'Material')} - ${esc(i.Descricao||'')} - Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`);
+    });
+    const hadSelection=previous!=='';
+    s.innerHTML=options.join('') || '<option value="">Nenhum item com saldo disponível</option>';
+    if(hadSelection && optionExists(s,previous)) {
+      s.value=previous;
+    } else if(hadSelection) {
+      s.value='';
+    }
+  };
+  window.montarOpcoesBaixa=window.montarBaixaAtual;
+  window.preencherSelectBaixaSeguro=window.montarBaixaAtual;
+
+  window.preencherProjetosBaixa=function(opts={}){
+    const s=$('baixaProjetoSelect'); if(!s)return;
+    const prev=opts.preserveValue!==false?String(s.value||''):'';
+    const ps=arr('projetos').filter(p=>!['Entregue','Cancelado'].includes(p.Status));
+    ps.sort((a,b)=>String(a.Nome||'').localeCompare(String(b.Nome||''),'pt-BR'));
+    s.innerHTML='<option value="">Selecione o projeto / obra</option>'+ps.map(p=>`<option value="${esc(p.ID)}">${esc(p.ID)} - ${esc(p.Nome)} / ${esc(p.Cliente||'-')} [${esc(p.Status||'-')}]</option>`).join('');
+    if(prev && optionExists(s,prev)) s.value=prev;
+    const p=project(s.value);
+    const d=$('baixaDestino'); if(d){d.value=p?`${p.ID} - ${p.Nome} / ${p.Cliente||'-'}`:'';d.readOnly=true;}
+    const r=$('baixaResponsavel'); if(r){const n=(window.currentUser?.nome||window.usuarioAtual?.()?.nome||window.usuarioAtual?.()||'').toString();r.value=n;r.readOnly=true;r.setAttribute('readonly','readonly');}
+  };
+  window.atualizarDestinoBaixaProjeto=window.preencherProjetosBaixa;
+
+  // Toda abertura da baixa passa pelo mesmo inicializador.
+  window.abrirNovaBaixaSegura=function(){
+    const f=$('formBaixa'); if(f)f.reset();
+    const ei=$('editBaixaIndex'); if(ei)ei.value='-1';
+    window.montarBaixaAtual({preserveValue:false});
+    window.preencherProjetosBaixa({preserveValue:false});
+    const d=$('baixaData'); if(d)d.value=new Date().toISOString().slice(0,10);
+    const r=$('baixaResponsavel'); if(r){const n=(window.currentUser?.nome||window.usuarioAtual?.()?.nome||window.usuarioAtual?.()||'').toString();r.value=n;r.readOnly=true;}
+    const open=window.openModal||window.openM; if(typeof open==='function')open('modalNovaBaixa');
+  };
+
+  async function salvarProjetoFinal(ev){
+    ev?.preventDefault?.();
+    ev?.stopPropagation?.();
+    const form=$('formNovoProjeto');
+    const nome=($('projNome')?.value||'').trim();
+    const cliente=($('projCliente')?.value||'').trim();
+    if(!nome){alert('Informe o nome do projeto.');$('projNome')?.focus();return false;}
+    if(!cliente){alert('Informe o cliente.');$('projCliente')?.focus();return false;}
+    const idAtual=($('projId')?.value||'').trim();
+    const data={Nome:nome,Cliente:cliente,Prazo:$('projPrazo')?.value||'',Status:$('projStatus')?.value||'Planejamento',Observacao:($('projObs')?.value||'').trim(),AtualizadoEm:now()};
+    const firebase=db();
+    if(!firebase){alert('Firebase não está disponível. Nenhuma alteração foi feita.');return false;}
+    const btn=form?.querySelector('button[type="submit"]'); if(btn){btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent='Salvando...';}
+    try{
+      if(idAtual){
+        const p=project(idAtual);
+        if(!p)throw new Error('Projeto não encontrado na base atual.');
+        const ref=firebase.collection('projetos').doc(p.firestoreId||p.ID);
+        await ref.set(data,{merge:true});
+        const verify=await ref.get();
+        if(!verify.exists)throw new Error('O Firebase não confirmou a atualização do projeto.');
+        Object.assign(p,data); p.firestoreId=ref.id;
+        audit('Editar projeto',`${p.ID} - ${p.Nome}`);
+      }else{
+        const used=new Set(arr('projetos').map(p=>String(p.ID||'').toUpperCase()));
+        let n=1,id; do{id=`PRJ-${String(n).padStart(5,'0')}`;n++;}while(used.has(id.toUpperCase()));
+        const p={ID:id,...data,Materiais:[],CriadoEm:now()};
+        const ref=firebase.collection('projetos').doc();
+        await ref.set(p);
+        const verify=await ref.get();
+        if(!verify.exists)throw new Error('O Firebase não confirmou a criação do projeto.');
+        p.firestoreId=ref.id;
+        arr('projetos').push(p);
+        audit('Criar projeto',`${id} - ${p.Nome}`);
+      }
+      // Mantém o usuário na área de Projetos, sem qualquer navegação para o painel.
+      $('view-dashboard')?.classList.add('hidden');
+      $('view-projetos')?.classList.remove('hidden');
+      $('modalNovoProjeto')?.classList.add('hidden');
+      form?.reset(); if($('projId'))$('projId').value='';
+      const h=document.querySelector('#modalNovoProjeto h3');if(h)h.textContent='Novo Projeto / Obra';
+      window.renderProjetos?.();window.preencherProjetosBaixa?.({preserveValue:true});
+      alert(idAtual?'Projeto atualizado com sucesso.':'Projeto criado e confirmado no Firebase.');
+      return false;
+    }catch(err){
+      console.error('Projeto 3.7.3:',err);
+      alert('Não foi possível salvar o projeto.\n\n'+(err?.message||err));
+      return false;
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=btn.dataset.oldText||'Salvar projeto';}
+    }
+  }
+  window.salvarProjeto=salvarProjetoFinal;
+
+  function bindForms(){
+    const projectForm=$('formNovoProjeto');
+    if(projectForm && projectForm.dataset.decorart373!=='1'){
+      projectForm.dataset.decorart373='1';
+      projectForm.removeAttribute('onsubmit');
+      projectForm.addEventListener('submit',salvarProjetoFinal,{capture:false});
+    }
+    const baixaForm=$('formBaixa');
+    if(baixaForm && baixaForm.dataset.decorart373!=='1'){
+      baixaForm.dataset.decorart373='1';
+      baixaForm.removeAttribute('onsubmit');
+      baixaForm.addEventListener('submit',function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        if(typeof window.salvarBaixa==='function') window.salvarBaixa(ev);
+      });
+    }
+    document.querySelectorAll('[onclick="openModal(\'modalNovaBaixa\')"]').forEach(b=>{
+      b.setAttribute('onclick','abrirNovaBaixaSegura()');
+    });
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindForms,{once:true});
+  else bindForms();
+  window.addEventListener('load',()=>setTimeout(bindForms,50));
+
+  // Atualização baseada no estado atual, sem polling da select.
+  window.__decorart373Ready=true;
+  console.info('Decorart ERP 3.7.3: baixa e projetos estabilizados sem alterar dados do Firebase.');
+})();
+</script>
+</body></html>`);
     w.document.close();
   };
 
@@ -5203,6 +5360,411 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       return r;
     };
   }
+})();
+</script>
+
+<script>
+/* ============================================================
+   DECORART ERP 3.7.1 - PROTEÇÃO DE MASTER + RECUPERAÇÃO
+   Base: 3.7 estável. Corrige exclusão por índice/race condition.
+   ============================================================ */
+(function(){
+  'use strict';
+  const norm = v => String(v ?? '').trim().toLowerCase();
+  const esc = v => String(v ?? '').replace(/[&<>\'\"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[s]));
+  let deleteBusy = new Set();
+  let recoveryVisible = false;
+
+  function users(){ return Array.isArray(window.DB?.usuarios) ? window.DB.usuarios : []; }
+  function masters(){ return users().filter(u => !!u?.master); }
+  function currentLogin(){ return norm(window.currentUser?.login); }
+  function findUserByLogin(login){ return users().find(u => norm(u?.login) === norm(login)); }
+  function resolveUser(ref){
+    const s = decodeURIComponent(String(ref || ''));
+    return findUserByLogin(s) || users().find(u => String(u?.firestoreId||'') === s);
+  }
+  function masterGuard(){
+    if(!window.currentUser?.master){ alert('Acesso restrito ao usuário MASTER.'); return false; }
+    return true;
+  }
+
+  function renderUsuariosSeguro(){
+    const body=document.getElementById('tableUsuariosBody');
+    if(!body)return;
+    const lista=users().slice().sort((a,b)=>String(a?.nome||a?.login||'').localeCompare(String(b?.nome||b?.login||''),'pt-BR'));
+    body.innerHTML=lista.map(u=>{
+      const login=String(u?.login||'');
+      const key=encodeURIComponent(login);
+      const del = norm(login)!==currentLogin()
+        ? `<button type="button" data-user-delete="${esc(key)}" onclick="excluirUsuarioMasterSeguro('${key}',this)" class="text-red-500 hover:underline">Excluir</button>`
+        : '';
+      return `<tr class="hover:bg-amber-500/5">
+        <td class="py-2.5 font-medium">${esc(u?.nome||'-')}</td>
+        <td class="py-2.5 opacity-70">${esc(login||'-')}</td>
+        <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${u?.master?'bg-amber-500/20 text-amber-500':'bg-slate-500/20 text-slate-400'}">${u?.master?'Master Admin':'Operacional'}</span></td>
+        <td class="py-2.5 text-center"><div class="flex justify-center gap-3">
+          <button type="button" onclick="editarUsuarioMasterSeguro('${key}')" class="text-sky-400 hover:underline">Editar</button>
+          <button type="button" onclick="alterarSenhaUsuarioSeguro('${key}')" class="text-amber-500 hover:underline">Senha</button>
+          ${del}
+        </div></td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="4" class="py-8 text-center opacity-60">Nenhum usuário cadastrado.</td></tr>`;
+    try{window.lucide?.createIcons?.()}catch(_){ }
+  }
+  window.renderUsuariosTable = renderUsuariosSeguro;
+  window.renderUsuarios = renderUsuariosSeguro;
+
+  window.editarUsuarioMasterSeguro = function(ref){
+    if(!masterGuard())return;
+    const u=resolveUser(ref);
+    if(!u)return alert('Usuário não encontrado. Atualize a tela e tente novamente.');
+    const loginKey=encodeURIComponent(String(u.login||''));
+    const idx=users().findIndex(x=>norm(x?.login)===norm(u.login));
+    const i=document.getElementById('usuarioEditIndex'); if(i)i.value=String(idx);
+    const n=document.getElementById('usuarioNome'); if(n)n.value=u.nome||'';
+    const l=document.getElementById('usuarioLogin'); if(l)l.value=u.login||'';
+    const s=document.getElementById('usuarioSenha'); if(s)s.value=u.senha||'';
+    const m=document.getElementById('usuarioMaster'); if(m)m.value=String(!!u.master);
+    const t=document.getElementById('usuarioModalTitulo'); if(t)t.textContent='Editar usuário';
+    const f=document.getElementById('usuarioEditIndex'); if(f)f.dataset.loginKey=loginKey;
+    if(typeof openModal==='function')openModal('modalUsuarioMaster');
+  };
+
+  window.alterarSenhaUsuarioSeguro = function(ref){
+    if(!masterGuard())return;
+    const u=resolveUser(ref);
+    if(!u)return alert('Usuário não encontrado. Atualize a tela e tente novamente.');
+    const nova=prompt(`Nova senha para ${u.nome||u.login}:`);
+    if(nova===null)return;
+    const senha=String(nova).trim();
+    if(!senha)return alert('A senha não pode ficar vazia.');
+    if(senha.length<3)return alert('Use pelo menos 3 caracteres nesta versão legado.');
+    const atual=users().find(x=>norm(x?.login)===norm(u.login));
+    if(!atual)return alert('Usuário não encontrado.');
+    atual.senha=senha;
+    const op=(window.dbStore&&atual.firestoreId)
+      ? window.dbStore.collection('usuarios').doc(atual.firestoreId).set({senha},{merge:true})
+      : (window.dbStore ? window.dbStore.collection('usuarios').doc(atual.login).set({senha},{merge:true}) : Promise.resolve());
+    Promise.resolve(op).then(()=>{
+      try{(window.registrarAuditoria||window.registrarAuditoriaSeguro)?.('Alterar Senha',`Senha alterada para ${atual.nome||atual.login}.`)}catch(_){ }
+      renderUsuariosSeguro();
+      alert('Senha atualizada!');
+    }).catch(err=>{
+      console.error(err);
+      alert('Não foi possível salvar a senha: '+(err?.message||err));
+    });
+  };
+
+  window.excluirUsuarioMasterSeguro = async function(ref, btn){
+    if(!masterGuard())return;
+    const login=decodeURIComponent(String(ref||''));
+    const key=norm(login);
+    if(!key)return;
+    if(deleteBusy.has(key))return;
+
+    const u=findUserByLogin(login);
+    if(!u)return alert('Usuário não encontrado. Atualize a tela e tente novamente.');
+    if(key===currentLogin())return alert('Por segurança, o usuário da sessão atual nunca pode ser excluído.');
+    const totalMasters=masters().length;
+    if(u.master && totalMasters<=1)return alert('Não é possível excluir o último usuário MASTER. Cadastre outro MASTER antes de remover este.');
+    if(!confirm(`Excluir o usuário ${u.nome||u.login}?\n\nEssa operação não pode ser desfeita.`))return;
+
+    deleteBusy.add(key);
+    if(btn){btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent='Excluindo...';}
+    try{
+      if(window.dbStore){
+        let refDoc=null;
+        if(u.firestoreId){
+          const candidate=window.dbStore.collection('usuarios').doc(u.firestoreId);
+          const snap=await candidate.get();
+          if(snap.exists){
+            const data=snap.data()||{};
+            const sameLogin=norm(data.login)===key;
+            if(!sameLogin){
+              alert('Bloqueado por segurança: o identificador do Firebase não corresponde ao usuário selecionado. Nenhum dado foi excluído.');
+              return;
+            }
+            refDoc=candidate;
+          }
+        }
+        if(!refDoc){
+          const byLogin=window.dbStore.collection('usuarios').doc(u.login);
+          const snap=await byLogin.get();
+          if(snap.exists){
+            const data=snap.data()||{};
+            if(norm(data.login)!==key){
+              alert('Bloqueado por segurança: o documento do usuário não corresponde ao login selecionado.');
+              return;
+            }
+            refDoc=byLogin;
+          }
+        }
+        if(!refDoc){
+          const q=await window.dbStore.collection('usuarios').where('login','==',u.login).limit(1).get();
+          if(!q.empty){
+            const doc=q.docs[0];
+            const data=doc.data()||{};
+            if(norm(data.login)!==key){
+              alert('Bloqueado por segurança: o documento localizado não corresponde ao login.');
+              return;
+            }
+            refDoc=doc.ref;
+          }
+        }
+        if(!refDoc){
+          alert('Usuário já não existe no Firebase. Nenhum outro usuário foi alterado.');
+          return;
+        }
+        await refDoc.delete();
+      }
+      // Não fazemos splice por índice. O listener do Firestore será a fonte de verdade.
+      const idx=users().findIndex(x=>norm(x?.login)===key);
+      if(idx>=0 && !window.dbStore) users().splice(idx,1);
+      try{await (window.registrarAuditoria||window.registrarAuditoriaSeguro)?.('Excluir Usuário',`${u.login} - ${u.nome||''}`)}catch(_){ }
+      renderUsuariosSeguro();
+      alert('Usuário excluído com segurança.');
+    }catch(err){
+      console.error(err);
+      alert('Não foi possível excluir o usuário. Nenhum outro usuário foi alterado.\n\n'+(err?.message||err));
+    }finally{
+      deleteBusy.delete(key);
+      if(btn){btn.disabled=false;btn.textContent=btn.dataset.oldText||'Excluir';}
+    }
+  };
+
+  /* ---------- Recuperação administrativa quando não existe MASTER ---------- */
+  function ensureRecoveryUI(){
+    if(document.getElementById('decorartMasterRecovery'))return;
+    const wrap=document.createElement('div');
+    wrap.id='decorartMasterRecovery';
+    wrap.className='mt-5 hidden';
+    wrap.innerHTML=`
+      <div class="border border-red-500/40 bg-red-950/30 rounded-xl p-4">
+        <div class="flex items-start gap-3">
+          <i data-lucide="shield-alert" class="w-5 h-5 text-red-400 mt-0.5 shrink-0"></i>
+          <div class="flex-1">
+            <div class="text-xs font-bold text-red-300 uppercase tracking-wider">Recuperação de acesso MASTER</div>
+            <p class="text-[11px] text-slate-300 mt-1">Nenhum usuário MASTER foi encontrado. Use este procedimento somente para recuperar o acesso administrativo.</p>
+            <button type="button" onclick="abrirRecuperacaoMaster()" class="mt-3 w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold">Restaurar acesso MASTER</button>
+          </div>
+        </div>
+      </div>`;
+    const loginCard=document.querySelector('#loginScreen .w-full.max-w-md');
+    if(loginCard)loginCard.appendChild(wrap);
+    try{window.lucide?.createIcons?.()}catch(_){ }
+  }
+
+  function setRecoveryVisible(){
+    ensureRecoveryUI();
+    const box=document.getElementById('decorartMasterRecovery');
+    if(!box)return;
+    const show=masters().length===0;
+    box.classList.toggle('hidden',!show);
+    recoveryVisible=show;
+  }
+
+  window.abrirRecuperacaoMaster=function(){
+    if(!recoveryVisible){alert('A recuperação MASTER está disponível somente quando não existe nenhum MASTER cadastrado.');return;}
+    const frase=prompt('Digite exatamente: RECUPERAR MASTER');
+    if(frase!=='RECUPERAR MASTER')return;
+    const nome=prompt('Nome do novo usuário MASTER:'); if(!nome||!nome.trim())return;
+    const login=prompt('Login do novo MASTER (ex.: guilherme):'); if(!login||!login.trim())return;
+    if(/[\/]/.test(login))return alert('O login não pode conter / ou \\.');
+    const senha=prompt('Defina uma nova senha MASTER:'); if(!senha||senha.length<3)return alert('Senha inválida.');
+    if(!window.dbStore)return alert('Firebase não está disponível neste momento.');
+    const normLogin=norm(login);
+    if(users().some(u=>norm(u?.login)===normLogin))return alert('Esse login já existe. Escolha outro.');
+    if(!confirm(`Criar o usuário MASTER \"${login.trim()}\"?`))return;
+    const novo={login:login.trim(),nome:nome.trim(),senha,master:true,CriadoEm:new Date().toISOString(),recuperacaoMaster:true};
+    window.dbStore.collection('usuarios').add(novo).then(ref=>{
+      novo.firestoreId=ref.id;
+      window.DB.usuarios=[...(window.DB.usuarios||[]).filter(u=>norm(u?.login)!==normLogin),novo];
+      setRecoveryVisible();
+      renderUsuariosSeguro();
+      try{window.registrarAuditoria?.('Recuperação MASTER',`${novo.login} - acesso administrativo restaurado.`)}catch(_){ }
+      alert('Acesso MASTER restaurado. Agora faça login com o novo usuário e senha.');
+    }).catch(err=>{
+      console.error(err);
+      alert('Não foi possível restaurar o MASTER.\n\n'+(err?.code||'')+' '+(err?.message||err));
+    });
+  };
+
+  function installRecoveryWatch(){
+    ensureRecoveryUI();
+    setRecoveryVisible();
+    if(window.dbStore && !window.__decorartMasterRecoveryWatch){
+      window.__decorartMasterRecoveryWatch=true;
+      window.dbStore.collection('usuarios').onSnapshot(snap=>{
+        const anyMaster=snap.docs.some(d=>!!d.data()?.master);
+        const list=snap.docs.map(d=>({...d.data(),firestoreId:d.id}));
+        if(Array.isArray(window.DB?.usuarios)){
+          window.DB.usuarios=list;
+        }
+        setRecoveryVisible();
+        renderUsuariosSeguro();
+      },err=>console.warn('Monitor de recuperação MASTER:',err));
+    }
+  }
+
+  function patchModalSubmit(){
+    const form=document.getElementById('formUsuarioMaster');
+    if(!form || form.dataset.recoveryPatched)return;
+    form.dataset.recoveryPatched='1';
+    form.addEventListener('submit',function(e){
+      // Mantém a função existente para criação/edição. A proteção da exclusão está isolada.
+    });
+  }
+
+  window.addEventListener('load',()=>{ensureRecoveryUI();patchModalSubmit();setTimeout(installRecoveryWatch,300);});
+  setTimeout(()=>{ensureRecoveryUI();setRecoveryVisible();patchModalSubmit();},800);
+})();
+</script>
+
+<script id="decorart-3-7-3-final">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const db=()=>window.dbStore||null;
+  const DB=()=>window.DB||{};
+  const now=()=>new Date().toISOString();
+  const audit=(a,d)=>{try{window.registrarAuditoria?.(a,d)}catch(_){} };
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const arr=n=>Array.isArray(DB()[n])?DB()[n]:(DB()[n]=[]);
+
+  function project(id){ return arr('projetos').find(p=>String(p.ID)===String(id)); }
+  function optionExists(s,v){ return !!s && [...s.options].some(o=>String(o.value)===String(v)); }
+
+  // Única fonte para a select de baixa: preserva exatamente o valor escolhido.
+  window.montarBaixaAtual=function(opts={}){
+    const s=$('baixaItemSelect'); if(!s)return;
+    const preserve=opts.preserveValue!==false;
+    const previous=preserve?String(s.value||''):'';
+    const options=[];
+    arr('estoque').filter(i=>Number(i.Quantidade||0)>0).forEach(i=>{
+      const value=`estoque|${String(i.firestoreId||'')}|${String(i.ID||'')}`;
+      options.push(`<option value="${esc(value)}">[${esc(i.ID||'')}] ${esc(i.Tipo||'Item')} ${esc(i.Cor||'')} ${i.Espessura?`(${esc(i.Espessura)} mm)`:''} - Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`);
+    });
+    arr('materiais').filter(i=>i.Status!=='Inativo' && Number(i.Quantidade||0)>0).forEach(i=>{
+      const value=`material|${String(i.firestoreId||'')}|${String(i.ID||'')}`;
+      options.push(`<option value="${esc(value)}">[${esc(i.ID||'')}] ${esc(i.Categoria||'Material')} - ${esc(i.Descricao||'')} - Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`);
+    });
+    const hadSelection=previous!=='';
+    s.innerHTML=options.join('') || '<option value="">Nenhum item com saldo disponível</option>';
+    if(hadSelection && optionExists(s,previous)) {
+      s.value=previous;
+    } else if(hadSelection) {
+      s.value='';
+    }
+  };
+  window.montarOpcoesBaixa=window.montarBaixaAtual;
+  window.preencherSelectBaixaSeguro=window.montarBaixaAtual;
+
+  window.preencherProjetosBaixa=function(opts={}){
+    const s=$('baixaProjetoSelect'); if(!s)return;
+    const prev=opts.preserveValue!==false?String(s.value||''):'';
+    const ps=arr('projetos').filter(p=>!['Entregue','Cancelado'].includes(p.Status));
+    ps.sort((a,b)=>String(a.Nome||'').localeCompare(String(b.Nome||''),'pt-BR'));
+    s.innerHTML='<option value="">Selecione o projeto / obra</option>'+ps.map(p=>`<option value="${esc(p.ID)}">${esc(p.ID)} - ${esc(p.Nome)} / ${esc(p.Cliente||'-')} [${esc(p.Status||'-')}]</option>`).join('');
+    if(prev && optionExists(s,prev)) s.value=prev;
+    const p=project(s.value);
+    const d=$('baixaDestino'); if(d){d.value=p?`${p.ID} - ${p.Nome} / ${p.Cliente||'-'}`:'';d.readOnly=true;}
+    const r=$('baixaResponsavel'); if(r){const n=(window.currentUser?.nome||window.usuarioAtual?.()?.nome||window.usuarioAtual?.()||'').toString();r.value=n;r.readOnly=true;r.setAttribute('readonly','readonly');}
+  };
+  window.atualizarDestinoBaixaProjeto=window.preencherProjetosBaixa;
+
+  // Toda abertura da baixa passa pelo mesmo inicializador.
+  window.abrirNovaBaixaSegura=function(){
+    const f=$('formBaixa'); if(f)f.reset();
+    const ei=$('editBaixaIndex'); if(ei)ei.value='-1';
+    window.montarBaixaAtual({preserveValue:false});
+    window.preencherProjetosBaixa({preserveValue:false});
+    const d=$('baixaData'); if(d)d.value=new Date().toISOString().slice(0,10);
+    const r=$('baixaResponsavel'); if(r){const n=(window.currentUser?.nome||window.usuarioAtual?.()?.nome||window.usuarioAtual?.()||'').toString();r.value=n;r.readOnly=true;}
+    const open=window.openModal||window.openM; if(typeof open==='function')open('modalNovaBaixa');
+  };
+
+  async function salvarProjetoFinal(ev){
+    ev?.preventDefault?.();
+    ev?.stopPropagation?.();
+    const form=$('formNovoProjeto');
+    const nome=($('projNome')?.value||'').trim();
+    const cliente=($('projCliente')?.value||'').trim();
+    if(!nome){alert('Informe o nome do projeto.');$('projNome')?.focus();return false;}
+    if(!cliente){alert('Informe o cliente.');$('projCliente')?.focus();return false;}
+    const idAtual=($('projId')?.value||'').trim();
+    const data={Nome:nome,Cliente:cliente,Prazo:$('projPrazo')?.value||'',Status:$('projStatus')?.value||'Planejamento',Observacao:($('projObs')?.value||'').trim(),AtualizadoEm:now()};
+    const firebase=db();
+    if(!firebase){alert('Firebase não está disponível. Nenhuma alteração foi feita.');return false;}
+    const btn=form?.querySelector('button[type="submit"]'); if(btn){btn.disabled=true;btn.dataset.oldText=btn.textContent;btn.textContent='Salvando...';}
+    try{
+      if(idAtual){
+        const p=project(idAtual);
+        if(!p)throw new Error('Projeto não encontrado na base atual.');
+        const ref=firebase.collection('projetos').doc(p.firestoreId||p.ID);
+        await ref.set(data,{merge:true});
+        const verify=await ref.get();
+        if(!verify.exists)throw new Error('O Firebase não confirmou a atualização do projeto.');
+        Object.assign(p,data); p.firestoreId=ref.id;
+        audit('Editar projeto',`${p.ID} - ${p.Nome}`);
+      }else{
+        const used=new Set(arr('projetos').map(p=>String(p.ID||'').toUpperCase()));
+        let n=1,id; do{id=`PRJ-${String(n).padStart(5,'0')}`;n++;}while(used.has(id.toUpperCase()));
+        const p={ID:id,...data,Materiais:[],CriadoEm:now()};
+        const ref=firebase.collection('projetos').doc();
+        await ref.set(p);
+        const verify=await ref.get();
+        if(!verify.exists)throw new Error('O Firebase não confirmou a criação do projeto.');
+        p.firestoreId=ref.id;
+        arr('projetos').push(p);
+        audit('Criar projeto',`${id} - ${p.Nome}`);
+      }
+      // Mantém o usuário na área de Projetos, sem qualquer navegação para o painel.
+      $('view-dashboard')?.classList.add('hidden');
+      $('view-projetos')?.classList.remove('hidden');
+      $('modalNovoProjeto')?.classList.add('hidden');
+      form?.reset(); if($('projId'))$('projId').value='';
+      const h=document.querySelector('#modalNovoProjeto h3');if(h)h.textContent='Novo Projeto / Obra';
+      window.renderProjetos?.();window.preencherProjetosBaixa?.({preserveValue:true});
+      alert(idAtual?'Projeto atualizado com sucesso.':'Projeto criado e confirmado no Firebase.');
+      return false;
+    }catch(err){
+      console.error('Projeto 3.7.3:',err);
+      alert('Não foi possível salvar o projeto.\n\n'+(err?.message||err));
+      return false;
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=btn.dataset.oldText||'Salvar projeto';}
+    }
+  }
+  window.salvarProjeto=salvarProjetoFinal;
+
+  function bindForms(){
+    const projectForm=$('formNovoProjeto');
+    if(projectForm && projectForm.dataset.decorart373!=='1'){
+      projectForm.dataset.decorart373='1';
+      projectForm.removeAttribute('onsubmit');
+      projectForm.addEventListener('submit',salvarProjetoFinal,{capture:false});
+    }
+    const baixaForm=$('formBaixa');
+    if(baixaForm && baixaForm.dataset.decorart373!=='1'){
+      baixaForm.dataset.decorart373='1';
+      baixaForm.removeAttribute('onsubmit');
+      baixaForm.addEventListener('submit',function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        if(typeof window.salvarBaixa==='function') window.salvarBaixa(ev);
+      });
+    }
+    document.querySelectorAll('[onclick="openModal(\'modalNovaBaixa\')"]').forEach(b=>{
+      b.setAttribute('onclick','abrirNovaBaixaSegura()');
+    });
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindForms,{once:true});
+  else bindForms();
+  window.addEventListener('load',()=>setTimeout(bindForms,50));
+
+  // Atualização baseada no estado atual, sem polling da select.
+  window.__decorart373Ready=true;
+  console.info('Decorart ERP 3.7.3: baixa e projetos estabilizados sem alterar dados do Firebase.');
 })();
 </script>
 </body></html>
@@ -5253,5 +5815,242 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     window.__decorartNavigateV37=true;
     window.navigate=function(){const r=oldNav2.apply(this,arguments);if(arguments[0]==='materiais')setTimeout(renderFinal,30);return r;};
   }
+})();
+</script>
+
+<script>
+/* DECORART ERP 3.7.2 - estabilização da produção
+   Mantém o Firebase atual e corrige:
+   1) seleção da baixa que mudava sozinha por causa dos refreshes periódicos;
+   2) criação/edição de projetos com gravação confirmada no Firebase;
+   3) seleção de projetos também preservada durante refreshes;
+   4) baixa com identificação segura pelo firestoreId quando disponível.
+*/
+(function(){
+  'use strict';
+
+  function DBX(){ return window.DB || {}; }
+  function db(){ return window.dbStore || null; }
+  function arr(c){ const d=DBX(); if(!Array.isArray(d[c])) d[c]=[]; return d[c]; }
+  function esc(v){
+    try{
+      if(typeof window.escSafe==='function') return window.escSafe(v);
+      return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }catch(_){return String(v??'');}
+  }
+  function now(){ return new Date().toISOString(); }
+  function audit(a,d){ try{ window.registrarAuditoria?.(a,d); }catch(_){ } }
+  function project(id){ return arr('projetos').find(p=>String(p.ID)===String(id)); }
+  function getCollection(origin){ return origin==='material' ? 'materiais' : 'estoque'; }
+
+  function optionExists(select,value){
+    if(!select || value==null || value==='') return false;
+    return Array.from(select.options).some(o=>String(o.value)===String(value));
+  }
+
+  // Rebuild da lista de itens sem perder a seleção atual.
+  window.montarBaixaAtual=function(opts={}){
+    const s=document.getElementById('baixaItemSelect');
+    if(!s)return;
+    const prev=opts.preserveValue!==false ? String(s.value||'') : '';
+    const currentOriginId = prev.split('|');
+    const op=[];
+    arr('estoque').filter(i=>Number(i.Quantidade||0)>0).forEach(i=>{
+      const fs=String(i.firestoreId||'');
+      const val=`estoque|${fs}|${i.ID}`;
+      op.push(`<option value="${esc(val)}">[${esc(i.ID||'')}] ${esc(i.Tipo||'Item')} ${esc(i.Cor||'')} ${i.Espessura?`(${esc(i.Espessura)} mm)`:''} — Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`);
+    });
+    arr('materiais').filter(i=>i.Status!=='Inativo' && Number(i.Quantidade||0)>0).forEach(i=>{
+      const fs=String(i.firestoreId||'');
+      const val=`material|${fs}|${i.ID}`;
+      op.push(`<option value="${esc(val)}">[${esc(i.ID||'')}] ${esc(i.Categoria||'Material')} — ${esc(i.Descricao||'')} — Saldo: ${Number(i.Quantidade||0).toLocaleString('pt-BR')} ${esc(i.Unidade||'un')}</option>`);
+    });
+    s.innerHTML=op.join('') || '<option value="">Nenhum item com saldo disponível</option>';
+    if(optionExists(s,prev)){
+      s.value=prev;
+    }else if(prev){
+      // Se o item deixou de existir/saldo zerou, não troca silenciosamente por outro.
+      s.value='';
+      if(s.options.length===1 && s.options[0].value==='') return;
+    }
+  };
+  window.montarOpcoesBaixa=window.montarBaixaAtual;
+  window.preencherSelectBaixaSeguro=window.montarBaixaAtual;
+
+  // Rebuild de projetos preservando o projeto que o usuário já escolheu.
+  window.preencherProjetosBaixa=function(opts={}){
+    const s=document.getElementById('baixaProjetoSelect');if(!s)return;
+    const prev=opts.preserveValue!==false ? String(s.value||'') : '';
+    const ps=arr('projetos').filter(p=>!['Entregue','Cancelado'].includes(p.Status));
+    const ordem={'Em produção':0,'Aguardando material':1,'Planejamento':2,'Pronto':3};
+    ps.sort((a,b)=>(ordem[a.Status]??5)-(ordem[b.Status]??5)||String(a.Nome||'').localeCompare(String(b.Nome||''),'pt-BR'));
+    s.innerHTML='<option value="">Selecione o projeto / obra</option>'+ps.map(p=>`<option value="${esc(p.ID)}">${esc(p.ID)} — ${esc(p.Nome)} / ${esc(p.Cliente||'-')} [${esc(p.Status||'-')}]</option>`).join('');
+    if(optionExists(s,prev)) s.value=prev;
+    else if(!prev){
+      const preferido=ps.find(p=>p.Status==='Em produção')||ps.find(p=>p.Status==='Aguardando material')||ps.find(p=>p.Status==='Planejamento');
+      if(preferido) s.value=preferido.ID;
+    }else s.value='';
+    const p=project(s.value);
+    const d=document.getElementById('baixaDestino');
+    const r=document.getElementById('baixaResponsavel');
+    if(d){d.value=p?`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`:'';d.readOnly=true;}
+    if(r){
+      const n=(window.currentUser?.nome||window.usuarioAtual?.()?.nome||window.usuarioAtual?.()||'').toString();
+      r.value=n;r.readOnly=true;r.setAttribute('readonly','readonly');
+    }
+  };
+  window.atualizarDestinoBaixaProjeto=window.preencherProjetosBaixa;
+
+  function resolveItem(raw){
+    const parts=String(raw||'').split('|');
+    const origem=parts[0]||'';
+    const fs=parts[1]||'';
+    const id=parts.slice(2).join('|');
+    if(!origem || !id) return {origem,id,fs,item:null};
+    const a=arr(getCollection(origem));
+    let item=fs ? a.find(x=>String(x.firestoreId||'')===String(fs)) : null;
+    if(!item){
+      const matches=a.filter(x=>String(x.ID)===String(id));
+      if(matches.length===1) item=matches[0];
+    }
+    return {origem,fs,id,item};
+  }
+
+  // Nova baixa segura e estável.
+  window.abrirNovaBaixaSegura=function(){
+    const f=document.getElementById('formBaixa'); if(f)f.reset();
+    const ei=document.getElementById('editBaixaIndex'); if(ei)ei.value='-1';
+    const title=document.getElementById('modalBaixaTitle'); if(title)title.textContent='Registrar Baixa / Saída';
+    window.montarBaixaAtual({preserveValue:false});
+    window.preencherProjetosBaixa({preserveValue:false});
+    const d=document.getElementById('baixaData'); if(d)d.value=new Date().toISOString().slice(0,10);
+    try{
+      const r=document.getElementById('baixaResponsavel');
+      if(r){const n=(window.currentUser?.nome||window.usuarioAtual?.()?.nome||window.usuarioAtual?.()||'').toString();r.value=n;r.readOnly=true;r.setAttribute('readonly','readonly');}
+    }catch(_){ }
+    const opener=window.openModal||window.openM||window.openModal;
+    if(typeof opener==='function') opener('modalNovaBaixa');
+  };
+
+  window.salvarBaixa=async function(e){
+    e?.preventDefault?.();
+    const raw=document.getElementById('baixaItemSelect')?.value||'';
+    const {origem,fs,id,item}=resolveItem(raw);
+    const qtd=Number(String(document.getElementById('baixaQtd')?.value||'').replace(',','.'));
+    const data=document.getElementById('baixaData')?.value||new Date().toISOString().slice(0,10);
+    const pid=document.getElementById('baixaProjetoSelect')?.value||'';
+    const p=project(pid);
+    const resp=(document.getElementById('baixaResponsavel')?.value||window.currentUser?.nome||'').toString();
+    if(!item){alert('O item selecionado não está mais disponível. A lista foi atualizada sem trocar silenciosamente para outro item.');window.montarBaixaAtual();return;}
+    if(!p){alert('Selecione um projeto / obra válido.');return;}
+    if(!Number.isFinite(qtd)||qtd<=0){alert('Informe uma quantidade válida.');return;}
+    if(Number(item.Quantidade||0)<qtd){alert(`Estoque insuficiente. Saldo atual: ${Number(item.Quantidade||0)} ${item.Unidade||'un'}.`);window.montarBaixaAtual();return;}
+    const col=getCollection(origem), destino=`${p.ID} — ${p.Nome} / ${p.Cliente||'-'}`;
+    try{
+      const dbx=db();
+      if(!dbx) throw new Error('Firebase não está disponível neste momento. Nenhuma alteração foi feita.');
+      if(!item.firestoreId) throw new Error('O item selecionado não possui referência segura no Firebase. Atualize a página e tente novamente.');
+      const itemRef=dbx.collection(col).doc(item.firestoreId);
+      const projRef=dbx.collection('projetos').doc(p.firestoreId||p.ID);
+      const saidaRef=dbx.collection('saidas').doc();
+      const movRef=dbx.collection('movimentacoes').doc();
+      const mats=[...(p.Materiais||[])];
+      const vi=mats.findIndex(v=>String(v.MaterialID)===String(item.ID) && String(v.Origem||origem)===String(origem) && String(v.ItemFirestoreId||'')===String(item.firestoreId));
+      if(vi<0) mats.push({MaterialID:item.ID,ItemFirestoreId:item.firestoreId,ColecaoOrigem:col,Origem:origem,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,QuantidadeNecessaria:0,QuantidadeConsumida:qtd,Unidade:item.Unidade||'un',VinculadoEm:now(),OrigemConsumo:'Baixa geral'});
+      else mats[vi]={...mats[vi],QuantidadeConsumida:Number(mats[vi].QuantidadeConsumida||0)+qtd,ItemFirestoreId:item.firestoreId,ColecaoOrigem:col,Origem:origem};
+      await dbx.runTransaction(async tx=>{
+        const snap=await tx.get(itemRef);
+        if(!snap.exists) throw new Error('Item não existe mais no Firebase.');
+        const atual=Number(snap.data().Quantidade||0);
+        if(atual<qtd) throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
+        tx.update(itemRef,{Quantidade:atual-qtd,AtualizadoEm:now()});
+        tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});
+        tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:resp,ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});
+        tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:resp,TipoOrigem:col,Data:now()});
+      });
+      item.Quantidade=Number(item.Quantidade||0)-qtd;
+      p.Materiais=mats;
+      audit('Registrar baixa',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID}`);
+      const close=window.closeModal||window.closeM;
+      if(typeof close==='function')close('modalNovaBaixa');
+      document.getElementById('formBaixa')?.reset();
+      document.getElementById('editBaixaIndex').value='-1';
+      window.montarBaixaAtual({preserveValue:false});
+      window.preencherProjetosBaixa({preserveValue:false});
+      window.renderProjetos?.(); window.renderMateriais?.(); window.renderVinculosProjeto?.(p);
+      alert('Baixa confirmada e sincronizada com o Firebase.');
+    }catch(err){
+      console.error('Baixa segura:',err);
+      alert('Baixa não realizada.\n\n'+(err?.message||err));
+    }
+  };
+
+  // Cadastro/edição de projeto com doc automático no Firestore e confirmação real da gravação.
+  function nextProjectId(){
+    const used=new Set(arr('projetos').map(p=>String(p.ID||'').toUpperCase()));
+    let n=1,id='';
+    do{id='PRJ-'+String(n).padStart(5,'0');n++;}while(used.has(id));
+    return id;
+  }
+  window.salvarProjeto=async function(e){
+    e?.preventDefault?.();
+    const base=DBX(); base.projetos=Array.isArray(base.projetos)?base.projetos:[];
+    const idAtual=(document.getElementById('projId')?.value||'').trim();
+    const dados={
+      Nome:(document.getElementById('projNome')?.value||'').trim(),
+      Cliente:(document.getElementById('projCliente')?.value||'').trim(),
+      Prazo:document.getElementById('projPrazo')?.value||'',
+      Status:document.getElementById('projStatus')?.value||'Planejamento',
+      Observacao:(document.getElementById('projObs')?.value||'').trim(),
+      AtualizadoEm:now()
+    };
+    if(!dados.Nome){alert('Informe o nome do projeto.');return;}
+    if(!dados.Cliente){alert('Informe o cliente.');return;}
+    try{
+      const dbx=db();
+      if(!dbx) throw new Error('Firebase não está disponível neste momento. Nenhuma alteração foi feita.');
+      if(idAtual){
+        const p=base.projetos.find(x=>String(x.ID)===String(idAtual));
+        if(!p)throw new Error('Projeto não encontrado na base atual.');
+        const docId=p.firestoreId||p.ID;
+        await dbx.collection('projetos').doc(docId).set(dados,{merge:true});
+        const verify=await dbx.collection('projetos').doc(docId).get();
+        if(!verify.exists)throw new Error('O Firebase não confirmou a atualização do projeto.');
+        Object.assign(p,dados);
+        audit('Editar projeto',`${p.ID} — ${p.Nome}`);
+      }else{
+        const id=nextProjectId();
+        const p={ID:id,...dados,Materiais:[],CriadoEm:now()};
+        const ref=dbx.collection('projetos').doc();
+        await ref.set(p);
+        const verify=await ref.get();
+        if(!verify.exists)throw new Error('O Firebase não confirmou a criação do projeto.');
+        p.firestoreId=ref.id;
+        const exists=base.projetos.find(x=>String(x.firestoreId||'')===String(ref.id)||String(x.ID)===String(id));
+        if(!exists)base.projetos.push(p);
+        audit('Criar projeto',`${id} — ${p.Nome}`);
+      }
+      const close=window.closeModal||window.closeM;if(typeof close==='function')close('modalNovoProjeto');
+      document.getElementById('formNovoProjeto')?.reset();document.getElementById('projId').value='';
+      const h=document.querySelector('#modalNovoProjeto h3');if(h)h.textContent='Novo Projeto / Obra';
+      window.renderProjetos?.();window.preencherProjetosBaixa?.();
+      alert(idAtual?'Projeto atualizado com sucesso.':'Projeto criado e confirmado no Firebase.');
+    }catch(err){
+      console.error('Projeto seguro:',err);
+      alert('Não foi possível salvar o projeto.\n\n'+(err?.message||err));
+    }
+  };
+
+  // Mantém a tela de projetos consistente após listeners em tempo real.
+  window.__decorart372Refresh=function(){
+    try{window.montarBaixaAtual({preserveValue:true});}catch(_){ }
+    try{window.preencherProjetosBaixa({preserveValue:true});}catch(_){ }
+    try{window.renderProjetos?.();}catch(_){ }
+  };
+
+  // A camada anterior atualizava a select da baixa a cada 6 segundos. Em vez de
+  // remover esse intervalo, tornamos a reconstrução idempotente e preservamos a seleção.
+  setTimeout(()=>{try{window.montarBaixaAtual({preserveValue:true});window.preencherProjetosBaixa({preserveValue:true});}catch(_){ }},1000);
+  console.info('Decorart ERP 3.7.2: estabilização de baixa e projetos carregada.');
 })();
 </script>
