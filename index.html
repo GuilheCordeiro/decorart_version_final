@@ -2150,9 +2150,11 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
         html += `<tr><td colspan="8" class="p-6 text-center opacity-60">Nenhum registro de baixa encontrado no período selecionado.</td></tr>`;
       } else {
         saidasFiltradas.forEach(s => {
-          const itemEstoque = DB.estoque.find(i => i.ID === s.IDItem);
-          const custoUnit = itemEstoque ? (itemEstoque.CustoUnitario || 0) : 0;
-          const custoTotal = custoUnit * s.Qtd;
+          const itemEstoque = DB.estoque.find(i => String(i.ID) === String(s.IDItem) && (!s.ItemFirestoreId || String(i.firestoreId||'') === String(s.ItemFirestoreId)));
+          const itemMaterial = DB.materiais.find(i => String(i.ID) === String(s.IDItem) && (!s.ItemFirestoreId || String(i.firestoreId||'') === String(s.ItemFirestoreId)));
+          const itemAtual = itemEstoque || itemMaterial || DB.estoque.find(i => String(i.ID) === String(s.IDItem)) || DB.materiais.find(i => String(i.ID) === String(s.IDItem));
+          const custoUnit = Number(s.CustoUnitario ?? itemAtual?.CustoUnitario ?? itemAtual?.Custo ?? itemAtual?.PrecoUnitario ?? 0) || 0;
+          const custoTotal = Number(s.CustoTotal ?? (custoUnit * Number(s.Qtd||0))).toFixed(2) * 1;
           somaQtdTotal += s.Qtd;
           somaValorTotal += custoTotal;
 
@@ -2160,7 +2162,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
             <tr>
               <td class="p-2 border border-[var(--border-color)]">${s.Data}</td>
               <td class="p-2 border border-[var(--border-color)] font-mono">${s.IDItem || '-'}</td>
-              <td class="p-2 border border-[var(--border-color)] font-bold">${s.Tipo}</td>
+              <td class="p-2 border border-[var(--border-color)] font-bold">${s.Descricao || s.Cor || s.Tipo || '-'}</td>
               <td class="p-2 border border-[var(--border-color)] text-center font-bold text-amber-500">${s.Qtd}</td>
               <td class="p-2 border border-[var(--border-color)]">R$ ${custoUnit.toFixed(2)}</td>
               <td class="p-2 border border-[var(--border-color)] font-bold text-emerald-500">R$ ${custoTotal.toFixed(2)}</td>
@@ -4132,11 +4134,15 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
         await db().runTransaction(async tx=>{
           const s=await tx.get(itemRef);if(!s.exists)throw new Error('Item não existe mais no Firebase.');const atual=Number(s.data().Quantidade||0);if(atual<qtd)throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
           tx.update(itemRef,{Quantidade:atual-qtd,AtualizadoEm:now()});tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});
-          tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});
+          const custoUnitario=Number(item.CustoUnitario??item.Custo??item.PrecoUnitario??0)||0;
+          const custoTotal=Number((custoUnitario*qtd).toFixed(2));
+          tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,Cor:item.Cor||'',Qtd:qtd,Unidade:item.Unidade||'un',CustoUnitario:custoUnitario,CustoTotal:custoTotal,Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});
           tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:userName(),TipoOrigem:col,Data:now()});
         });
         item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;
-      }else{item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;arr('saidas').unshift({IDItem:item.ID,ItemFirestoreId:item.firestoreId||fs,Tipo:item.Tipo||item.Categoria||col,Qtd:qtd,Unidade:item.Unidade||'un',Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});}
+      }else{item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;const custoUnitarioLocal=Number(item.CustoUnitario??item.Custo??item.PrecoUnitario??0)||0;
+        const custoTotalLocal=Number((custoUnitarioLocal*qtd).toFixed(2));
+        arr('saidas').unshift({IDItem:item.ID,ItemFirestoreId:item.firestoreId||fs,Tipo:item.Tipo||item.Categoria||col,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,Cor:item.Cor||'',Qtd:qtd,Unidade:item.Unidade||'un',CustoUnitario:custoUnitarioLocal,CustoTotal:custoTotalLocal,Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});}
       audit('Registrar baixa',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID}`);closeM('modalNovaBaixa');document.getElementById('formBaixa')?.reset();if(window.montarBaixaAtual)window.montarBaixaAtual();if(window.preencherProjetosBaixa)window.preencherProjetosBaixa();if(window.renderProjetos)window.renderProjetos();if(window.renderVinculosProjeto)window.renderVinculosProjeto(p);if(window.renderMateriais)window.renderMateriais();alert('Baixa confirmada e vinculada ao projeto.');
     }catch(err){console.error(err);alert('Baixa não realizada: '+err.message);}
   };
