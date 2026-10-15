@@ -5669,9 +5669,6 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   }
 })();
 </script>
-</body></html>
-
-
 <!-- DECORART ERP 3.7.7: impedir reconstrução da lista durante a seleção da baixa -->
 <script id="decorart-3-7-7-baixa-select-lock">
 (function(){
@@ -5711,3 +5708,103 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
   console.info('Decorart ERP 3.7.7: seleção da baixa protegida contra atualização automática.');
 })();
 </script>
+
+
+<script id="decorart-3-7-8-material-label-100x50">
+(function(){
+  'use strict';
+  const byId = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const findMaterial = id => {
+    const list = Array.isArray(window.DB?.materiais) ? window.DB.materiais : [];
+    return list.find(item => String(item?.ID ?? '') === String(id ?? ''));
+  };
+  window.imprimirQRMaterial = function(){
+    const modal = byId('modalQRMaterial');
+    const id = modal?.dataset?.materialId;
+    const item = findMaterial(id);
+    const printArea = byId('printAreaSection');
+    const printBox = byId('printCloneBox');
+    if(!item){ alert('Material não encontrado para impressão da etiqueta.'); return; }
+    if(!printArea || !printBox){ alert('Área de impressão não encontrada.'); return; }
+    if(!window.QRCode){ alert('A biblioteca de QR Code não está carregada.'); return; }
+
+    const oldHtml = printBox.innerHTML;
+    const oldClass = printBox.className;
+    const qty = Number(item.Quantidade ?? item.Saldo ?? 0);
+    const unit = String(item.Unidade ?? item.Un ?? 'un');
+    const category = String(item.Categoria ?? 'Material');
+    const description = String(item.Descricao ?? category);
+    const location = String(item.Localizacao ?? item.Local ?? '-');
+    const payload = typeof window.criarPayloadQR === 'function'
+      ? window.criarPayloadQR(String(item.ID), 'material')
+      : String(item.ID);
+
+    // Reutiliza exatamente a área de impressão e o modo térmico usados pelas chapas.
+    printBox.className = 'print-mode-termica';
+    printBox.innerHTML = `
+      <div class="batch-item-tag" style="width:100mm;height:50mm;max-height:50mm;box-sizing:border-box;border:none;padding:2mm 3mm;margin:0 auto;background:#fff;color:#000;font-family:Arial,sans-serif;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:2mm;border-bottom:0.25mm solid #000;padding-bottom:1mm;min-height:6mm;">
+          <div style="display:flex;flex-direction:column;min-width:0;">
+            <div style="font-size:10px;font-weight:900;letter-spacing:.35px;line-height:1.1;white-space:nowrap;">DECORART MÓVEIS</div>
+            <div style="font-size:6px;color:#333;line-height:1.1;margin-top:.5mm;">Sob Medida</div>
+          </div>
+          <div style="font-size:7px;font-weight:900;text-transform:uppercase;background:#000;color:#fff;padding:1mm 1.5mm;max-width:31mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(category)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 27mm;gap:2mm;align-items:center;flex:1;min-height:0;padding:1mm 0;">
+          <div style="display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden;">
+            <div style="font-size:6px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#555;line-height:1.2;">Código / Matrícula</div>
+            <div style="font-family:monospace;font-size:14px;font-weight:900;line-height:1.25;white-space:nowrap;">${esc(item.ID)}</div>
+            <div style="font-size:11px;font-weight:900;text-transform:uppercase;line-height:1.2;margin-top:1mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;">${esc(description)}</div>
+            <div style="font-size:8px;font-weight:700;line-height:1.3;margin-top:1.5mm;">SALDO: ${esc(qty.toLocaleString('pt-BR',{maximumFractionDigits:3}))} ${esc(unit)}</div>
+          </div>
+          <div style="width:27mm;height:27mm;display:flex;align-items:center;justify-content:center;border:.25mm solid #777;padding:.5mm;box-sizing:border-box;overflow:hidden;background:#fff;">
+            <div id="qrMaterialPrintCanvas" style="width:25mm;height:25mm;display:flex;align-items:center;justify-content:center;line-height:0;"></div>
+          </div>
+        </div>
+        <div style="border-top:.25mm solid #000;padding-top:1mm;display:flex;align-items:center;justify-content:space-between;gap:2mm;font-size:8px;line-height:1.2;min-height:4mm;">
+          <div style="min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"><strong>LOCAL:</strong> ${esc(location || '-')}</div>
+          <div style="white-space:nowrap;font-family:monospace;font-weight:900;">${esc(unit)}</div>
+        </div>
+      </div>`;
+
+    const qrTarget = byId('qrMaterialPrintCanvas');
+    try {
+      new window.QRCode(qrTarget, {
+        text: payload,
+        width: 120,
+        height: 120,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: window.QRCode.CorrectLevel?.M ?? 0
+      });
+    } catch(err) {
+      printBox.innerHTML = oldHtml;
+      printBox.className = oldClass;
+      console.error('Falha ao gerar QR para impressão:', err);
+      alert('Não foi possível gerar o QR Code desta etiqueta.');
+      return;
+    }
+
+    document.body.classList.add('printing-label');
+    const cleanup = () => {
+      document.body.classList.remove('printing-label');
+      printBox.innerHTML = oldHtml;
+      printBox.className = oldClass;
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup, { once:true });
+    try {
+      window.print();
+      setTimeout(cleanup, 1200);
+    } catch(err) {
+      cleanup();
+      console.error(err);
+      alert('Não foi possível abrir a impressão da etiqueta.');
+    }
+  };
+  console.info('Decorart ERP 3.7.8: etiqueta de materiais padronizada em 100 x 50 mm.');
+})();
+</script>
+
+</body></html>
