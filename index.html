@@ -2961,7 +2961,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     try{lucide.createIcons();}catch(e){}
   }
   window.addEventListener('load',()=>setTimeout(inicializar,800));
-  setInterval(()=>{try{ocultarLocalizacoes();montarBaixaAtual();if(document.getElementById('baixaProjetoSelect')){const old=document.getElementById('baixaProjetoSelect').value;preencherProjetosBaixa();if(old){const s=document.getElementById('baixaProjetoSelect');if([...s.options].some(o=>o.value===old)){s.value=old;atualizarDestinoProjeto();}}}anexarFiltros();}catch(e){}},7000);
+  setInterval(()=>{try{ocultarLocalizacoes();const modalBaixa=document.getElementById('modalNovaBaixa');const baixaAberta=!!modalBaixa&&!modalBaixa.classList.contains('hidden');if(!baixaAberta){montarBaixaAtual();if(document.getElementById('baixaProjetoSelect')){const old=document.getElementById('baixaProjetoSelect').value;preencherProjetosBaixa();if(old){const s=document.getElementById('baixaProjetoSelect');if([...s.options].some(o=>o.value===old)){s.value=old;atualizarDestinoProjeto();}}}}anexarFiltros();}catch(e){}},7000);
 })();
 </script>
 
@@ -3306,7 +3306,7 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     try{bindMaterialRefs26().then(()=>{window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();if(window.renderProjetos)window.renderProjetos();}).catch(console.warn);}catch(e){console.warn(e);}
   }
   window.addEventListener('load',()=>setTimeout(init26,1200));
-  setInterval(()=>{try{window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();}catch(e){}},6000);
+  setInterval(()=>{try{const modalBaixa=document.getElementById('modalNovaBaixa');if(!modalBaixa||modalBaixa.classList.contains('hidden'))window.montarBaixaAtual();if(window.renderIntegridadeIDs)window.renderIntegridadeIDs();}catch(e){}},6000);
 })();
 </script>
 
@@ -5670,3 +5670,44 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 })();
 </script>
 </body></html>
+
+
+<!-- DECORART ERP 3.7.7: impedir reconstrução da lista durante a seleção da baixa -->
+<script id="decorart-3-7-7-baixa-select-lock">
+(function(){
+  'use strict';
+  const get=id=>document.getElementById(id);
+  const isOpen=()=>{const m=get('modalNovaBaixa');return !!m&&!m.classList.contains('hidden');};
+  // Congela a lista enquanto o modal estiver aberto. As rotinas de sincronização
+  // continuam atualizando DB, mas não substituem as <option> sob o cursor do usuário.
+  const original=window.montarBaixaAtual;
+  if(typeof original==='function'&&!original.__decorart377){
+    const guarded=function(opts={}){
+      if(isOpen()&&!opts?.force)return;
+      return original.apply(this,arguments);
+    };
+    guarded.__decorart377=true;
+    window.montarBaixaAtual=guarded;
+    window.montarOpcoesBaixa=guarded;
+    window.preencherSelectBaixaSeguro=guarded;
+  }
+  // Popula a lista antes de abrir o modal e evita handlers antigos de abertura.
+  const bindButtons=()=>{
+    document.querySelectorAll('[onclick="openModal(\'modalNovaBaixa\')"]').forEach(b=>b.setAttribute('onclick','abrirNovaBaixaSegura()'));
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindButtons,{once:true});else bindButtons();
+  window.addEventListener('load',()=>setTimeout(bindButtons,80));
+  // Atualizar a lista logo após o fechamento, sem interromper a seleção em andamento.
+  const modal=get('modalNovaBaixa');
+  if(modal&&typeof MutationObserver!=='undefined'){
+    let wasOpen=isOpen();
+    const observer=new MutationObserver(()=>{
+      const nowOpen=isOpen();
+      if(wasOpen&&!nowOpen){setTimeout(()=>{try{window.montarBaixaAtual?.({force:true});}catch(e){console.warn('Atualização da lista de baixa:',e);}},100);}
+      wasOpen=nowOpen;
+    });
+    observer.observe(modal,{attributes:true,attributeFilter:['class']});
+  }
+  console.info('Decorart ERP 3.7.7: seleção da baixa protegida contra atualização automática.');
+})();
+</script>
