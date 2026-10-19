@@ -669,11 +669,11 @@ Zerar Estoque (Master)
 <h3 class="text-base font-bold flex items-center gap-2"><i class="text-amber-500 w-5 h-5" data-lucide="layer-group"></i> Cadastro de Entrada em Lote (Chapas e Retalhos)</h3>
 <button class="opacity-70 hover:opacity-100" onclick="closeModal('modalEntradaLote')"><i class="w-5 h-5" data-lucide="x"></i></button>
 </div>
-<p class="text-xs opacity-70 mb-3">Para Chapas Inteiras a Nota Fiscal (NF) é obrigatória. Para Retalhos, informe a Sobra do Projeto e o custo será calculado de forma proporcional à área.</p>
+<p class="text-xs opacity-70 mb-3">Para Chapas Inteiras, informe o custo da chapa e a Nota Fiscal. Para Retalhos, informe a Sobra do Projeto e o preço da chapa de referência; o custo será calculado proporcionalmente à área de 2.750 × 1.850 mm (5.087.500 mm²), sem procurar outra chapa por cor.</p>
 <div class="flex-1 overflow-y-auto space-y-3 mb-4">
 <table class="w-full text-left text-xs">
 <thead class="opacity-70 border-b border-[var(--border-color)]">
-<tr><th class="p-2">Tipo</th><th class="p-2">Cor / Padrão</th><th class="p-2">Esp.(mm)</th><th class="p-2">Comp.(mm)</th><th class="p-2">Larg.(mm)</th><th class="p-2">Qtd</th><th class="p-2">NF / Projeto</th><th class="p-2">Custo Unit.(R$)</th><th class="p-2">Ação</th></tr>
+<tr><th class="p-2">Tipo</th><th class="p-2">Cor / Padrão</th><th class="p-2">Esp.(mm)</th><th class="p-2">Comp.(mm)</th><th class="p-2">Larg.(mm)</th><th class="p-2">Qtd</th><th class="p-2">NF / Projeto</th><th class="p-2">Custo / Preço ref. (R$)</th><th class="p-2">Ação</th></tr>
 </thead>
 <tbody id="tabelaEntradaLoteCorpo"></tbody>
 </table>
@@ -932,12 +932,16 @@ Zerar Estoque (Master)
 <input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2" id="retQtd" min="1" required="" type="number" value="1"/>
 </div>
 <div>
-<label class="block mb-1">Custo Unit. (R$)</label>
-<input class="w-full bg-[var(--bg-card)] border border-amber-600/40 rounded-lg p-2 font-bold text-amber-500" id="retCusto" placeholder="0.00" required="" type="number" step="0.01"/>
+<label class="block mb-1">Preço da chapa de referência (R$)</label>
+<input class="w-full bg-[var(--bg-card)] border border-amber-600/40 rounded-lg p-2" id="retPrecoReferencia" oninput="atualizarReferenciaChapaRetalho()" min="0.01" placeholder="Ex.: 250,00" type="number" step="0.01"/>
 </div>
+</div>
+<div>
+<label class="block mb-1">Custo calculado do retalho (R$)</label>
+<input class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-2 font-bold text-amber-500" id="retCusto" placeholder="0.00" type="number" step="0.01" readonly aria-readonly="true"/>
 </div>
 <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg text-[11px] text-amber-300" id="retRefInfo">
-Aguardando dados de cor e espessura para buscar chapa inteira de referência...
+Informe o preço da chapa de referência. O custo será proporcional à área do retalho em relação a 2.750 × 1.850 mm (5.087.500 mm²).
 </div>
 <div class="flex justify-end gap-2 pt-3">
 <button class="px-4 py-2 bg-[var(--bg-card)] rounded-lg" onclick="closeModal('modalNovoRetalho')" type="button">Cancelar</button>
@@ -1497,8 +1501,9 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       document.getElementById('editRetalhoIndex').value = "-1";
       document.getElementById('formRetalho').reset();
       document.getElementById('retEspessura').value = "15";
+      document.getElementById('retPrecoReferencia').value = "";
       document.getElementById('retCusto').value = "";
-      document.getElementById('retRefInfo').innerHTML = "Aguardando dados de cor e espessura para buscar chapa inteira de referência...";
+      document.getElementById('retRefInfo').innerHTML = "Informe o preço da chapa de referência. O custo será calculado pela área do retalho em relação à chapa padrão de 2.750 × 1.850 mm (5.087.500 mm²).";
       openModal('modalNovoRetalho');
     }
 
@@ -1513,7 +1518,8 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       document.getElementById('retLargura').value = item.Largura;
       document.getElementById('retObservacao').value = item.Observacao || '';
       document.getElementById('retQtd').value = item.Quantidade;
-      document.getElementById('retCusto').value = item.CustoUnitario?.toFixed(2) || '0.00';
+      document.getElementById('retPrecoReferencia').value = item.PrecoReferenciaChapa != null && Number(item.PrecoReferenciaChapa) > 0 ? Number(item.PrecoReferenciaChapa).toFixed(2) : '';
+      document.getElementById('retCusto').value = item.CustoUnitario != null ? Number(item.CustoUnitario).toFixed(2) : '0.00';
       atualizarReferenciaChapaRetalho();
       openModal('modalNovoRetalho');
     }
@@ -1545,38 +1551,26 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
       }
     }
 
-    // Função em tempo real para verificar a chapa de referência e calcular o custo proporcional
+    // Calcula o custo do retalho proporcionalmente à chapa-padrão fixa de 2.750 × 1.850 mm.
+    // Não procura itens no estoque e não depende da forma como a cor foi digitada.
     function atualizarReferenciaChapaRetalho() {
-      const cor = (document.getElementById('retCor').value || '').trim().toUpperCase();
-      const esp = parseInt(document.getElementById('retEspessura').value, 10) || 0;
-      const comp = parseInt(document.getElementById('retComprimento').value, 10) || 0;
-      const larg = parseInt(document.getElementById('retLargura').value, 10) || 0;
+      const comp = Number(document.getElementById('retComprimento')?.value || 0);
+      const larg = Number(document.getElementById('retLargura')?.value || 0);
+      const preco = Number(document.getElementById('retPrecoReferencia')?.value || 0);
       const inputCusto = document.getElementById('retCusto');
       const infoRef = document.getElementById('retRefInfo');
+      const areaReferenciaMM2 = 2750 * 1850;
+      const areaRetalhoMM2 = comp * larg;
+      const editIdx = Number(document.getElementById('editRetalhoIndex')?.value ?? -1);
 
-      if (!cor || !esp) {
-        if (infoRef) infoRef.innerHTML = "Preencha a <strong>Cor</strong> e a <strong>Espessura</strong> para buscar a chapa inteira de referência.";
-        return;
-      }
-
-      // Procurar chapa inteira correspondente (insensível a maiúsculas, cor exata e espessura)
-      const chapaBase = DB.estoque.find(i => i.Tipo === "Chapa Inteira" && i.Cor.trim().toUpperCase() === cor && Number(i.Espessura) === esp);
-
-      if (chapaBase) {
-        const areaChapa = (Number(chapaBase.Comprimento) * Number(chapaBase.Largura)) / 1000000;
-        if (areaChapa > 0 && Number(chapaBase.CustoUnitario) > 0) {
-          const custoM2 = Number(chapaBase.CustoUnitario) / areaChapa;
-          const areaRet = (comp * larg) / 1000000;
-          const custoProp = custoM2 * areaRet;
-          if (inputCusto && document.activeElement !== inputCusto) {
-            inputCusto.value = custoProp.toFixed(2);
-          }
-          if (infoRef) infoRef.innerHTML = `✅ <strong>Referência Encontrada:</strong> [${chapaBase.ID}] ${chapaBase.Cor} (${chapaBase.Comprimento}×${chapaBase.Largura}mm) — Custo Chapa: R$ ${chapaBase.CustoUnitario.toFixed(2)} (Proporcional sugerido: R$ ${custoProp.toFixed(2)})`;
-        } else {
-          if (infoRef) infoRef.innerHTML = `⚠️ Chapa <strong>[${chapaBase.ID}]</strong> encontrada, mas o custo da chapa inteira está zerado. Informe o custo manualmente.`;
-        }
+      if (preco > 0 && comp > 0 && larg > 0 && Number.isFinite(preco) && Number.isFinite(areaRetalhoMM2)) {
+        const custo = Math.round((preco * areaRetalhoMM2 / areaReferenciaMM2 + Number.EPSILON) * 100) / 100;
+        if (inputCusto) inputCusto.value = custo.toFixed(2);
+        if (infoRef) infoRef.textContent = `Cálculo: R$ ${preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} × ${areaRetalhoMM2.toLocaleString('pt-BR')} mm² ÷ ${areaReferenciaMM2.toLocaleString('pt-BR')} mm² = R$ ${custo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}.`;
       } else {
-        if (infoRef) infoRef.innerHTML = `❌ Nenhuma Chapa Inteira encontrada com a cor <strong>"${cor}"</strong> e espessura <strong>${esp}mm</strong>. Cadastre a chapa inteira primeiro ou informe o custo manualmente.`;
+        // Em registros antigos sem preço de referência, preserve o custo já salvo enquanto estiverem sendo editados.
+        if (editIdx < 0 && inputCusto) inputCusto.value = '';
+        if (infoRef) infoRef.textContent = 'Informe o preço da chapa de referência e as dimensões do retalho. Base fixa: 2.750 × 1.850 mm = 5.087.500 mm². O sistema não busca outra chapa pela cor.';
       }
     }
 
@@ -1684,10 +1678,13 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
     function alternarCamposLote(select) {
       const row = select.closest('tr');
       const input = row.querySelector('.lote-nf-proj');
+      const custo = row.querySelector('.lote-custo');
       if (select.value === 'Retalho') {
         input.placeholder = "Sobra do Projeto / Cliente";
+        if (custo) custo.placeholder = "Preço chapa ref.";
       } else {
         input.placeholder = "Nota Fiscal Obrigatória";
+        if (custo) custo.placeholder = "Custo unit.";
       }
     }
 
@@ -1703,20 +1700,21 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
         const larg = parseInt(tr.querySelector('.lote-larg').value, 10);
         const qtd = parseInt(tr.querySelector('.lote-qtd').value, 10);
         const nfProj = tr.querySelector('.lote-nf-proj').value.trim().toUpperCase();
-        let custo = parseFloat(tr.querySelector('.lote-custo').value) || 0;
+        const precoInformado = parseFloat(tr.querySelector('.lote-custo').value) || 0;
+        let custo = precoInformado;
 
         if (!cor || !nfProj) { alert("Preencha todos os campos obrigatórios na tabela."); return; }
+        if (![esp, comp, larg, qtd].every(Number.isFinite) || esp <= 0 || comp <= 0 || larg <= 0 || qtd < 1) {
+          alert("Informe espessura, dimensões e quantidade válidas para cada linha."); return;
+        }
         if (tipo === 'Chapa Inteira' && (!nfProj || nfProj === '-')) { alert("Nota Fiscal é obrigatória para Chapas Inteiras."); return; }
-
-        if (tipo === 'Retalho' && custo === 0) {
-          const chapaBase = DB.estoque.find(i => i.Tipo === "Chapa Inteira" && i.Cor.trim().toUpperCase() === cor && Number(i.Espessura) === esp);
-          if (chapaBase && Number(chapaBase.CustoUnitario) > 0) {
-            const areaChapa = (Number(chapaBase.Comprimento) * Number(chapaBase.Largura)) / 1000000;
-            if (areaChapa > 0) {
-              const custoM2 = Number(chapaBase.CustoUnitario) / areaChapa;
-              custo = custoM2 * ((comp * larg) / 1000000);
-            }
+        if (tipo === 'Retalho') {
+          if (!Number.isFinite(precoInformado) || precoInformado <= 0) {
+            alert("Para cada retalho, informe o preço da chapa de referência no campo Custo / Preço ref. (R$)."); return;
           }
+          const areaReferenciaMM2 = 2750 * 1850;
+          const areaRetalhoMM2 = comp * larg;
+          custo = Math.round((precoInformado * areaRetalhoMM2 / areaReferenciaMM2 + Number.EPSILON) * 100) / 100;
         }
 
         const nextId = gerarProximoId(tipo);
@@ -1730,7 +1728,8 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
           Quantidade: qtd,
           CustoUnitario: parseFloat(custo.toFixed(2)),
           NF: tipo === 'Chapa Inteira' ? nfProj : '-',
-          Observacao: tipo === 'Retalho' ? nfProj : 'Entrada em Lote'
+          Observacao: tipo === 'Retalho' ? nfProj : 'Entrada em Lote',
+          ...(tipo === 'Retalho' ? { PrecoReferenciaChapa: precoInformado, AreaReferenciaMM2: 2750 * 1850, AreaRetalhoMM2: comp * larg } : {})
         };
 
         // Adiciona temporariamente ao array local para que a próxima linha do lote calcule o ID correto
@@ -4499,52 +4498,93 @@ Aguardando dados de cor e espessura para buscar chapa inteira de referência...
 
     try {
       const editIdx = Number(document.getElementById('editRetalhoIndex')?.value ?? -1);
-      if (editIdx >= 0 && typeof previousRetalho === 'function') {
-        await previousRetalho(ev);
-        return;
-      }
-
       const cor = (document.getElementById('retCor')?.value || '').trim().toUpperCase();
       const esp = Number(document.getElementById('retEspessura')?.value || 0);
       const comp = Number(document.getElementById('retComprimento')?.value || 0);
       const larg = Number(document.getElementById('retLargura')?.value || 0);
       const obs = (document.getElementById('retObservacao')?.value || '').trim();
       const qtd = Number(document.getElementById('retQtd')?.value || 0);
-      const custo = Number(document.getElementById('retCusto')?.value || 0);
+      const precoRefRaw = (document.getElementById('retPrecoReferencia')?.value || '').trim();
+      const precoRef = precoRefRaw === '' ? null : Number(precoRefRaw);
+      const itensEstoque = list('estoque');
+      const itemExistente = editIdx >= 0 ? itensEstoque[editIdx] : null;
 
-      if (!cor || esp <= 0 || comp <= 0 || larg <= 0 || qtd < 1 || !obs) {
-        alert('Preencha todos os campos obrigatórios do retalho.');
+      if (!cor || !Number.isFinite(esp) || esp <= 0 || !Number.isFinite(comp) || comp <= 0 || !Number.isFinite(larg) || larg <= 0 || !Number.isFinite(qtd) || qtd < 1 || !obs) {
+        alert('Preencha cor, espessura, dimensões, quantidade e sobra do projeto corretamente.');
+        return;
+      }
+      if (editIdx >= 0 && !itemExistente) {
+        alert('O retalho selecionado não foi encontrado. Nenhuma alteração foi gravada.');
+        return;
+      }
+      if (precoRef !== null && (!Number.isFinite(precoRef) || precoRef <= 0)) {
+        alert('O preço da chapa de referência deve ser maior que zero.');
+        return;
+      }
+      if (editIdx < 0 && (precoRef === null || precoRef <= 0)) {
+        alert('Informe o preço da chapa de referência para calcular o custo do novo retalho.');
         return;
       }
 
-      const id = await proximoIdDireto('RET', 'estoque');
-      const novo = {
-        ID: id,
-        Tipo: 'Retalho',
-        Cor: cor,
-        Espessura: esp,
-        Comprimento: comp,
-        Largura: larg,
-        Quantidade: qtd,
-        CustoUnitario: custo,
-        Observacao: obs,
-        NF: '-',
-        CriadoEm: now(),
-        CriadoPor: currentName()
-      };
+      const areaReferenciaMM2 = 2750 * 1850;
+      const areaRetalhoMM2 = comp * larg;
+      let custo;
+      if (precoRef !== null) {
+        custo = Math.round((precoRef * areaRetalhoMM2 / areaReferenciaMM2 + Number.EPSILON) * 100) / 100;
+      } else {
+        // Cadastros antigos sem preço de referência mantêm o custo salvo até que o usuário informe uma referência.
+        custo = Number(itemExistente?.CustoUnitario || 0);
+      }
 
-      await gravarNovoDocumento('estoque', novo);
-      list('estoque').push(novo);
-      audit('Cadastrar Retalho', `${id} - ${cor} - ${qtd} un`);
+      const agora = now();
+      if (editIdx >= 0) {
+        const dados = {
+          Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg,
+          Quantidade: qtd, Observacao: obs, CustoUnitario: custo, AtualizadoEm: agora
+        };
+        if (precoRef !== null) {
+          dados.PrecoReferenciaChapa = precoRef;
+          dados.AreaReferenciaMM2 = areaReferenciaMM2;
+          dados.AreaRetalhoMM2 = areaRetalhoMM2;
+        }
+
+        const firebase = db();
+        if (!firebase) throw new Error('Firebase não está conectado. A edição não foi gravada.');
+        let firestoreId = itemExistente.firestoreId;
+        if (!firestoreId) {
+          const snap = await firebase.collection('estoque').where('ID', '==', itemExistente.ID).get();
+          if (snap.size !== 1) throw new Error('Não foi possível identificar um único documento Firebase para este retalho. Nenhuma alteração foi aplicada.');
+          firestoreId = snap.docs[0].id;
+          itemExistente.firestoreId = firestoreId;
+        }
+        await firebase.collection('estoque').doc(firestoreId).update(dados);
+        Object.assign(itemExistente, dados);
+        audit('Editar Retalho', `${itemExistente.ID} - ${cor} - custo ${custo.toFixed(2)}${precoRef !== null ? ` - referência ${precoRef.toFixed(2)}` : ' - custo antigo preservado'}`);
+      } else {
+        const id = await proximoIdDireto('RET', 'estoque');
+        const novo = {
+          ID: id, Tipo: 'Retalho', Cor: cor, Espessura: esp, Comprimento: comp, Largura: larg,
+          Quantidade: qtd, CustoUnitario: custo, PrecoReferenciaChapa: precoRef,
+          AreaReferenciaMM2: areaReferenciaMM2, AreaRetalhoMM2: areaRetalhoMM2,
+          Observacao: obs, NF: '-', CriadoEm: agora, CriadoPor: currentName()
+        };
+        await gravarNovoDocumento('estoque', novo);
+        itensEstoque.push(novo);
+        audit('Cadastrar Retalho', `${id} - ${cor} - ${qtd} un - chapa ref. ${precoRef.toFixed(2)} - custo retalho ${custo.toFixed(2)}`);
+      }
+
       closeModal('modalNovoRetalho');
       form?.reset();
       const idx = document.getElementById('editRetalhoIndex'); if (idx) idx.value = '-1';
       const titulo = document.getElementById('modalRetalhoTitle'); if (titulo) titulo.textContent = 'Cadastrar Retalho / Sobra';
+      const custoCampo = document.getElementById('retCusto'); if (custoCampo) custoCampo.value = '';
+      const info = document.getElementById('retRefInfo');
+      if (info) info.textContent = 'Informe o preço da chapa de referência. O custo será calculado pela área do retalho em relação a 2.750 × 1.850 mm (5.087.500 mm²).';
       refresh();
-      alert(`Retalho cadastrado com sucesso.\n\nCódigo: ${id}`);
+      alert(editIdx >= 0 ? 'Retalho atualizado com sucesso.' : `Retalho cadastrado com sucesso.\n\nCódigo: ${itensEstoque[itensEstoque.length - 1]?.ID || 'RET'}\nCusto unitário calculado: R$ ${custo.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`);
     } catch (err) {
-      console.error('Cadastro direto de retalho:', err);
-      alert('O retalho NÃO foi cadastrado.\n\nMotivo: ' + (err?.message || err));
+      console.error('Cadastro/edição de retalho:', err);
+      alert('O retalho NÃO foi salvo.\n\nMotivo: ' + (err?.message || err));
     } finally {
       liberaDuplo(form);
     }
