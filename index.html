@@ -5218,70 +5218,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
     const qr=box.innerHTML;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>QR ${esc(m.ID)}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px;color:#111}.qr{display:flex;justify-content:center;margin:18px 0}.id{font-size:20px;font-weight:700}.desc{font-size:16px;font-weight:700}.info{font-size:12px;color:#555;margin-top:8px}@media print{@page{margin:8mm}}</style></head><body><div class="desc">${esc(m.Descricao||m.Categoria||'Material')}</div><div class="id">${esc(m.ID)}</div><div class="qr">${qr}</div><div class="info">${esc(m.Categoria||'')} | ${esc(m.Unidade||'')} | Local: ${esc(m.Localizacao||'-')}</div><script>window.onload=()=>{setTimeout(()=>window.print(),150)}<\/script>
 
-<!-- DECORART ERP 3.7.10: pesquisa de itens na Nova Baixa -->
-<script id="decorart-3-7-10-busca-baixa">
-(function(){
-  'use strict';
-  const $=id=>document.getElementById(id);
-  const modal=$('modalNovaBaixa'), select=$('baixaItemSelect'), search=$('baixaItemBusca'), status=$('baixaBuscaResultado');
-  if(!modal||!select||!search)return;
-  let baseOptions=[];
-  let snapshotKey='';
-  const isOpen=()=>!modal.classList.contains('hidden');
-  const capture=()=>{
-    baseOptions=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));
-    snapshotKey=baseOptions.map(o=>o.value+'\u001f'+o.text).join('\u001e');
-    filterOptions(false);
-  };
-  function filterOptions(fromTyping=true){
-    if(!baseOptions.length)captureBaseIfNeeded();
-    const term=String(search.value||'').trim().toLocaleLowerCase('pt-BR');
-    const selectedBefore=String(select.value||'');
-    const filtered=baseOptions.filter(o=>!term||o.text.toLocaleLowerCase('pt-BR').includes(term));
-    const selectedStillVisible=filtered.some(o=>o.value===selectedBefore);
-    const blank={value:'',text:term?'Selecione um item filtrado':'Selecione um item',disabled:false};
-    const rows=[blank,...filtered];
-    select.innerHTML='';
-    rows.forEach(o=>{const opt=document.createElement('option');opt.value=o.value;opt.textContent=o.text;opt.disabled=!!o.disabled;select.appendChild(opt);});
-    if(selectedBefore && selectedStillVisible)select.value=selectedBefore;
-    else select.value='';
-    if(status){
-      const count=filtered.filter(o=>o.value).length;
-      status.textContent=term?`${count} item(ns) encontrado(s). Selecione o item correto na lista.`:`${count} item(ns) disponível(is). Digite para filtrar por ID, descrição, cor ou categoria.`;
-    }
-    if(fromTyping && selectedBefore && !selectedStillVisible) select.dispatchEvent(new Event('change',{bubbles:true}));
-  }
-  function captureBaseIfNeeded(){
-    const current=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));
-    const key=current.map(o=>o.value+'\u001f'+o.text).join('\u001e');
-    if(!baseOptions.length || (key!==snapshotKey && !isOpen())){
-      baseOptions=current;snapshotKey=key;
-    }
-  }
-  search.addEventListener('input',()=>filterOptions(true));
-  search.addEventListener('keydown',e=>{if(e.key==='Escape'){search.value='';filterOptions(false);}});
-  // Capture the complete inventory list when Nova Baixa opens, after its initializer populated it.
-  if(typeof MutationObserver!=='undefined'){
-    let wasOpen=isOpen();
-    new MutationObserver(()=>{
-      const now=isOpen();
-      if(now&&!wasOpen){
-        setTimeout(()=>{baseOptions=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));snapshotKey=baseOptions.map(o=>o.value+'\u001f'+o.text).join('\u001e');search.value='';filterOptions(false);},0);
-      }
-      if(!now&&wasOpen){search.value='';baseOptions=[];snapshotKey='';}
-      wasOpen=now;
-    }).observe(modal,{attributes:true,attributeFilter:['class']});
-  }
-  // If inventory is refreshed while the modal is closed, the next opening captures the latest options.
-  const original=window.montarBaixaAtual;
-  if(typeof original==='function'&&!original.__decorart3710){
-    const wrapped=function(){const result=original.apply(this,arguments);if(!isOpen()){baseOptions=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));snapshotKey=baseOptions.map(o=>o.value+'\u001f'+o.text).join('\u001e');}return result;};
-    wrapped.__decorart3710=true;window.montarBaixaAtual=wrapped;
-    window.montarOpcoesBaixa=wrapped;window.preencherSelectBaixaSeguro=wrapped;
-  }
-  console.info('Decorart ERP 3.7.10: pesquisa de itens na Nova Baixa ativada.');
-})();
-</script>
+
 
 </body></html>`);
     w.document.close();
@@ -5984,4 +5921,68 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
 })();
 </script>
 
+<!-- DECORART ERP 3.7.11: pesquisa de itens na Nova Baixa -->
+<script id="decorart-3-7-10-busca-baixa">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const modal=$('modalNovaBaixa'), select=$('baixaItemSelect'), search=$('baixaItemBusca'), status=$('baixaBuscaResultado');
+  if(!modal||!select||!search)return;
+  let baseOptions=[];
+  let snapshotKey='';
+  const isOpen=()=>!modal.classList.contains('hidden');
+  const capture=()=>{
+    baseOptions=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));
+    snapshotKey=baseOptions.map(o=>o.value+'\u001f'+o.text).join('\u001e');
+    filterOptions(false);
+  };
+  function filterOptions(fromTyping=true){
+    if(!baseOptions.length)captureBaseIfNeeded();
+    const term=String(search.value||'').trim().toLocaleLowerCase('pt-BR');
+    const selectedBefore=String(select.value||'');
+    const filtered=baseOptions.filter(o=>!term||o.text.toLocaleLowerCase('pt-BR').includes(term));
+    const selectedStillVisible=filtered.some(o=>o.value===selectedBefore);
+    const blank={value:'',text:term?'Selecione um item filtrado':'Selecione um item',disabled:false};
+    const rows=[blank,...filtered];
+    select.innerHTML='';
+    rows.forEach(o=>{const opt=document.createElement('option');opt.value=o.value;opt.textContent=o.text;opt.disabled=!!o.disabled;select.appendChild(opt);});
+    if(selectedBefore && selectedStillVisible)select.value=selectedBefore;
+    else select.value='';
+    if(status){
+      const count=filtered.filter(o=>o.value).length;
+      status.textContent=term?`${count} item(ns) encontrado(s). Selecione o item correto na lista.`:`${count} item(ns) disponível(is). Digite para filtrar por ID, descrição, cor ou categoria.`;
+    }
+    if(fromTyping && selectedBefore && !selectedStillVisible) select.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  function captureBaseIfNeeded(){
+    const current=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));
+    const key=current.map(o=>o.value+'\u001f'+o.text).join('\u001e');
+    if(!baseOptions.length || (key!==snapshotKey && !isOpen())){
+      baseOptions=current;snapshotKey=key;
+    }
+  }
+  search.addEventListener('input',()=>filterOptions(true));
+  search.addEventListener('keydown',e=>{if(e.key==='Escape'){search.value='';filterOptions(false);}});
+  // Capture the complete inventory list when Nova Baixa opens, after its initializer populated it.
+  if(typeof MutationObserver!=='undefined'){
+    let wasOpen=isOpen();
+    new MutationObserver(()=>{
+      const now=isOpen();
+      if(now&&!wasOpen){
+        setTimeout(()=>{baseOptions=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));snapshotKey=baseOptions.map(o=>o.value+'\u001f'+o.text).join('\u001e');search.value='';filterOptions(false);},0);
+      }
+      if(!now&&wasOpen){search.value='';baseOptions=[];snapshotKey='';}
+      wasOpen=now;
+    }).observe(modal,{attributes:true,attributeFilter:['class']});
+  }
+  // If inventory is refreshed while the modal is closed, the next opening captures the latest options.
+  const original=window.montarBaixaAtual;
+  if(typeof original==='function'&&!original.__decorart3710){
+    const wrapped=function(){const result=original.apply(this,arguments);if(!isOpen()){baseOptions=[...select.options].map(o=>({value:o.value,text:o.textContent,disabled:o.disabled}));snapshotKey=baseOptions.map(o=>o.value+'\u001f'+o.text).join('\u001e');}return result;};
+    wrapped.__decorart3710=true;window.montarBaixaAtual=wrapped;
+    window.montarOpcoesBaixa=wrapped;window.preencherSelectBaixaSeguro=wrapped;
+  }
+  console.info('Decorart ERP 3.7.11: pesquisa de itens na Nova Baixa ativada.');
+})();
+</script>
 </body></html>
