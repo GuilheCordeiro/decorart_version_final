@@ -3,6 +3,57 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script id="decorart-formatadores-datas-seguros">
+(function(){
+  'use strict';
+  const pad=n=>String(n).padStart(2,'0');
+  const dataLocal=d=>pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear();
+  const horaLocal=d=>pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  const dataFiltroLocal=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  function dateObject(v){
+    if(v instanceof Date)return Number.isNaN(v.getTime())?null:v;
+    if(v && typeof v.toDate==='function'){try{const d=v.toDate();return d instanceof Date&&!Number.isNaN(d.getTime())?d:null;}catch(_){}}
+    if(v && typeof v.seconds==='number'){const d=new Date(v.seconds*1000);return Number.isNaN(d.getTime())?null:d;}
+    if(v && typeof v._seconds==='number'){const d=new Date(v._seconds*1000);return Number.isNaN(d.getTime())?null:d;}
+    if(typeof v==='number'){const d=new Date(v);return Number.isNaN(d.getTime())?null:d;}
+    if(typeof v!=='string'||!v.trim())return null;
+    const t=v.trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(t))return null;
+    const d=new Date(t);return Number.isNaN(d.getTime())?null:d;
+  }
+  function brParts(v){
+    if(typeof v!=='string')return null;
+    const m=v.trim().match(/^(\d{2})[\/.\-](\d{2})[\/.\-](\d{4})(?:[ T]+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+    if(!m)return null;
+    return {date:m[1]+'-'+m[2]+'-'+m[3],hasTime:m[4]!==undefined,time:m[4]!==undefined?(m[4]+':'+m[5]+(m[6]!==undefined?':'+m[6]:'')):''};
+  }
+  function isoDateOnly(v){if(typeof v!=='string')return null;const m=v.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?{year:m[1],month:m[2],day:m[3]}:null;}
+  window.formatarDataCurtaBR=function(valor){
+    if(valor===null||valor===undefined||valor==='')return '-';
+    if(valor instanceof Date)return Number.isNaN(valor.getTime())?'-':dataLocal(valor);
+    const texto=String(valor).trim();
+    const iso=texto.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T|\s)/);if(iso)return iso[3]+'-'+iso[2]+'-'+iso[1];
+    const br=texto.match(/^(\d{2})[\/.\-](\d{2})[\/.\-](\d{4})/);if(br)return br[1]+'-'+br[2]+'-'+br[3];
+    const d=dateObject(texto);return d?dataLocal(d):texto;
+  };
+  window.formatarDataHoraAuditoria=function(data,dataISO){
+    const br=brParts(data);
+    if(br&&br.hasTime)return br.date+' '+br.time;
+    if(br&&!br.hasTime){const isoTime=dateObject(dataISO);return br.date+(isoTime?' '+horaLocal(isoTime):' (hora não registrada)');}
+    const d1=dateObject(data);if(d1)return dataLocal(d1)+' '+horaLocal(d1);
+    const d2=dateObject(dataISO);if(d2)return dataLocal(d2)+' '+horaLocal(d2);
+    const iso=isoDateOnly(data)||isoDateOnly(dataISO);if(iso)return iso.day+'-'+iso.month+'-'+iso.year+' (hora não registrada)';
+    return String(data||dataISO||'-');
+  };
+  window.dataAuditoriaParaFiltro=function(data,dataISO){
+    const br=brParts(data);if(br){const m=String(data).trim().match(/^(\d{2})[\/.\-](\d{2})[\/.\-](\d{4})/);return m[3]+'-'+m[2]+'-'+m[1];}
+    const d1=dateObject(data);if(d1)return dataFiltroLocal(d1);
+    const d2=dateObject(dataISO);if(d2)return dataFiltroLocal(d2);
+    const iso=isoDateOnly(data)||isoDateOnly(dataISO);return iso?iso.year+'-'+iso.month+'-'+iso.day:'';
+  };
+})();
+</script>
+
 <title>Decorart Móveis Planejados - ERP Integrado com Etiquetas QR Code</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -1361,7 +1412,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
       document.getElementById('kpiZerados').textContent = zerados.length + ' itens';
 
       document.getElementById('dashRecentBaixas').innerHTML = DB.saidas.slice(0, 5).map(b => `
-        <tr class="hover:bg-amber-500/5"><td class="py-2">${b.Data}</td><td class="py-2 font-medium">${b.Tipo}</td><td class="py-2 text-amber-500 font-bold">${b.Qtd}</td><td class="py-2 opacity-70 truncate max-w-[150px]">${b.Destino}</td></tr>
+        <tr class="hover:bg-amber-500/5"><td class="py-2">${window.formatarDataCurtaBR(b.Data)}</td><td class="py-2 font-medium">${b.Tipo}</td><td class="py-2 text-amber-500 font-bold">${b.Qtd}</td><td class="py-2 opacity-70 truncate max-w-[150px]">${b.Destino}</td></tr>
       `).join('');
 
       document.getElementById('dashCriticalChapas').innerHTML = zerados.slice(0, 5).map(c => `
@@ -2002,7 +2053,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
       }
       tbody.innerHTML = DB.saidas.map((s, idx) => `
         <tr class="hover:bg-amber-500/5 transition-colors">
-          <td class="py-3 px-4 opacity-70">${s.Data}</td>
+          <td class="py-3 px-4 opacity-70">${window.formatarDataCurtaBR(s.Data)}</td>
           <td class="py-3 px-4 font-mono opacity-80">${s.IDItem || '-'}</td>
           <td class="py-3 px-4 font-bold">${s.Tipo}</td>
           <td class="py-3 px-4 font-bold text-amber-500">${s.Qtd}</td>
@@ -2112,6 +2163,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
       const df = document.getElementById('filtroDataFim');
       if(di) di.value = '';
       if(df) df.value = '';
+      const fp = document.getElementById('filtroProjetoBaixas'); if(fp) fp.value = '';
       renderTabelaMovimentacoesFiltrada();
     }
 
@@ -2121,13 +2173,18 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
 
       const di = document.getElementById('filtroDataInicio')?.value;
       const df = document.getElementById('filtroDataFim')?.value;
+      const projetoSelecionado = document.getElementById('filtroProjetoBaixas')?.value || '';
+      const projetoObj = (DB.projetos || []).find(p => String(p.ID) === String(projetoSelecionado));
 
-      let saidasFiltradas = DB.saidas;
-      if (di) {
-        saidasFiltradas = saidasFiltradas.filter(s => s.Data >= di);
-      }
-      if (df) {
-        saidasFiltradas = saidasFiltradas.filter(s => s.Data <= df);
+      let saidasFiltradas = [...(DB.saidas || [])];
+      if (di) saidasFiltradas = saidasFiltradas.filter(s => String(s.Data || '').slice(0,10) >= di);
+      if (df) saidasFiltradas = saidasFiltradas.filter(s => String(s.Data || '').slice(0,10) <= df);
+      if (projetoSelecionado) {
+        saidasFiltradas = saidasFiltradas.filter(s => {
+          if (String(s.ProjetoID || '') === String(projetoSelecionado)) return true;
+          const destino = String(s.Destino || '').toLocaleLowerCase('pt-BR');
+          return destino.includes(String(projetoSelecionado).toLocaleLowerCase('pt-BR')) || !!(projetoObj?.Nome && destino.includes(String(projetoObj.Nome).toLocaleLowerCase('pt-BR')));
+        });
       }
 
       let somaQtdTotal = 0;
@@ -2155,14 +2212,18 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
           const itemEstoque = DB.estoque.find(i => String(i.ID) === String(s.IDItem) && (!s.ItemFirestoreId || String(i.firestoreId||'') === String(s.ItemFirestoreId)));
           const itemMaterial = DB.materiais.find(i => String(i.ID) === String(s.IDItem) && (!s.ItemFirestoreId || String(i.firestoreId||'') === String(s.ItemFirestoreId)));
           const itemAtual = itemEstoque || itemMaterial || DB.estoque.find(i => String(i.ID) === String(s.IDItem)) || DB.materiais.find(i => String(i.ID) === String(s.IDItem));
-          const custoUnit = Number(s.CustoUnitario ?? itemAtual?.CustoUnitario ?? itemAtual?.Custo ?? itemAtual?.PrecoUnitario ?? 0) || 0;
-          const custoTotal = Number(s.CustoTotal ?? (custoUnit * Number(s.Qtd||0))).toFixed(2) * 1;
+          // Registros antigos podem ter custo salvo como zero; prioriza qualquer custo válido no cadastro.
+          const candidatosCusto = [s.CustoUnitario, s.CustoUnit, s.PrecoUnitario, itemAtual?.CustoUnitario, itemAtual?.Custo, itemAtual?.PrecoUnitario];
+          const custoSalvoPositivo = candidatosCusto.map(v => Number(v)).find(v => Number.isFinite(v) && v > 0);
+          const custoUnit = custoSalvoPositivo ?? 0;
+          const totalSalvo = Number(s.CustoTotal);
+          const custoTotal = Number((Number.isFinite(totalSalvo) && totalSalvo > 0 ? totalSalvo : custoUnit * Number(s.Qtd||0)).toFixed(2));
           somaQtdTotal += s.Qtd;
           somaValorTotal += custoTotal;
 
           html += `
             <tr>
-              <td class="p-2 border border-[var(--border-color)]">${s.Data}</td>
+              <td class="p-2 border border-[var(--border-color)]">${window.formatarDataCurtaBR(s.Data)}</td>
               <td class="p-2 border border-[var(--border-color)] font-mono">${s.IDItem || '-'}</td>
               <td class="p-2 border border-[var(--border-color)] font-bold">${s.Descricao || s.Cor || s.Tipo || '-'}</td>
               <td class="p-2 border border-[var(--border-color)] text-center font-bold text-amber-500">${s.Qtd}</td>
@@ -2218,13 +2279,26 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
               <label class="block font-semibold mb-1">Data Fim:</label>
               <input type="date" id="filtroDataFim" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5" onchange="atualizarRelatorioMovimentacoes()" />
             </div>
+            <div>
+              <label class="block font-semibold mb-1">Projeto / Obra:</label>
+              <select id="filtroProjetoBaixas" class="bg-[var(--bg-surface)] border border-[var(--border-color)] rounded p-1.5 min-w-56" onchange="atualizarRelatorioMovimentacoes()">
+                <option value="">Todos os projetos</option>
+              </select>
+            </div>
             <div class="flex items-end">
-              <button onclick="limparFiltroMovimentacoes()" class="px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded hover:opacity-100">Limpar Filtro</button>
+              <button onclick="limparFiltroMovimentacoes()" class="px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded hover:opacity-100">Limpar Filtros</button>
             </div>
           </div>
           <div id="tabelaMovimentacoesConteudo"></div>
         `;
         corpo.innerHTML = htmlFiltros;
+        const selectProjeto = document.getElementById('filtroProjetoBaixas');
+        if (selectProjeto) {
+          const safe = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+          (DB.projetos || []).slice().sort((a,b)=>String(a.Nome||a.ID||'').localeCompare(String(b.Nome||b.ID||''),'pt-BR')).forEach(p=>{
+            const op=document.createElement('option'); op.value=String(p.ID||''); op.textContent=`${p.ID||''} - ${p.Nome||p.Projeto||'Projeto sem nome'}${p.Cliente?' / '+p.Cliente:''}`; selectProjeto.appendChild(op);
+          });
+        }
         renderTabelaMovimentacoesFiltrada();
       } else if (tipo === 'auditoria') {
         subHeader.textContent = `Log de Auditoria de Ações do Sistema - Gerado em ${hoje}`;
@@ -2235,7 +2309,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
         let html = `<table class="w-full text-left text-xs border-collapse border border-[var(--border-color)]">
           <thead><tr class="bg-[var(--bg-card)]"><th class="p-2 border border-[var(--border-color)]">Data / Hora</th><th class="p-2 border border-[var(--border-color)]">Usuário</th><th class="p-2 border border-[var(--border-color)]">Ação Executada</th><th class="p-2 border border-[var(--border-color)]">Detalhes da Alteração</th></tr></thead><tbody>`;
         DB.auditoria.forEach(a => {
-          html += `<tr><td class="p-2 border border-[var(--border-color)] font-mono">${a.Data}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500">${a.Usuário || a.Utilizador || 'Sistema'}</td><td class="p-2 border border-[var(--border-color)]">${a.Acao}</td><td class="p-2 border border-[var(--border-color)] opacity-80">${a.Detalhes}</td></tr>`;
+          html += `<tr><td class="p-2 border border-[var(--border-color)] font-mono">${window.formatarDataHoraAuditoria(a.Data, a.DataISO)}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500">${a.Usuário || a.Utilizador || 'Sistema'}</td><td class="p-2 border border-[var(--border-color)]">${a.Acao}</td><td class="p-2 border border-[var(--border-color)] opacity-80">${a.Detalhes}</td></tr>`;
         });
         html += `</tbody></table>
           <div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex justify-between items-center text-xs">
@@ -2463,7 +2537,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
   function renderProjetos(){
     const body=document.getElementById('tableProjetosBody'); if(!body) return; const total=DB.projetos.length, andamento=DB.projetos.filter(p=>['Em produção','Planejamento'].includes(p.Status)).length, mat=DB.projetos.filter(p=>p.Status==='Aguardando material').length, pr=DB.projetos.filter(p=>p.Status==='Pronto').length;
     ['kpiProjetosTotal','kpiProjetosAndamento','kpiProjetosMaterial','kpiProjetosProntos'].forEach((id,i)=>{const el=document.getElementById(id); if(el) el.textContent=[total,andamento,mat,pr][i];});
-    body.innerHTML=DB.projetos.slice().sort((a,b)=>String(b.CriadoEm).localeCompare(String(a.CriadoEm))).map((p,i)=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${esc(p.ID)}</td><td class="py-3 px-4 font-semibold">${esc(p.Nome)}</td><td class="py-3 px-4">${esc(p.Cliente)}</td><td class="py-3 px-4">${esc(p.Prazo||'-')}</td><td class="py-3 px-4"><span class="px-2 py-1 rounded bg-amber-500/10 text-amber-500">${esc(p.Status)}</span></td><td class="py-3 px-4">${Array.isArray(p.Materiais)?p.Materiais.length:0}</td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="abrirMateriaisProjeto('${esc(p.ID)}')" class="text-amber-500 hover:underline">Materiais</button><button onclick="editarProjeto('${esc(p.ID)}')" class="text-sky-400 hover:underline">Editar</button></div></td></tr>`).join('') || `<tr><td colspan="7" class="py-8 text-center opacity-60">Nenhum projeto cadastrado.</td></tr>`;
+    body.innerHTML=DB.projetos.slice().sort((a,b)=>String(b.CriadoEm).localeCompare(String(a.CriadoEm))).map((p,i)=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${esc(p.ID)}</td><td class="py-3 px-4 font-semibold">${esc(p.Nome)}</td><td class="py-3 px-4">${esc(p.Cliente)}</td><td class="py-3 px-4">${esc(p.Prazo?window.formatarDataCurtaBR(p.Prazo):'-')}</td><td class="py-3 px-4"><span class="px-2 py-1 rounded bg-amber-500/10 text-amber-500">${esc(p.Status)}</span></td><td class="py-3 px-4">${Array.isArray(p.Materiais)?p.Materiais.length:0}</td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="abrirMateriaisProjeto('${esc(p.ID)}')" class="text-amber-500 hover:underline">Materiais</button><button onclick="editarProjeto('${esc(p.ID)}')" class="text-sky-400 hover:underline">Editar</button></div></td></tr>`).join('') || `<tr><td colspan="7" class="py-8 text-center opacity-60">Nenhum projeto cadastrado.</td></tr>`;
   }
   window.verProjeto=function(id){ const p=DB.projetos.find(x=>x.ID===id); if(!p) return; alert(`${p.ID} - ${p.Nome}\nCliente: ${p.Cliente}\nStatus: ${p.Status}\nPrazo: ${p.Prazo||'-'}\nMateriais vinculados: ${Array.isArray(p.Materiais)?p.Materiais.length:0}`); };
 
@@ -2928,19 +3002,62 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
   }
   window.excluirProjeto=async function(id){const p=projeto(id);if(!p)return;if(!await confirmarMaster(`Excluir o projeto ${p.ID} — ${p.Nome}?`))return;if(!confirm(`Confirma a exclusão permanente do projeto ${p.ID}?`))return;try{if(dbStore)await dbStore.collection('projetos').doc(p.firestoreId||p.ID).delete();DB.projetos=DB.projetos.filter(x=>x.ID!==id);auditoria('Excluir projeto',`${p.ID} — ${p.Nome}`);if(window.renderProjetos)window.renderProjetos();preencherProjetosBaixa();}catch(err){alert('Erro ao excluir projeto: '+err.message);}};
 
-  // ---------------- Filtros por clique no cabeçalho ----------------
+  // ---------------- Ordenação A-Z e filtro opcional por coluna ----------------
   const filtros=new WeakMap();
+  const ordenacoes=new WeakMap();
   function anexarFiltros(){
     document.querySelectorAll('table').forEach(table=>{
-      const ths=[...(table.tHead?.querySelectorAll('th')||[])];if(!ths.length)return;
-      let estado=filtros.get(table);if(!estado){estado={};filtros.set(table,estado);}
+      const ths=[...(table.tHead?.querySelectorAll('th')||[])]; if(!ths.length)return;
+      let estado=filtros.get(table); if(!estado){estado={};filtros.set(table,estado);}
       ths.forEach((th,i)=>{
-        if(th.dataset.filtroColuna==='1')return;th.dataset.filtroColuna='1';th.title='Clique para filtrar esta coluna';th.style.cursor='pointer';th.classList.add('select-none');
-        th.addEventListener('click',()=>{const nome=(th.textContent||`Coluna ${i+1}`).replace(/\s+/g,' ').trim(),v=prompt(`Filtrar "${nome}"\n\nDigite o texto. Deixe vazio para limpar:`,estado[i]||'');if(v===null)return;estado[i]=v.trim().toLowerCase();th.classList.toggle('text-amber-500',!!estado[i]);[...(table.tBodies||[])].forEach(tb=>[...tb.rows].forEach(row=>{const txt=(row.cells[i]?.textContent||'').toLowerCase();row.style.display=!estado[i]||txt.includes(estado[i])?'':'none';}));auditoria(estado[i]?'Filtrar coluna':'Limpar filtro',`${nome}${estado[i]?' = '+estado[i]:''}`);});
+        if(th.dataset.sortFiltroAtivo==='1')return;
+        th.dataset.sortFiltroAtivo='1'; th.style.cursor='pointer'; th.classList.add('select-none');
+        const label=(th.textContent||`Coluna ${i+1}`).replace(/\s+/g,' ').trim();
+        th.title='Clique para ordenar A-Z / Z-A. Use a lupa para filtrar.';
+        const filtroBtn=document.createElement('button');
+        filtroBtn.type='button'; filtroBtn.textContent='⌕'; filtroBtn.title=`Filtrar ${label}`;
+        filtroBtn.setAttribute('aria-label',`Filtrar ${label}`);
+        filtroBtn.style.cssText='margin-left:6px;padding:0 3px;border-radius:4px;color:var(--text-muted,#b0b0b0);cursor:pointer;font-size:13px;';
+        filtroBtn.addEventListener('click',ev=>{
+          ev.stopPropagation();
+          const valor=prompt(`Filtrar coluna: ${label}\n\nDigite parte do texto. Deixe vazio para limpar o filtro:`,estado[i]||'');
+          if(valor===null)return;
+          estado[i]=valor.trim().toLocaleLowerCase('pt-BR');
+          th.classList.toggle('text-amber-500',!!estado[i]);
+          [...(table.tBodies||[])].forEach(tb=>[...tb.rows].forEach(row=>{
+            const txt=(row.cells[i]?.textContent||'').toLocaleLowerCase('pt-BR');
+            row.style.display=!estado[i]||txt.includes(estado[i])?'':'none';
+          }));
+          auditoria(estado[i]?'Filtrar coluna':'Limpar filtro',`${label}${estado[i]?' = '+estado[i]:''}`);
+        });
+        th.appendChild(filtroBtn);
+        th.addEventListener('click',()=>{
+          const atual=ordenacoes.get(th)||'none';
+          const dir=atual==='asc'?'desc':'asc';
+          [...th.parentElement.children].forEach(other=>{if(other!==th)ordenacoes.delete(other);});
+          ordenacoes.set(th,dir);
+          const tabela=th.closest('table'); const idx=[...th.parentElement.children].indexOf(th);
+          [...(tabela.tBodies||[])].forEach(tb=>{
+            const rows=[...tb.rows];
+            rows.sort((ra,rb)=>{
+              const a=(ra.cells[idx]?.textContent||'').replace('⌕','').trim();
+              const b=(rb.cells[idx]?.textContent||'').replace('⌕','').trim();
+              const na=Number(a.replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'));
+              const nb=Number(b.replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'));
+              const bothNumeric=a!==''&&b!==''&&Number.isFinite(na)&&Number.isFinite(nb)&&/[0-9]/.test(a)&&/[0-9]/.test(b);
+              const cmp=bothNumeric?(na-nb):a.localeCompare(b,'pt-BR',{numeric:true,sensitivity:'base'});
+              return dir==='asc'?cmp:-cmp;
+            }); rows.forEach(r=>tb.appendChild(r));
+          });
+          th.querySelectorAll('[data-sort-indicator]').forEach(n=>n.remove());
+          const ind=document.createElement('span');ind.dataset.sortIndicator='1';ind.textContent=dir==='asc'?' ↑':' ↓';ind.style.cssText='font-size:10px;opacity:.8';th.appendChild(ind);
+        });
       });
     });
   }
   window.aplicarFiltrosColunas=anexarFiltros;
+  const observerTabelas=new MutationObserver(()=>anexarFiltros());
+  window.addEventListener('load',()=>{try{observerTabelas.observe(document.body,{childList:true,subtree:true});anexarFiltros();}catch(e){}});
 
   // ---------------- Navegação: menu sem Localizações ----------------
   const navigateOriginal=window.navigate;
@@ -4012,7 +4129,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
   window.renderProjetos=function(){
     const body=document.getElementById('tableProjetosBody');if(!body)return;const ps=arr('projetos');
     ['kpiProjetosTotal','kpiProjetosAndamento','kpiProjetosMaterial','kpiProjetosProntos'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[ps.length,ps.filter(p=>['Em produção','Planejamento'].includes(p.Status)).length,ps.filter(p=>p.Status==='Aguardando material').length,ps.filter(p=>p.Status==='Pronto').length][i];});
-    body.innerHTML=ps.slice().sort((a,b)=>String(b.CriadoEm||'').localeCompare(String(a.CriadoEm||''))).map(p=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${escSafe(p.ID)}</td><td class="py-3 px-4 font-semibold">${escSafe(p.Nome)}</td><td class="py-3 px-4">${escSafe(p.Cliente)}</td><td class="py-3 px-4">${p.Prazo?new Date(p.Prazo+'T00:00:00').toLocaleDateString('pt-BR'):'-'}</td><td class="py-3 px-4"><span class="px-2 py-1 rounded bg-amber-500/10 text-amber-500">${escSafe(p.Status||'-')}</span></td><td class="py-3 px-4">${Array.isArray(p.Materiais)?p.Materiais.length:0}</td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="abrirMateriaisProjeto('${escSafe(p.ID)}')" class="text-amber-500 hover:underline">Materiais</button><button onclick="editarProjeto('${escSafe(p.ID)}')" class="text-sky-400 hover:underline">Editar</button><button onclick="abrirOrcamentoProjeto('${escSafe(p.ID)}')" class="text-emerald-400 hover:underline">Orçamento</button><button onclick="excluirProjeto('${escSafe(p.ID)}')" class="text-red-500 hover:underline">Excluir</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="py-8 text-center opacity-60">Nenhum projeto cadastrado.</td></tr>';
+    body.innerHTML=ps.slice().sort((a,b)=>String(b.CriadoEm||'').localeCompare(String(a.CriadoEm||''))).map(p=>`<tr class="hover:bg-amber-500/5"><td class="py-3 px-4 font-mono font-bold">${escSafe(p.ID)}</td><td class="py-3 px-4 font-semibold">${escSafe(p.Nome)}</td><td class="py-3 px-4">${escSafe(p.Cliente)}</td><td class="py-3 px-4">${p.Prazo?window.formatarDataCurtaBR(p.Prazo):'-'}</td><td class="py-3 px-4"><span class="px-2 py-1 rounded bg-amber-500/10 text-amber-500">${escSafe(p.Status||'-')}</span></td><td class="py-3 px-4">${Array.isArray(p.Materiais)?p.Materiais.length:0}</td><td class="py-3 px-4 text-center"><div class="flex justify-center gap-3"><button onclick="abrirMateriaisProjeto('${escSafe(p.ID)}')" class="text-amber-500 hover:underline">Materiais</button><button onclick="editarProjeto('${escSafe(p.ID)}')" class="text-sky-400 hover:underline">Editar</button><button onclick="abrirOrcamentoProjeto('${escSafe(p.ID)}')" class="text-emerald-400 hover:underline">Orçamento</button><button onclick="excluirProjeto('${escSafe(p.ID)}')" class="text-red-500 hover:underline">Excluir</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="py-8 text-center opacity-60">Nenhum projeto cadastrado.</td></tr>';
   };
 
   // ----------------- Projeto x materiais -----------------
@@ -4117,6 +4234,13 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
     }catch(err){console.error(err);alert('Não foi possível remover o material: '+err.message);}
   };
 
+  // Resolve o primeiro custo unitário positivo. Um campo igual a zero não deve esconder outro campo válido.
+  function resolverCustoPositivo(item){
+    const valores=[item?.CustoUnitario,item?.Custo,item?.PrecoUnitario,item?.ValorUnitario];
+    for(const bruto of valores){const n=Number(bruto);if(Number.isFinite(n)&&n>0)return n;}
+    return 0;
+  }
+
   // ----------------- Baixa geral: sempre registra projeto e usuário -----------------
   window.salvarBaixa=async function(ev){
     ev?.preventDefault?.();
@@ -4136,14 +4260,14 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
         await db().runTransaction(async tx=>{
           const s=await tx.get(itemRef);if(!s.exists)throw new Error('Item não existe mais no Firebase.');const atual=Number(s.data().Quantidade||0);if(atual<qtd)throw new Error(`Saldo insuficiente no Firebase. Disponível: ${atual}`);
           tx.update(itemRef,{Quantidade:atual-qtd,AtualizadoEm:now()});tx.set(projRef,{Materiais:mats,AtualizadoEm:now()},{merge:true});
-          const custoUnitario=Number(item.CustoUnitario??item.Custo??item.PrecoUnitario??0)||0;
+          const custoUnitario=resolverCustoPositivo(item);
+          if(!(custoUnitario>0)){throw new Error('O item '+item.ID+' está sem custo unitário válido. Atualize o custo no cadastro antes de registrar a baixa, para evitar um histórico com valor zerado.');}
           const custoTotal=Number((custoUnitario*qtd).toFixed(2));
           tx.set(saidaRef,{IDItem:item.ID,ItemFirestoreId:item.firestoreId,Tipo:item.Tipo||item.Categoria||col,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,Cor:item.Cor||'',Qtd:qtd,Unidade:item.Unidade||'un',CustoUnitario:custoUnitario,CustoTotal:custoTotal,Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});
           tx.set(movRef,{Tipo:'SAIDA',ItemID:item.ID,ItemFirestoreId:item.firestoreId,Qtd:qtd,Unidade:item.Unidade||'un',ProjetoID:p.ID,Destino:destino,Responsavel:userName(),TipoOrigem:col,Data:now()});
         });
         item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;
-      }else{item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;const custoUnitarioLocal=Number(item.CustoUnitario??item.Custo??item.PrecoUnitario??0)||0;
-        const custoTotalLocal=Number((custoUnitarioLocal*qtd).toFixed(2));
+      }else{const custoUnitarioLocal=resolverCustoPositivo(item);if(!(custoUnitarioLocal>0)){throw new Error('O item '+item.ID+' está sem custo unitário válido. Atualize o custo no cadastro antes de registrar a baixa, para evitar um histórico com valor zerado.');}const custoTotalLocal=Number((custoUnitarioLocal*qtd).toFixed(2));item.Quantidade=Number(item.Quantidade||0)-qtd;p.Materiais=mats;
         arr('saidas').unshift({IDItem:item.ID,ItemFirestoreId:item.firestoreId||fs,Tipo:item.Tipo||item.Categoria||col,Descricao:item.Descricao||item.Cor||item.Tipo||item.ID,Cor:item.Cor||'',Qtd:qtd,Unidade:item.Unidade||'un',CustoUnitario:custoUnitarioLocal,CustoTotal:custoTotalLocal,Data:data,Destino:destino,Responsavel:userName(),ProjetoID:p.ID,Status:'Consumido',TipoOrigem:col,CriadoEm:now()});}
       audit('Registrar baixa',`${item.ID} — ${qtd} ${item.Unidade||'un'} → ${p.ID}`);closeM('modalNovaBaixa');document.getElementById('formBaixa')?.reset();if(window.montarBaixaAtual)window.montarBaixaAtual();if(window.preencherProjetosBaixa)window.preencherProjetosBaixa();if(window.renderProjetos)window.renderProjetos();if(window.renderVinculosProjeto)window.renderVinculosProjeto(p);if(window.renderMateriais)window.renderMateriais();alert('Baixa confirmada e vinculada ao projeto.');
     }catch(err){console.error(err);alert('Baixa não realizada: '+err.message);}
@@ -4801,7 +4925,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
       for(const a of logs){
         const detalhe=String(a.Detalhes||'')+(a.Antes&&a.Depois?` | ANTES: ${a.Antes} | DEPOIS: ${a.Depois}`:'');
         html+=`<tr class="align-top hover:bg-amber-500/5">
-          <td class="p-2 border border-[var(--border-color)] font-mono whitespace-nowrap">${esc(a.Data||a.DataISO||'-')}</td>
+          <td class="p-2 border border-[var(--border-color)] font-mono whitespace-nowrap">${esc(window.formatarDataHoraAuditoria(a.Data, a.DataISO))}</td>
           <td class="p-2 border border-[var(--border-color)] font-bold text-amber-500 whitespace-nowrap">${esc(a.Usuário||a.Usuario||'Sistema')}</td>
           <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Login||'-')}</td>
           <td class="p-2 border border-[var(--border-color)] whitespace-nowrap">${esc(a.Perfil||'-')}</td>
@@ -5031,7 +5155,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
       const filtrados=logs.filter(a=>{
         if(u && String(a.Login||'')!==u)return false;
         if(ac && String(a.Acao||'')!==ac)return false;
-        const d=String(a.DataISO||'').slice(0,10);
+        const d=window.dataAuditoriaParaFiltro(a.Data, a.DataISO);
         if(di && d<di)return false;
         if(df && d>df)return false;
         return true;
@@ -5041,7 +5165,7 @@ Informe o preço da chapa de referência. O custo será proporcional à área do
         <th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Data / Hora</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Usuário</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Login</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Perfil</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Ação</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Coleção</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Registro</th><th class="p-2 border border-[var(--border-color)]">Detalhes</th><th class="p-2 border border-[var(--border-color)] whitespace-nowrap">Resultado</th></tr></thead><tbody>`;
       for(const a of filtrados){
         const detalhe=String(a.Detalhes||'')+(a.Antes&&a.Depois?` | ANTES: ${a.Antes} | DEPOIS: ${a.Depois}`:'');
-        html+=`<tr class="align-top hover:bg-amber-500/5"><td class="p-2 border border-[var(--border-color)] font-mono whitespace-nowrap">${esc(a.Data||a.DataISO||'-')}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500 whitespace-nowrap">${esc(a.Usuário||a.Usuario||'Sistema')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Login||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Perfil||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Acao||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Colecao||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.RegistroID||'-')}</td><td class="p-2 border border-[var(--border-color)] min-w-[280px] break-words">${esc(detalhe)}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Resultado||'CONFIRMADO')}</td></tr>`;
+        html+=`<tr class="align-top hover:bg-amber-500/5"><td class="p-2 border border-[var(--border-color)] font-mono whitespace-nowrap">${esc(window.formatarDataHoraAuditoria(a.Data, a.DataISO))}</td><td class="p-2 border border-[var(--border-color)] font-bold text-amber-500 whitespace-nowrap">${esc(a.Usuário||a.Usuario||'Sistema')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Login||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Perfil||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Acao||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Colecao||'-')}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.RegistroID||'-')}</td><td class="p-2 border border-[var(--border-color)] min-w-[280px] break-words">${esc(detalhe)}</td><td class="p-2 border border-[var(--border-color)]">${esc(a.Resultado||'CONFIRMADO')}</td></tr>`;
       }
       html+=`</tbody></table></div><div class="mt-4 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl flex justify-between items-center text-xs"><span>Registros exibidos: <strong>${filtrados.length}</strong></span><span>Total no histórico: <strong>${logs.length}</strong></span><span>Sincronizado com Firebase</span></div>`;
       document.getElementById('audTabela').innerHTML=html;
